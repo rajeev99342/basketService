@@ -1,0 +1,4 @@
+com/service/controller/TestController.class
+com/service/entities/Product.class
+com/service/ServiceApplication.class
+com/service/repos/ProductRepo.class
