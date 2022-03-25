@@ -14,9 +14,9 @@ public class Category {
     private Long id;
 
     @Column(name = "CAT_NAME")
-    private Long catName;
+    private String catName;
 
     @Column(name = "CAT_TYPE")
-    private Long catType;
+    private String catType;
 
 }

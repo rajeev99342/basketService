@@ -20,6 +20,11 @@ public class Image {
     private Product product;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "CAT_ID",referencedColumnName = "CAT_ID")
+    private Category category;
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PR_ID",referencedColumnName = "PR_ID")
     private ProductReview productReview;
 
