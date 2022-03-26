@@ -32,5 +32,11 @@ public class Product{
     @Column(name = "WEIGHT")
     private Double prodWeight;
 
+    @Column(name = "SELLING_PRICE")
+    private Double sellingPrice;
+
+    @Column(name = "DISCOUNT")
+    private Double discount;
+
 
 }
