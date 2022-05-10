@@ -3,10 +3,7 @@ import com.google.gson.Gson;
 import com.service.entities.Category;
 import com.service.entities.ImageDetails;
 import com.service.entities.Product;
-import com.service.model.CategoryDisplayModel;
-import com.service.model.CategoryModel;
-import com.service.model.GlobalResponse;
-import com.service.model.ProductModel;
+import com.service.model.*;
 import com.service.service.CategoryService;
 import com.service.service.ImageService;
 import com.service.service.ProductService;
@@ -15,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @CrossOrigin(origins = "*")
@@ -40,6 +38,37 @@ public class ProductController {
         }
 
         return globalResponse;
+    }
+
+
+    @CrossOrigin(origins = "*")
+    @GetMapping("/fetch-all-product")
+    public List<DisplayProductModel> fetchAllProduct(){
+
+        List<DisplayProductModel> list = new ArrayList<>();
+        try {
+            list  = productService.fetchAllProducts();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+
+
+    @CrossOrigin(origins = "*")
+    @GetMapping("/get-product-details")
+    public DisplayProductModel getProductDetails(@RequestParam("id") Long id){
+
+        DisplayProductModel productModel = null;
+        try {
+            productModel  = productService.getProductDetails(id);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return productModel;
     }
 
 }

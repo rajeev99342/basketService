@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class ProductModel {
+ private  Long id;
    private String name ;
     private Double price;
     private Double weight;
@@ -11,6 +12,6 @@ public class ProductModel {
     private String brand;
     private Double sellingPrice;
     private Double discount ;
-    private Integer inStock;
+    private Long inStock;
     private CategoryModel category;
 }

@@ -19,7 +19,9 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Service
 public class ImageService {
@@ -86,5 +88,17 @@ public class ImageService {
         }
 
 
+    }
+
+
+    public List<Object> getAllImageByProduct(Long id){
+        List<Image> images =  imageRepository.findImageByProductId(id);
+        List<Object> base64List = new ArrayList<>();
+        for(Image image : images){
+           GlobalResponse res =  getImage(image.getImageDetails().getId());
+           base64List.add(res.getBody());
+        }
+
+        return base64List;
     }
 }
