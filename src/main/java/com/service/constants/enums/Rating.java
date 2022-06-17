@@ -1,4 +1,4 @@
-package com.service.constants;
+package com.service.constants.enums;
 
 public enum Rating {
     ONE_START(1),

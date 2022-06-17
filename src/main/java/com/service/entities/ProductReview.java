@@ -1,6 +1,6 @@
 package com.service.entities;
 
-import com.service.constants.Rating;
+import com.service.constants.enums.Rating;
 import lombok.Data;
 
 import javax.persistence.*;

@@ -1,7 +1,7 @@
 package com.service.entities;
 
-import com.service.constants.OrderStatus;
-import com.service.constants.PAYMENTMODE;
+import com.service.constants.enums.OrderStatus;
+import com.service.constants.enums.PAYMENTMODE;
 import lombok.Data;
 import javax.persistence.*;
 import java.util.Date;
