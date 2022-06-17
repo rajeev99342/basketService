@@ -1,6 +1,5 @@
 package com.service.entities;
 
-import com.service.constants.PAYMENTMODE;
 import lombok.Data;
 
 import javax.persistence.*;

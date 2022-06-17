@@ -1,6 +1,6 @@
 package com.service.entities;
 
-import com.service.constants.ImgType;
+import com.service.constants.enums.ImgType;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -18,6 +18,11 @@ public class Image {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PRODUCT_ID",referencedColumnName = "PRODUCT_ID")
     private Product product;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "CAT_ID",referencedColumnName = "CAT_ID")
+    private Category category;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PR_ID",referencedColumnName = "PR_ID")

@@ -7,7 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
-@CrossOrigin(origins = "http://localhost:8100")
+@CrossOrigin(origins = "*")
 @RestController
 public class ImageController {
 
@@ -27,7 +27,7 @@ public class ImageController {
     }
 
     @GetMapping("/get-uploaded-image")
-    public GlobalResponse getImage(@RequestParam("id") Long id) throws IOException {
+    public GlobalResponse getImage(@RequestParam(name = "id") Long id) {
         try {
             return this.imageService.getImage(id);
         }catch (Exception e){

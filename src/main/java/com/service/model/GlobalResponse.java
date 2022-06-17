@@ -1,24 +1,24 @@
 package com.service.model;
 
 import lombok.Data;
-import org.springframework.http.HttpStatus;
 
 @Data
 public class GlobalResponse {
     private String message;
-    private HttpStatus httpStatus;
+    private int httpStatusCode;
     private Boolean status;
     private Object body;
-    public GlobalResponse(String message, HttpStatus httpStatus, Boolean status,Object body){
+    public GlobalResponse(){}
+    public GlobalResponse(String message, int httpStatus, Boolean status,Object body){
         this.message = message;
-        this.httpStatus = httpStatus;
+        this.httpStatusCode = httpStatus;
         this.status = status;
         this.body = body;
     }
 
-    public GlobalResponse(String message, HttpStatus httpStatus){
+    public GlobalResponse(String message, int httpStatus){
         this.message = message;
-        this.httpStatus = httpStatus;
+        this.httpStatusCode = httpStatus;
         this.status = false;
         this.body = null;
     }
