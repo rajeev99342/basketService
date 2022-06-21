@@ -1,4 +1,4 @@
-package com.service.constants;
+package com.service.constants.enums;
 
 public enum PAYMENTMODE {
     CASE_ON_DELIVERY,

@@ -1,6 +1,6 @@
-package com.service.constants;
+package com.service.constants.enums;
 
-public enum OrderStatus {
+public enum PaymentStatus {
     ORDERED,
     PACKING,
     DISPATCHED,

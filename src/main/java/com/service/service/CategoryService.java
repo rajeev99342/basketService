@@ -1,6 +1,6 @@
 package com.service.service;
 
-import com.service.constants.ImgType;
+import com.service.constants.enums.ImgType;
 import com.service.entities.Category;
 import com.service.entities.Image;
 import com.service.entities.ImageDetails;

@@ -1,6 +1,5 @@
 package com.service.service;
 
-import com.service.constants.ImgType;
 import com.service.entities.Image;
 import com.service.entities.ImageDetails;
 import com.service.model.GlobalResponse;
@@ -8,7 +7,6 @@ import com.service.repos.ImageDetailsRepository;
 import com.service.repos.ImageRepository;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

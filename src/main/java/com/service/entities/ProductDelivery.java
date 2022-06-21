@@ -1,6 +1,6 @@
 package com.service.entities;
 
-import com.service.constants.OrderStatus;
+import com.service.constants.enums.OrderStatus;
 import lombok.Data;
 
 import javax.persistence.*;

@@ -1,6 +1,6 @@
 package com.service.entities;
 
-import com.service.constants.UserType;
+import com.service.constants.enums.UserType;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -22,5 +22,8 @@ public class User {
 
     @Column(name = "PHONE")
     private String phone;
+
+    @Column(name = "PASSWORD")
+    private String password;
 
 }

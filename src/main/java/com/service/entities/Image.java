@@ -1,6 +1,6 @@
 package com.service.entities;
 
-import com.service.constants.ImgType;
+import com.service.constants.enums.ImgType;
 import lombok.Data;
 
 import javax.persistence.*;
