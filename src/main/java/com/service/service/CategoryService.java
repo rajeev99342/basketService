@@ -13,7 +13,7 @@ import com.service.repos.ImageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import com.service.model.CategoryDisplayModel;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +40,7 @@ public class CategoryService {
             image.setImgType(ImgType.CATEGORY);
             image.setCategory(category);
             image.setImageDetails(imageDetails);
-            image = imageRepository.save(image);
+            imageRepository.save(image);
             response.setMessage("category saved successfully");
             response.setHttpStatusCode(HttpStatus.OK.value());
             response.setBody(category);
