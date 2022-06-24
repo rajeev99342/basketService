@@ -37,11 +37,12 @@ public class ProductService {
         try{
 
             product = new Product();
-            product.setProdPrice(model.getPrice());
+            product.setPricePerUnit(model.getPricePerUnit());
             product.setProdBrand(model.getBrand());
-            product.setProdDesc(model.getDesc());
-            product.setProdName(model.getName());
-            product.setProdWeight(model.getWeight());
+            product.setDescription(model.getDesc());
+            product.setName(model.getName());
+            product.setUnit(model.getUnit());
+            product.setQuantity(model.getQuantity());
             product.setSellingPrice(model.getSellingPrice());
             product.setDiscount(model.getDiscount());
             Category category = new Category();
@@ -80,7 +81,7 @@ public class ProductService {
         for (Product product : products){
             DisplayProductModel displayProductModel = new DisplayProductModel();
             displayProductModel.setModel(getProductModelByProduct(product));
-            displayProductModel.setImages(imageService.getAllImageByProduct(product.getId()));
+            displayProductModel.setImages(imageService.getAllImageByProduct(product));
             displayProductModel.setId(product.getId());
             productModels.add(displayProductModel);
 
@@ -92,27 +93,28 @@ public class ProductService {
         Product product = productRepo.getById(id);
         DisplayProductModel displayProductModel = new DisplayProductModel();
         displayProductModel.setModel(getProductModelByProduct(product));
-        displayProductModel.setImages(imageService.getAllImageByProduct(product.getId()));
+        displayProductModel.setImages(imageService.getAllImageByProduct(product));
         displayProductModel.setId(product.getId());
         return displayProductModel;
     }
 
 
-    private ProductModel getProductModelByProduct(Product product){
+    public ProductModel getProductModelByProduct(Product product){
         ProductModel productModel = new ProductModel();
         productModel.setCategory(getCategoryModel(product.getCategory()));
         productModel.setDiscount(product.getDiscount());
         productModel.setBrand(product.getProdBrand());
+        productModel.setUnit(product.getUnit());
         productModel.setSellingPrice(product.getSellingPrice());
-        productModel.setDesc(product.getProdDesc());
-        productModel.setPrice(product.getProdPrice());
+        productModel.setDesc(product.getDescription());
+        productModel.setPricePerUnit(product.getPricePerUnit());
         productModel.setId(product.getId());
-        Stock stock = instockRepo.findStockByProductId(product.getId());
+        Stock stock = instockRepo.findStockByProduct(product);
         if(null != stock){
             productModel.setInStock(stock.getInStock());
         }
-        productModel.setName(product.getProdName());
-        productModel.setWeight(product.getProdWeight());
+        productModel.setName(product.getName());
+        productModel.setQuantity(product.getQuantity());
         return productModel;
     }
 

@@ -8,5 +8,5 @@ public class CartProductMappingModel {
     private Double selectedProductWeight;
     private Integer selectedProductSize;
     private Long productId;
-    private Long userId;
+    private String userPhone;
 }

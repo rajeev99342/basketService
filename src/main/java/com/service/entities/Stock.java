@@ -14,11 +14,11 @@ public class Stock {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "PRODUCT_ID",referencedColumnName = "PRODUCT_ID")
+    @JoinColumn(name = "PRODUCT_ID",referencedColumnName = "ID")
     private Product product;
 
     @Column(name = "IN_STOCK")
-    private Long inStock;
+    private Integer inStock;
 
 
 }

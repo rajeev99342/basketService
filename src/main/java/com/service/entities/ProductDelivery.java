@@ -16,7 +16,7 @@ public class ProductDelivery {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "PRODUCT_ID",referencedColumnName = "PRODUCT_ID")
+    @JoinColumn(name = "PRODUCT_ID",referencedColumnName = "ID")
     private Product product;
 
 
@@ -30,6 +30,16 @@ public class ProductDelivery {
     @Column(name = "SELLER_ID")
     private Long sellerId;
 
+    @Column(name = "ORDERED_COUNT")
+    private Integer orderedTotalCount;
+
+    @Column(name = "ORDERED_TOTAL_WEIGHT")
+    private Double orderedTotalWeight;
+
+    @Column(name = "DISCOUNT_ON_THIS_ITEM")
+    private Double itemDiscount;
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "ORDER_STATUS")
     private OrderStatus orderStatus;
 

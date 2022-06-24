@@ -1,11 +1,15 @@
 package com.service.entities;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "ADDRESS")
 public class Address {
@@ -33,6 +37,11 @@ public class Address {
     @Column(name = "PIN")
     private Long pin;
 
+    @Column(name = "MOBILE")
+    private String mobile;
 
+
+    @Column(name = "IS_DEFAULT")
+    private Boolean isDefault;
 
 }
