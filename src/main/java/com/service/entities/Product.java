@@ -3,34 +3,38 @@ package com.service.entities;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Data
 @Entity
 @Table(name = "PRODUCT")
 public class Product{
     @Id
-    @Column(name = "PRODUCT_ID")
+    @Column(name = "ID")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "PRODUCT_NAME")
-    private String prodName;
+    @Column(name = "NAME")
+    private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "CAT_ID",referencedColumnName = "CAT_ID")
     private Category category;
 
-    @Column(name = "PRODUCT_PRICE")
-    private Double prodPrice;
+    @Column(name = "PRICE_PER_UNIT")
+    private Double pricePerUnit;
 
-    @Column(name = "PRODUCT_DESC")
-    private String prodDesc;
+    @Column(name = "UNIT")
+    private String unit;
+
+    @Column(name = "DESCRIPTION",columnDefinition = "LONGTEXT")
+    private String description;
 
     @Column(name = "BRAND")
     private  String  prodBrand;
 
-    @Column(name = "WEIGHT")
-    private Double prodWeight;
+    @Column(name = "QUANTITY")
+    private Double quantity;
 
     @Column(name = "SELLING_PRICE")
     private Double sellingPrice;
@@ -38,5 +42,7 @@ public class Product{
     @Column(name = "DISCOUNT")
     private Double discount;
 
+    @ManyToMany
+    private List<CartDetails> cartDetails;
 
 }

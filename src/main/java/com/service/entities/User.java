@@ -1,9 +1,11 @@
 package com.service.entities;
 
+import com.service.constants.enums.Role;
 import com.service.constants.enums.UserType;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Data
 @Entity
@@ -25,5 +27,10 @@ public class User {
 
     @Column(name = "PASSWORD")
     private String password;
+
+    @Column(name = "ROLES")
+    @ElementCollection(targetClass = Role.class)
+    @Enumerated(EnumType.STRING)
+    private List<Role> roles;
 
 }

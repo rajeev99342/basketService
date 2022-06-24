@@ -18,7 +18,7 @@ public class ProductReview {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "PRODUCT_ID",referencedColumnName = "PRODUCT_ID")
+    @JoinColumn(name = "PRODUCT_ID",referencedColumnName = "ID")
     private Product product;
 
     @Column(name = "REVIEW")

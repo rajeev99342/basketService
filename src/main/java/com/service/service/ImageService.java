@@ -2,6 +2,7 @@ package com.service.service;
 
 import com.service.entities.Image;
 import com.service.entities.ImageDetails;
+import com.service.entities.Product;
 import com.service.model.GlobalResponse;
 import com.service.repos.ImageDetailsRepository;
 import com.service.repos.ImageRepository;
@@ -89,8 +90,8 @@ public class ImageService {
     }
 
 
-    public List<Object> getAllImageByProduct(Long id){
-        List<Image> images =  imageRepository.findImageByProductId(id);
+    public List<Object> getAllImageByProduct(Product product){
+        List<Image> images =  imageRepository.findImageByProduct(product);
         List<Object> base64List = new ArrayList<>();
         for(Image image : images){
            GlobalResponse res =  getImage(image.getImageDetails().getId());

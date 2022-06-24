@@ -11,6 +11,8 @@ import com.service.repos.CategoryRepo;
 import com.service.repos.ImageDetailsRepository;
 import com.service.repos.ImageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +29,6 @@ public class CategoryService {
     ImageDetailsRepository imageDetailsRepository;
     @Autowired
     ImageRepository imageRepository;
-
 
     public GlobalResponse addCategory(CategoryModel model, ImageDetails imageDetails){
         Category category = new Category();
@@ -54,7 +55,7 @@ public class CategoryService {
     }
 
     public List<CategoryModel> fetchAllCategoryName(){
-        List<Category> categories = categoryRepo.findAll();
+        List<Category> categories = categoryRepo.findAll(Sort.by("catName"));
         List<CategoryModel> list = new ArrayList<>();
         for(Category category : categories){
             CategoryModel categoryModel = new CategoryModel();
@@ -67,7 +68,7 @@ public class CategoryService {
     }
 
     public List<CategoryDisplayModel> getAllCategory(){
-        List<Category> categories = categoryRepo.findAll();
+        List<Category> categories = categoryRepo.findAll(Sort.by("catName"));
         List<CategoryDisplayModel> categoryDisplayModelList = new ArrayList();
         for(Category category : categories){
             CategoryDisplayModel categoryDisplayModel = new CategoryDisplayModel();
