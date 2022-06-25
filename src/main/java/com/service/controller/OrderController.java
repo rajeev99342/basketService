@@ -43,4 +43,16 @@ public class OrderController {
     }
 
 
+    @CrossOrigin(value = "*")
+    @PostMapping("/cancel-order")
+    Boolean cancelOrder(@RequestBody Long id){
+        try{
+            return orderService.cancelOrder(id);
+
+        }catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 }

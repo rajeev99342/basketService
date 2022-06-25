@@ -26,7 +26,7 @@ public class Address {
     private String addressOne;
 
     @Column(name = "LANDMARK")
-    private String landMark;
+    private String landmark;
 
     @Column(name = "CITY")
     private String city;
@@ -35,7 +35,7 @@ public class Address {
     private String area;
 
     @Column(name = "PIN")
-    private Long pin;
+    private Long pincode;
 
     @Column(name = "MOBILE")
     private String mobile;

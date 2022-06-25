@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -73,14 +72,14 @@ public class UserService {
         address.setArea(addressModel.getArea());
         address.setUser(user);
         address.setCity(addressModel.getCity());
-        address.setLandMark(addressModel.getLandmark());
-        address.setPin(addressModel.getPincode());
+        address.setLandmark(addressModel.getLandmark());
+        address.setPincode(addressModel.getPincode());
         address.setMobile(addressModel.getMobile());
         Address recentDefaultAddress = addressRepo.save(address);
         List<Address> addresses = addressRepo.findAddressByUser(user);
         List<Address> listOfOtherAddress =  addresses.stream().filter(address1 -> !address1.getId().equals(recentDefaultAddress.getId()))
                         .map(add ->
-                                new Address(add.getId(),add.getUser(),add.getAddressOne(),add.getLandMark(),add.getCity(),add.getArea(),add.getPin(),
+                                new Address(add.getId(),add.getUser(),add.getAddressOne(),add.getLandmark(),add.getCity(),add.getArea(),add.getPincode(),
                                         add.getMobile(),false))
                                 .collect(Collectors.toList());
         addressRepo.saveAll(listOfOtherAddress);

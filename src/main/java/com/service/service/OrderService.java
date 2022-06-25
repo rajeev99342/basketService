@@ -76,8 +76,8 @@ public class OrderService {
                     productDelivery.setOrderedTotalWeight(cartProduct.getSelectedWeight());
                     Address address = addressRepo.getById(orderModel.getAddressId());
                     productDelivery.setAddress(address);
-                    String completeAddress = address.getLandMark() +", "+address.getAddressOne() + ", " + address.getArea() +", " + address.getCity() + "-"+
-                            +address.getPin() + ", Mobile - " + address.getMobile();
+                    String completeAddress = address.getLandmark() +", "+address.getAddressOne() + ", " + address.getArea() +", " + address.getCity() + "-"+
+                            +address.getPincode() + ", Mobile - " + address.getMobile();
                     productDeliveryRepo.save(productDelivery);
                     productWiseOrder.setProductId(cartProduct.getId());
                     productWiseOrder.setOrderStatus(OrderStatus.PLACED);
@@ -132,29 +132,39 @@ public class OrderService {
                 } catch (Exception e) { // won't happen here
                     System.err.println("Invalid date");
                 }
-
+                productWiseOrder.setProductDeliveryId(productDelivery.getId());
                 productWiseOrder.setImage(imageService.getAllImageByProduct(productDelivery.getProduct()));
-                productWiseOrder.setProductId(productDelivery.getId());
+                productWiseOrder.setProductId(productDelivery.getProduct().getId());
                 productWiseOrder.setProductName(productDelivery.getProduct().getName());
                 productWiseOrder.setOrderStatus(productDelivery.getOrderStatus());
                 productWiseOrder.setPrice(productDelivery.getOrderedTotalCount()*productDelivery.getProduct().getSellingPrice());
                 productWiseOrder.setDeliveryAgentDetails("Rajeev Kumar, Mobile - 9878979798");
                 productWiseOrder.setTotalProductCount(productDelivery.getOrderedTotalCount());
                 Address address = productDelivery.getAddress();
-                String completeAddress = address.getLandMark() +", "+address.getAddressOne() + ", " + address.getArea() +", " + address.getCity() + "-"+
-                        +address.getPin() + ", Mobile - " + address.getMobile();
+                String completeAddress = address.getLandmark() +", "+address.getAddressOne() + ", " + address.getArea() +", " + address.getCity() + "-"+
+                        +address.getPincode() + ", Mobile - " + address.getMobile();
 
 
                 productWiseOrder.setCompleteAddress(completeAddress);
                 productWiseOrders.add(productWiseOrder);
             }
         }
-        Collections.sort(productWiseOrders, new Comparator<ProductWiseOrder>() {
-            @Override
-            public int compare(ProductWiseOrder o1, ProductWiseOrder o2) {
-                return (int) (new Date(o1.getDeliveryDate()).getTime() - new Date(o2.getDeliveryDate()).getTime());
-            }
-        });
+
         return productWiseOrders;
+    }
+
+    public Boolean cancelOrder(Long id) {
+        ProductDelivery productDelivery = productDeliveryRepo.getById(id);
+        productDelivery.setOrderStatus(OrderStatus.CANCELED);
+        productDeliveryRepo.save(productDelivery);
+        updateProductInventory(productDelivery.getProduct(),productDelivery.getOrderedTotalCount());
+        return true;
+    }
+
+    public void updateProductInventory(Product product,Integer restoreCount){
+            Stock stock = instockRepo.findStockByProduct(product);
+            Integer inStock = stock.getInStock() + restoreCount;
+            stock.setInStock(inStock);
+            instockRepo.save(stock);
     }
 }

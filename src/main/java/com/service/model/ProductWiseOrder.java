@@ -18,4 +18,5 @@ public class ProductWiseOrder {
     private List<Object> image;
     private String orderDate;
     private String deliveryDate;
+    private Long productDeliveryId;
 }

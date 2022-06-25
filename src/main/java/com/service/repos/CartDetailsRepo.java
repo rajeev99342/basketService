@@ -14,4 +14,9 @@ public interface CartDetailsRepo extends JpaRepository<CartDetails,Long> {
     CartDetails findCartDetailsByProduct(Product product);
 
     CartDetails findCartDetailsByCartAndProduct(Cart cart,Product product);
+
+   Boolean deleteCartDetailsByCartAndProduct(Cart cart , Product product);
+
+    @Override
+    void delete(CartDetails entity);
 }

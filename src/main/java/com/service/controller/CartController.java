@@ -1,10 +1,7 @@
 package com.service.controller;
 
 import com.service.entities.CartDetails;
-import com.service.model.CartProductMappingModel;
-import com.service.model.DisplayCartProduct;
-import com.service.model.GlobalResponse;
-import com.service.model.UserCredentials;
+import com.service.model.*;
 import com.service.service.CartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -42,4 +39,18 @@ public class CartController {
             return  null;
         }
     }
+
+
+    @CrossOrigin(value = "*")
+    @PostMapping("/delete-cart-item")
+    Boolean deleteCartProduct(@RequestBody CartDeleteModel cartDeleteModel){
+        try{
+            return cartService.deleteCartItem(cartDeleteModel);
+        }catch (Exception e){
+            e.printStackTrace();
+            return  null;
+        }
+    }
+
+
 }

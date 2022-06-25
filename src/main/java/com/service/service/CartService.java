@@ -1,6 +1,7 @@
 package com.service.service;
 
 import com.service.entities.*;
+import com.service.model.CartDeleteModel;
 import com.service.model.CartProductMappingModel;
 import com.service.model.DisplayCartProduct;
 import com.service.model.UserCredentials;
@@ -8,6 +9,7 @@ import com.service.repos.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -98,5 +100,14 @@ public class CartService {
         cart.setUser(user);
         cart.setCreatedAt(new Date(System.currentTimeMillis()));
         cartRepo.save(cart);
+    }
+    @Transactional
+    public Boolean deleteCartItem(CartDeleteModel cartDeleteModel) {
+        User user = userRepo.findUserByPhone(cartDeleteModel.getUserPhone());
+        Cart cart = cartRepo.findCartByUser(user);
+        Product product = productRepo.getById(cartDeleteModel.getProductId());
+        CartDetails cartDetails = cartDetailsRepo.findCartDetailsByCartAndProduct(cart,product);
+        cartDetailsRepo.delete(cartDetails);
+        return true;
     }
 }

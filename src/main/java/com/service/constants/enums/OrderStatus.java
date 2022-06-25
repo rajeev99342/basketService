@@ -8,4 +8,5 @@ public enum OrderStatus {
     DELIVERED,
     CANCELED_DUE_TO_OUT_OF_STOCK,
     FAILED_DUE_TO_TECHNICAL_ISSUE,
+    CANCELED
 }
