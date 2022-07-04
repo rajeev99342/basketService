@@ -10,6 +10,7 @@ import com.service.repos.UserRepo;
 import com.service.utilites.EncryptDecrypt;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -21,7 +22,8 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
 
-
+    @Autowired
+    private PasswordEncoder bcryptEncoder;
     @Autowired
     CartService cartService;
     @Autowired
@@ -44,8 +46,7 @@ public class UserService {
         user.setRoles(new ArrayList<Role>(Collections.singleton(Role.CUSTOMER)));
         user.setUserName(userCredentials.getName());
         user.setPhone(userCredentials.getMobile());
-        String encryptedPassword = encryptDecrypt.encrypt(userCredentials.getPassword());
-        user.setPassword(encryptedPassword);
+        user.setPassword(bcryptEncoder.encode(userCredentials.getPassword()));
         userRepo.save(user);
         cartService.createCartByUser(user);
         log.info("User registered!");

@@ -11,13 +11,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@CrossOrigin(value = "*")
+@CrossOrigin(origins = "*")
 @RestController
 public class CartController {
     @Autowired
     CartService cartService;
 
-    @CrossOrigin(value = "*")
+    @CrossOrigin(origins = "*")
     @PostMapping("/add-to-cart")
     GlobalResponse addToCart(@RequestBody CartProductMappingModel cartProductMappingModel){
         try{
@@ -29,7 +29,7 @@ public class CartController {
         }
     }
 
-    @CrossOrigin(value = "*")
+    @CrossOrigin(origins = "*")
     @PostMapping("/fetch-product-by-cart")
     List<DisplayCartProduct> getProducts(@RequestBody UserCredentials userCredentials){
         try{

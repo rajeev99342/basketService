@@ -7,6 +7,8 @@ import com.service.model.DisplayCartProduct;
 import com.service.model.UserCredentials;
 import com.service.repos.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -74,6 +76,16 @@ public class CartService {
          Cart cart = cartRepo.findCartByUser(userRepo.findUserByPhone(userCredentials.getMobile()));
          List<CartDetails> cartDetails = cartDetailsRepo.findCartDetailsByCart(cart);
          List<DisplayCartProduct> displayCartProducts = new ArrayList<>();
+
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof UserDetails) {
+            String username = ((UserDetails)principal).getUsername();
+
+        } else {
+            String username = principal.toString();
+        }
+
+
          for(CartDetails cartDetails1 : cartDetails){
              DisplayCartProduct displayCartProduct = new DisplayCartProduct();
              Product  product = productRepo.getById(cartDetails1.getProduct().get(0).getId());
