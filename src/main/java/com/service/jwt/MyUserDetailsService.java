@@ -23,12 +23,12 @@ public class MyUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String userPhone) throws UsernameNotFoundException {
-            User user = userRepo.findUserByPhone(userPhone);
-            GrantedAuthority grantedAuthority = new SimpleGrantedAuthority("USER");
+        User user = userRepo.findUserByPhone(userPhone);
+        GrantedAuthority grantedAuthority = new SimpleGrantedAuthority("USER");
         List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(grantedAuthority);
-            return new org.springframework.security.core.userdetails.User(user.getPhone(),
-                    user.getPassword(), authorities);
+        return new org.springframework.security.core.userdetails.User(user.getPhone(),
+                user.getPassword(), authorities);
 
     }
 }

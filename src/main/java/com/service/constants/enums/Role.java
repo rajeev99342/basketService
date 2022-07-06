@@ -6,5 +6,6 @@ public enum Role {
     DELIVERY_ADMIN,
     USER_ADMIN,
     CUSTOMER,
-    SELLER
+    SELLER,
+    MASTER,
 }

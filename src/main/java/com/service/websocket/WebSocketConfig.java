@@ -30,7 +30,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/temp").setAllowedOrigins("http://*","https://*","http://localhost:8100","http://localhost:8101").withSockJS();
+        registry.addEndpoint("/temp").setHandshakeHandler(new UserHandshakHandler())
+                .setAllowedOrigins("http://*","https://*","http://localhost:8100","http://localhost:8101").withSockJS();
     }
 
 }

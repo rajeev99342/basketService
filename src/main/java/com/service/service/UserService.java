@@ -43,7 +43,11 @@ public class UserService {
         }
 
         user = new User();
-        user.setRoles(new ArrayList<Role>(Collections.singleton(Role.CUSTOMER)));
+        if(userCredentials.getRoles().size() > 0){
+            user.setRoles(userCredentials.getRoles());
+        }else{
+            user.setRoles(new ArrayList<Role>(Collections.singleton(Role.CUSTOMER)));
+        }
         user.setUserName(userCredentials.getName());
         user.setPhone(userCredentials.getMobile());
         user.setPassword(bcryptEncoder.encode(userCredentials.getPassword()));

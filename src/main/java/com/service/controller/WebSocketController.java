@@ -29,12 +29,10 @@ public class WebSocketController {
     public OutputMessage send(@RequestBody  WebSocketMessageModel message) throws Exception {
         String time = new SimpleDateFormat("HH:mm").format(new Date());
         return new OutputMessage(message.getFrom(), message.getText(), time);
-
     }
 
-
-    @MessageMapping("/topic/notify-server")
-//    @SendToUser("/topic/notify-server")
+    @MessageMapping("/notify-server")
+    @SendToUser("/topic/notify-server")
     public OutputMessage clientServerCommunication(@RequestBody  WebSocketMessageModel message) throws Exception {
         ObjectMapper mapper =new ObjectMapper();
         Long userId =Long.parseLong( message.getFrom());

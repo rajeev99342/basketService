@@ -77,15 +77,6 @@ public class CartService {
          List<CartDetails> cartDetails = cartDetailsRepo.findCartDetailsByCart(cart);
          List<DisplayCartProduct> displayCartProducts = new ArrayList<>();
 
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof UserDetails) {
-            String username = ((UserDetails)principal).getUsername();
-
-        } else {
-            String username = principal.toString();
-        }
-
-
          for(CartDetails cartDetails1 : cartDetails){
              DisplayCartProduct displayCartProduct = new DisplayCartProduct();
              Product  product = productRepo.getById(cartDetails1.getProduct().get(0).getId());
