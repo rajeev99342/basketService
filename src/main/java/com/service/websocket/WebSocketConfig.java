@@ -22,8 +22,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker("/topic");
-        config.enableSimpleBroker("/topic/update");
-        config.enableSimpleBroker("/topic/notify-server");
 //        config.setApplicationDestinationPrefixes("/app");
 
     }
@@ -31,7 +29,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/temp").setHandshakeHandler(new UserHandshakHandler())
-                .setAllowedOrigins("http://*","https://*","http://localhost:8100","http://localhost:8101").withSockJS();
+                .setAllowedOrigins("http://*","https://*","http://localhost:8100","http://localhost:1111").withSockJS();
     }
 
 }

@@ -12,4 +12,6 @@ public class UserCredentials {
     private String name;
     private String password;
     private List<Role> roles;
+    private String uid;
+
 }

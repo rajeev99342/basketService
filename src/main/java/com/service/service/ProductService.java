@@ -9,6 +9,7 @@ import com.service.model.ProductModel;
 import com.service.repos.ImageRepository;
 import com.service.repos.InstockRepo;
 import com.service.repos.ProductRepo;
+import com.service.utilites.ImageUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,8 @@ import java.util.List;
 
 @Service
 public class ProductService {
-
+    @Autowired
+    ImageUtility imageUtility;
     @Autowired
     ProductRepo productRepo;
     @Autowired
@@ -37,7 +39,7 @@ public class ProductService {
         try{
 
             product = new Product();
-            product.setPricePerUnit(model.getPricePerUnit());
+            product.setPricePerUnit(model.getPriceForGivenUnit());
             product.setProdBrand(model.getBrand());
             product.setDescription(model.getDesc());
             product.setName(model.getName());
@@ -53,7 +55,8 @@ public class ProductService {
             product = productRepo.save(product);
             for (MultipartFile file : imageList)
             {
-                GlobalResponse imageResponse = imageService.saveImage(file);
+                String imageReference = imageUtility.getImageName("product", product.getName());
+                GlobalResponse imageResponse = imageService.saveImage(file,imageReference);
                 ImageDetails imageDetails = (ImageDetails) imageResponse.getBody();
                 Image image = new Image();
                 image.setImageDetails(imageDetails);
@@ -107,7 +110,7 @@ public class ProductService {
         productModel.setUnit(product.getUnit());
         productModel.setSellingPrice(product.getSellingPrice());
         productModel.setDesc(product.getDescription());
-        productModel.setPricePerUnit(product.getPricePerUnit());
+        productModel.setPriceForGivenUnit(product.getPricePerUnit());
         productModel.setId(product.getId());
         Stock stock = instockRepo.findStockByProduct(product);
         if(null != stock){

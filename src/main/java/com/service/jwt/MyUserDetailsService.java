@@ -11,9 +11,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class MyUserDetailsService implements UserDetailsService {
@@ -22,11 +24,17 @@ public class MyUserDetailsService implements UserDetailsService {
     UserRepo userRepo;
 
     @Override
+    @Transactional
     public UserDetails loadUserByUsername(String userPhone) throws UsernameNotFoundException {
         User user = userRepo.findUserByPhone(userPhone);
-        GrantedAuthority grantedAuthority = new SimpleGrantedAuthority("USER");
+        List<Role> roles = user.getRoles();
         List<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(grantedAuthority);
+
+        for(Role role : roles){
+            GrantedAuthority grantedAuthority = new SimpleGrantedAuthority(role.name());
+            authorities.add(grantedAuthority);
+        }
+
         return new org.springframework.security.core.userdetails.User(user.getPhone(),
                 user.getPassword(), authorities);
 

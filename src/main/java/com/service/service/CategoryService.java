@@ -6,6 +6,7 @@ import com.service.entities.Image;
 import com.service.entities.ImageDetails;
 import com.service.model.CategoryDisplayModel;
 import com.service.model.CategoryModel;
+import com.service.model.DisplayCartProduct;
 import com.service.model.GlobalResponse;
 import com.service.repos.CategoryRepo;
 import com.service.repos.ImageDetailsRepository;
@@ -16,8 +17,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class CategoryService {
@@ -34,8 +37,22 @@ public class CategoryService {
         Category category = new Category();
         category.setCatName(model.getCategoryName());
         category.setCatType(model.getCategoryType());
+        category.setId(model.getId());
         GlobalResponse response = new GlobalResponse();
         try{
+            if(null != model.getId()){
+                // delete previous image
+                Image img = imageRepository.findImageByCategoryId(model.getId());
+                File file = new File(img.getImageDetails().getPath());
+                file.delete();
+                imageRepository.delete(imageRepository.findImageByCategoryId(model.getId()));
+                ImageDetails imageDetails1 = imageDetailsRepository.findImageDetailsById(img.getImageDetails().getId());
+                if(null != imageDetails1){
+                    System.out.println("Details does not deleted");
+                }else{
+                    System.out.println("Details deleted");
+                }
+            }
            category = categoryRepo.save(category);
             Image image = new Image();
             image.setImgType(ImgType.CATEGORY);
@@ -44,7 +61,7 @@ public class CategoryService {
             imageRepository.save(image);
             response.setMessage("category saved successfully");
             response.setHttpStatusCode(HttpStatus.OK.value());
-            response.setBody(category);
+            response.setBody(null);
         }catch (Exception e){
             e.printStackTrace();
             response.setMessage("failed to save category");
@@ -77,9 +94,21 @@ public class CategoryService {
             categoryDisplayModel.setCategoryType(category.getCatType());
             GlobalResponse response =  imageService.getImage(image.getImageDetails().getId());
             categoryDisplayModel.setBase64(response.getBody());
+            categoryDisplayModel.setId(category.getId());
             categoryDisplayModelList.add(categoryDisplayModel);
         }
 
         return categoryDisplayModelList;
+    }
+
+    public CategoryDisplayModel getCategoryById(Long id) {
+        Category category = categoryRepo.getById(id);
+        Image image = imageRepository.findImageByCategoryId(category.getId());
+        CategoryDisplayModel displayModel = new CategoryDisplayModel();
+        displayModel.setCategoryType(category.getCatType());
+        displayModel.setCategoryName(category.getCatName());
+        displayModel.setId(category.getId());
+        displayModel.setBase64(imageService.getImage(image.getId()));
+        return displayModel;
     }
 }

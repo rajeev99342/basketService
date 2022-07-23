@@ -9,19 +9,14 @@ import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 import java.security.Principal;
 import java.util.Map;
+import java.util.UUID;
 
 public class UserHandshakHandler extends DefaultHandshakeHandler {
     @Override
     protected Principal determineUser(ServerHttpRequest request, WebSocketHandler wsHandler, Map<String, Object> attributes) {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String username ;
-        if (principal instanceof UserDetails) {
-             username = ((UserDetails) principal).getUsername();
-
-        } else {
-             username = principal.toString();
-        }
-        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++ This user opened the page ++++++++++++++++++++++++++++++++++++=>  "+username);
-        return new UserPrincipal(username);
+        String uuid = UUID.randomUUID().toString();
+        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++ This user opened the page ++++++++++++++++++++++++++++++++++++=>  " + uuid);
+        return new UserPrincipal(uuid);
     }
 }

@@ -19,7 +19,7 @@ public class ImageController {
     @PostMapping("/upload-image")
     public GlobalResponse uploadImage(@RequestParam("file") MultipartFile photo) throws IOException {
         try {
-           return this.imageService.saveImage(photo);
+           return this.imageService.saveImage(photo,"simple");
         }catch (Exception e){
             e.printStackTrace();
         }

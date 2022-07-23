@@ -32,7 +32,7 @@ public class Image {
     @JoinColumn(name = "USER_ID",referencedColumnName = "USER_ID")
     private User user;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "IMAGE_DETAILS_ID",referencedColumnName = "IMAGE_DETAILS_ID")
     private ImageDetails imageDetails;
 

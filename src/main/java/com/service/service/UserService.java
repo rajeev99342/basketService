@@ -43,7 +43,7 @@ public class UserService {
         }
 
         user = new User();
-        if(userCredentials.getRoles().size() > 0){
+        if(null != userCredentials.getRoles() && userCredentials.getRoles().size() > 0){
             user.setRoles(userCredentials.getRoles());
         }else{
             user.setRoles(new ArrayList<Role>(Collections.singleton(Role.CUSTOMER)));
@@ -55,6 +55,19 @@ public class UserService {
         cartService.createCartByUser(user);
         log.info("User registered!");
     }
+
+
+    public void reset(UserCredentials userCredentials) throws Exception {
+
+        User user = userRepo.findUserByPhone(userCredentials.getMobile());
+        user.setUserName(userCredentials.getName());
+        user.setPhone(userCredentials.getMobile());
+        user.setPassword(bcryptEncoder.encode(userCredentials.getPassword()));
+        userRepo.save(user);
+        cartService.createCartByUser(user);
+        log.info("password reset successfully");
+    }
+
 
     public User loginUser(UserCredentials userCredentials) throws Exception {
 
@@ -94,5 +107,17 @@ public class UserService {
     public List<Address> getAddressByUser(String userPhone) {
         User user = userRepo.findUserByPhone(userPhone);
         return addressRepo.findAddressByUser(user);
+    }
+
+    public UserCredentials isUserPresent(String userPhone){
+        User user = userRepo.findUserByPhone(userPhone);
+        UserCredentials userCredentials = new UserCredentials();
+        if(null != user){
+            userCredentials.setMobile(user.getPhone());
+            userCredentials.setName(user.getUserName());
+            return userCredentials;
+        }else{
+            return  null;
+        }
     }
 }

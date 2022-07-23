@@ -21,6 +21,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class ImageService {
@@ -32,10 +33,10 @@ public class ImageService {
     @Autowired
     private ImageRepository imageRepository;
 
-    private ImageDetails saveImageDetails(Path newFile,MultipartFile image){
+    private ImageDetails saveImageDetails(Path newFile,MultipartFile image,String imageReference){
         try{
             ImageDetails imageDetails = new ImageDetails();
-            imageDetails.setImageName(newFile.getFileName().toString());
+            imageDetails.setImageName(imageReference);
             imageDetails.setType(image.getContentType());
             imageDetails.setPath(newFile.toAbsolutePath()
                     .toString());
@@ -67,12 +68,12 @@ public class ImageService {
 
 
 
-    public GlobalResponse saveImage(MultipartFile photo) {
+    public GlobalResponse saveImage(MultipartFile photo,String imageReference) {
         try{
-            Path newFile = Paths.get(RESOURCES_DIR + new Date().getTime()  + photo.getOriginalFilename());
+            Path newFile = Paths.get(RESOURCES_DIR + imageReference);
             Files.createDirectories(newFile.getParent());
             Files.write(newFile, photo.getBytes());
-            ImageDetails imageDetails = saveImageDetails(newFile,photo);
+            ImageDetails imageDetails = saveImageDetails(newFile,photo,imageReference);
             GlobalResponse successfully_created = null;
             if(null != imageDetails){
                 successfully_created  = new GlobalResponse("Successfully created", HttpStatus.OK.value(), true, imageDetails);
