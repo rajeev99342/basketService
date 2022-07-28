@@ -6,21 +6,19 @@ import com.service.entities.Image;
 import com.service.entities.ImageDetails;
 import com.service.model.CategoryDisplayModel;
 import com.service.model.CategoryModel;
-import com.service.model.DisplayCartProduct;
 import com.service.model.GlobalResponse;
 import com.service.repos.CategoryRepo;
 import com.service.repos.ImageDetailsRepository;
 import com.service.repos.ImageRepository;
+import com.service.utilites.ImageUtility;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class CategoryService {
@@ -33,6 +31,10 @@ public class CategoryService {
     @Autowired
     ImageRepository imageRepository;
 
+    @Autowired
+    ImageUtility imageUtility;
+
+    @Transactional
     public GlobalResponse addCategory(CategoryModel model, ImageDetails imageDetails){
         Category category = new Category();
         category.setCatName(model.getCategoryName());
@@ -41,17 +43,7 @@ public class CategoryService {
         GlobalResponse response = new GlobalResponse();
         try{
             if(null != model.getId()){
-                // delete previous image
-                Image img = imageRepository.findImageByCategoryId(model.getId());
-                File file = new File(img.getImageDetails().getPath());
-                file.delete();
-                imageRepository.delete(imageRepository.findImageByCategoryId(model.getId()));
-                ImageDetails imageDetails1 = imageDetailsRepository.findImageDetailsById(img.getImageDetails().getId());
-                if(null != imageDetails1){
-                    System.out.println("Details does not deleted");
-                }else{
-                    System.out.println("Details deleted");
-                }
+                imageUtility.deleteCategoryImage(model);
             }
            category = categoryRepo.save(category);
             Image image = new Image();

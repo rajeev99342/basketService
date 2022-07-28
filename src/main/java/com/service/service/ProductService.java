@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,12 +34,19 @@ public class ProductService {
     @Autowired
     InstockRepo instockRepo;
 
+    @Transactional
     public GlobalResponse addProduct(ProductModel model, List<MultipartFile> imageList){
         Product product = null;
         GlobalResponse response = null;
         try{
 
-            product = new Product();
+            product = productRepo.getById(model.getId());
+            if(null == product){
+                product = new Product();
+            }else{
+                // delete previous Image
+                imageUtility.deleteProductImages(product);
+            }
             product.setPricePerUnit(model.getPriceForGivenUnit());
             product.setProdBrand(model.getBrand());
             product.setDescription(model.getDesc());
@@ -64,7 +72,10 @@ public class ProductService {
                 image.setProduct(product);
                 imageRepository.save(image);
             }
-            Stock stock = new Stock();
+            Stock stock = instockRepo.findStockByProduct(product);
+            if(null == stock){
+                stock = new Stock();
+            }
             stock.setProduct(product);
             stock.setInStock(model.getInStock());
             instockRepo.save(stock);

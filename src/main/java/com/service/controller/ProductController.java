@@ -30,8 +30,7 @@ public class ProductController {
             String productString = product;
             Gson gson = new Gson();
             ProductModel productModel = gson.fromJson(productString, ProductModel.class);
-            productService.addProduct(productModel,images);
-            System.out.println(productModel);
+          return  productService.addProduct(productModel,images);
         }catch (Exception e){
             e.printStackTrace();
             globalResponse.setMessage("Failed");
