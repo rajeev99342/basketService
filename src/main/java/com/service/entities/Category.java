@@ -19,4 +19,7 @@ public class Category {
     @Column(name = "CAT_TYPE")
     private String catType;
 
+
+    @Column(name = "IS_VALID")
+    private Boolean isValid;
 }

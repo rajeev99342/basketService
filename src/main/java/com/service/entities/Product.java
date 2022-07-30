@@ -42,6 +42,9 @@ public class Product{
     @Column(name = "DISCOUNT")
     private Double discount;
 
+    @Column(name = "IS_VALID")
+    private Boolean isValid;
+
     @ManyToMany
     private List<CartDetails> cartDetails;
 

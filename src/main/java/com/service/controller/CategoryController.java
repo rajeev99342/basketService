@@ -32,7 +32,6 @@ public class CategoryController {
     @CrossOrigin(origins = "*")
     @PostMapping("/add-category")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-
     public GlobalResponse saveCategory(@RequestParam("category") String category, @RequestParam("file") MultipartFile image) {
         GlobalResponse globalResponse = new GlobalResponse();
         try {
@@ -45,6 +44,24 @@ public class CategoryController {
 
                 globalResponse = categoryService.addCategory(categoryModel, (ImageDetails) imageResponse.getBody());
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            globalResponse.setMessage("Failed");
+        }
+
+        return globalResponse;
+    }
+
+
+
+
+    @CrossOrigin(origins = "*")
+    @PostMapping("/delete-category")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    public GlobalResponse deleteCategory(@RequestParam("id") Long id) {
+        GlobalResponse globalResponse = new GlobalResponse();
+        try {
+            categoryService.deleteCategory(id);
         } catch (Exception e) {
             e.printStackTrace();
             globalResponse.setMessage("Failed");

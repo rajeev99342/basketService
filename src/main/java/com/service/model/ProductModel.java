@@ -14,5 +14,6 @@ public class ProductModel {
     private Double sellingPrice;
     private Double discount ;
     private Integer inStock;
+    private Boolean isValid;
     private CategoryModel category;
 }

@@ -41,6 +41,23 @@ public class ProductController {
 
 
     @CrossOrigin(origins = "*")
+    @PostMapping("/delete-product")
+    public GlobalResponse deleteProduct(@RequestParam("id") Long  id){
+        GlobalResponse globalResponse = new GlobalResponse();
+        try {
+            return  productService.deleteProduct(id);
+        }catch (Exception e){
+            e.printStackTrace();
+            globalResponse.setMessage("Failed");
+        }
+
+        return globalResponse;
+    }
+
+
+
+
+    @CrossOrigin(origins = "*")
     @GetMapping("/fetch-all-product")
     public List<DisplayProductModel> fetchAllProduct(){
 

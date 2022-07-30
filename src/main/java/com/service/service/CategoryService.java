@@ -34,12 +34,20 @@ public class CategoryService {
     @Autowired
     ImageUtility imageUtility;
 
+    public GlobalResponse deleteCategory(Long id){
+           Category category =  categoryRepo.findByIdAndIsValid(id,true);
+           category.setIsValid(false);
+           categoryRepo.save(category);
+           return new GlobalResponse("Deleted",HttpStatus.OK.value(),true,null);
+    }
+
     @Transactional
     public GlobalResponse addCategory(CategoryModel model, ImageDetails imageDetails){
         Category category = new Category();
         category.setCatName(model.getCategoryName());
         category.setCatType(model.getCategoryType());
         category.setId(model.getId());
+        category.setIsValid(model.getIsValid());
         GlobalResponse response = new GlobalResponse();
         try{
             if(null != model.getId()){
@@ -77,7 +85,7 @@ public class CategoryService {
     }
 
     public List<CategoryDisplayModel> getAllCategory(){
-        List<Category> categories = categoryRepo.findAll(Sort.by("catName"));
+        List<Category> categories = categoryRepo.findCategoryByIsValid(true);
         List<CategoryDisplayModel> categoryDisplayModelList = new ArrayList();
         for(Category category : categories){
             CategoryDisplayModel categoryDisplayModel = new CategoryDisplayModel();

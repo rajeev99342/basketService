@@ -9,6 +9,6 @@ import java.util.List;
 
 @Repository
 public interface CategoryRepo extends JpaRepository<Category,Long> {
-    @Override
-    List<Category> findAll(Sort sort);
+    List<Category> findCategoryByIsValid(Boolean isValid);
+    Category findByIdAndIsValid(Long id,Boolean isValid);
 }

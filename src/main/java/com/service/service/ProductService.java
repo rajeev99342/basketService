@@ -34,13 +34,22 @@ public class ProductService {
     @Autowired
     InstockRepo instockRepo;
 
+    public GlobalResponse deleteProduct(Long id){
+         Product product = productRepo.findProductByIdAndIsValid(id,true);
+         product.setIsValid(false);
+         productRepo.save(product);
+         return new GlobalResponse("Deleted",HttpStatus.OK.value(),true,null);
+    }
+
     @Transactional
     public GlobalResponse addProduct(ProductModel model, List<MultipartFile> imageList){
         Product product = null;
         GlobalResponse response = null;
         try{
 
-            product = productRepo.getById(model.getId());
+            if(null != model.getId()){
+                product = productRepo.getById(model.getId());
+            }
             if(null == product){
                 product = new Product();
             }else{
@@ -54,6 +63,7 @@ public class ProductService {
             product.setUnit(model.getUnit());
             product.setQuantity(model.getQuantity());
             product.setSellingPrice(model.getSellingPrice());
+            product.setIsValid(model.getIsValid());
             product.setDiscount(model.getDiscount());
             Category category = new Category();
             category.setCatType(model.getCategory().getCategoryType());
@@ -91,7 +101,7 @@ public class ProductService {
 
     public List<DisplayProductModel> fetchAllProducts(){
         List<DisplayProductModel> productModels = new ArrayList<>();
-        List<Product> products = productRepo.findAll();
+        List<Product> products = productRepo.findProductByIsValid(true);
         for (Product product : products){
             DisplayProductModel displayProductModel = new DisplayProductModel();
             displayProductModel.setModel(getProductModelByProduct(product));
