@@ -32,10 +32,10 @@ public class OrderController {
 
 
     @CrossOrigin(value = "*")
-    @GetMapping("/get-order-by-user")
-    List<ProductWiseOrder> getOrder(@RequestParam("userPhone") String userPhone){
+    @PostMapping("/get-order-by-user")
+    List<ProductWiseOrder> getOrder(@RequestParam("token") String token){
         try{
-            return orderService.getOrderListByUser(userPhone);
+            return orderService.getOrderListByUser(token);
         }catch (Exception e){
             e.printStackTrace();
             return null;

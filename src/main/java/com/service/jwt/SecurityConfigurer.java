@@ -42,17 +42,14 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
             "/get-order-by-user",
             "/cancel-order",
             "/fetch-all-product",
+
     };
     private final String[] BLACK_LIST = {
             "/xyz",
-
             "/fetch-product-by-cart",
-
             "/add-to-cart",
             "/place-order",
-
             "/hello"
-
     };
 
     @Override

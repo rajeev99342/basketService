@@ -4,10 +4,7 @@ import com.service.entities.CartDetails;
 import com.service.model.*;
 import com.service.service.CartService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -31,9 +28,9 @@ public class CartController {
 
     @CrossOrigin(origins = "*")
     @PostMapping("/fetch-product-by-cart")
-    List<DisplayCartProduct> getProducts(@RequestBody UserCredentials userCredentials){
+    List<DisplayCartProduct> getProducts(@RequestParam("token") String token){
         try{
-            return cartService.getProductByCartDetails(userCredentials);
+            return cartService.getProductByCartDetails(token);
         }catch (Exception e){
             e.printStackTrace();
             return  null;

@@ -28,6 +28,9 @@ public class User {
     @Column(name = "PASSWORD")
     private String password;
 
+    @Column(name = "TOKEN")
+    private String token;
+
     @Column(name = "ROLES")
     @ElementCollection(targetClass = Role.class)
     @Enumerated(EnumType.STRING)

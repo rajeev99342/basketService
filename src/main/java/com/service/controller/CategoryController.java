@@ -32,14 +32,14 @@ public class CategoryController {
     @CrossOrigin(origins = "*")
     @PostMapping("/add-category")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-    public GlobalResponse saveCategory(@RequestParam("category") String category, @RequestParam("file") MultipartFile image) {
+    public GlobalResponse saveCategory(@RequestParam("file") MultipartFile file,@RequestParam("category") String category) {
         GlobalResponse globalResponse = new GlobalResponse();
         try {
             String categoryString = category;
             Gson gson = new Gson();
             CategoryModel categoryModel = gson.fromJson(categoryString, CategoryModel.class);
             String imageReference = imageUtility.getImageName("category", categoryModel.getCategoryName());
-            GlobalResponse imageResponse = imageService.saveImage(image, imageReference);
+            GlobalResponse imageResponse = imageService.saveImage(file, imageReference);
             if (imageResponse.getHttpStatusCode() == HttpStatus.OK.value()) {
 
                 globalResponse = categoryService.addCategory(categoryModel, (ImageDetails) imageResponse.getBody());

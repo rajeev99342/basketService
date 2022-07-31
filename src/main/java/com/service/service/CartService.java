@@ -1,6 +1,7 @@
 package com.service.service;
 
 import com.service.entities.*;
+import com.service.jwt.JwtTokenUtility;
 import com.service.model.CartDeleteModel;
 import com.service.model.CartProductMappingModel;
 import com.service.model.DisplayCartProduct;
@@ -41,6 +42,8 @@ public class CartService {
     ImageService imageService;
     @Autowired
     InstockRepo instockRepo;
+    @Autowired
+    JwtTokenUtility jwtTokenUtility;
 
     public void addToCart(CartProductMappingModel cartProductMappingModel) {
         Cart cart = cartRepo.findCartByUser(userRepo.findUserByPhone(cartProductMappingModel.getUserPhone()));
@@ -72,8 +75,9 @@ public class CartService {
         cartDetailsRepo.save(cartDetails);
     }
 
-    public List<DisplayCartProduct> getProductByCartDetails(UserCredentials userCredentials){
-         Cart cart = cartRepo.findCartByUser(userRepo.findUserByPhone(userCredentials.getMobile()));
+    public List<DisplayCartProduct> getProductByCartDetails(String token){
+        String phone = jwtTokenUtility.getUsernameFromToken(token);
+         Cart cart = cartRepo.findCartByUser(userRepo.findUserByPhone(phone));
          List<CartDetails> cartDetails = cartDetailsRepo.findCartDetailsByCart(cart);
          List<DisplayCartProduct> displayCartProducts = new ArrayList<>();
 
@@ -113,4 +117,10 @@ public class CartService {
         cartDetailsRepo.delete(cartDetails);
         return true;
     }
+
+//    public List<DisplayCartProduct> isProductAlreadyPresent(String jwt, Long productId) {
+//        User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(jwt));
+//        Cart cart = cartRepo.findCartByUser(user);
+//        CartDetails
+//    }
 }

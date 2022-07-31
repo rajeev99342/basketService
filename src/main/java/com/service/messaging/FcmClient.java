@@ -3,6 +3,8 @@ package com.service.messaging;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.messaging.*;
 import org.springframework.stereotype.Component;
 
@@ -31,21 +33,26 @@ public class FcmClient {
     public void sendJoke(Map<String, String> data)
             throws InterruptedException, ExecutionException {
 
+        AndroidNotification androidNofi = AndroidNotification.builder()
+                .setSound("order.wav")
+                .setTitle(data.get("title"))
+                .setBody(data.get("text"))
+                .setPriority(AndroidNotification.Priority.HIGH)
+                .setImage(data.get("image"))
+                .build();
+
         // this setting is for android
         AndroidConfig androidConfig = AndroidConfig.builder()
-                .setTtl(Duration.ofMinutes(2).toMillis()).setCollapseKey("chuck")
+                .setTtl(Duration.ofMinutes(2).toMillis())
                 .setPriority(AndroidConfig.Priority.HIGH)
-
                 .setDirectBootOk(true)
-                .setNotification(AndroidNotification.builder().setTag("chuck").build()).build();
 
-        // this setting is for IOS
-        ApnsConfig apnsConfig = ApnsConfig.builder()
-                .setAps(Aps.builder().setCategory("chuck").setThreadId("chuck").build()).build();
+                .setNotification(androidNofi).build();
 
-        Message message = Message.builder().putAllData(data).setTopic("chuck")
-                .setApnsConfig(apnsConfig).setAndroidConfig(androidConfig)
-                .setNotification(Notification.builder().setTitle("Greeting").setBody("Good morning from Baba Basket").setImage("https://www.iwmbuzz.com/wp-content/uploads/2022/04/rooh-baba-kartik-aaryan-dons-baba-look-like-akshay-kumar-fans-super-excited.jpg").build())
+
+        Message message = Message.builder().putAllData(data)
+                .setToken(data.get("token"))
+                .setAndroidConfig(androidConfig)
                 .build();
 
 

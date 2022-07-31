@@ -74,6 +74,22 @@ public class ProductController {
 
 
     @CrossOrigin(origins = "*")
+    @GetMapping("/fetch-all-product-by-category")
+    public List<DisplayProductModel> fetchAllProduct(@RequestParam("catId") Long catId){
+
+        List<DisplayProductModel> list = new ArrayList<>();
+        try {
+            list = productService.getProductsByCatId(catId);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+
+
+    @CrossOrigin(origins = "*")
     @GetMapping("/get-product-details")
     public DisplayProductModel getProductDetails(@RequestParam("id") Long id){
 

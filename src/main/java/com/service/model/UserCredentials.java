@@ -11,6 +11,7 @@ public class UserCredentials {
     private String mobile;
     private String name;
     private String password;
+    private String token;
     private List<Role> roles;
     private String uid;
 

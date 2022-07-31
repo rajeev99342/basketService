@@ -172,4 +172,17 @@ public class UserController {
 
 
 
+    @CrossOrigin(origins = "*")
+    @PostMapping("/update-user-token")
+    public GlobalResponse updateUserToken(@RequestParam("token") String token , @RequestParam("jwt") String jwt) {
+        try {
+            return userService.updateUserToken(token,jwt);
+        } catch (Exception e) {
+            log.error("Failed to get user address due to " + e);
+            return null;
+        }
+
+    }
+
+
 }

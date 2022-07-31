@@ -2,6 +2,7 @@ package com.service.service;
 
 import com.service.constants.enums.OrderStatus;
 import com.service.entities.*;
+import com.service.jwt.JwtTokenUtility;
 import com.service.model.DisplayCartProduct;
 import com.service.model.OrderModel;
 import com.service.model.ProductWiseOrder;
@@ -12,10 +13,14 @@ import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
+
+    @Autowired
+    FirebasePushNotificationService firebasePushNotificationService;
     @Autowired
     CartRepo cartRepo;
     @Autowired
@@ -43,6 +48,9 @@ public class OrderService {
 
     @Autowired
     ImageService imageService;
+
+    @Autowired
+    JwtTokenUtility jwtTokenUtility;
 
     public  List<ProductWiseOrder> placeOrder(OrderModel orderModel){
         List<ProductWiseOrder> productWiseOrders = new ArrayList<>();
@@ -109,12 +117,30 @@ public class OrderService {
                     cartDetailsRepo.delete(cartDetails1);
             }
 
+            if(null != productWiseOrders && productWiseOrders.size() > 0){
+                Map<String,String> data = new HashMap<>();
+                data.put("order_status",OrderStatus.PLACED.name());
+                data.put("title","BABA BASKET");
+                data.put("text","Your order confirmed");
+                data.put("token",user.getToken());
+                data.put("image","https://thumbnails-photos.amazon.com/v1/thumbnail/AplBBbD9TLGIyHKBq5LOUA?viewBox=835%2C835&ownerId=A14ZH0T6C5GQSW");
+                try {
+                    firebasePushNotificationService.sendPushMessage(data);
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }else{
+
+            }
+
         return productWiseOrders;
 
     }
 
-    public List<ProductWiseOrder> getOrderListByUser(String userPhone) {
-        User user = userRepo.findUserByPhone(userPhone);
+    public List<ProductWiseOrder> getOrderListByUser(String token) {
+        User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
         List<Order> orders = this.orderRepo.findOrderByUser(user);
         List<ProductWiseOrder> productWiseOrders = new ArrayList<>();
 

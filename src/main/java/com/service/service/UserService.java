@@ -3,13 +3,16 @@ package com.service.service;
 import com.service.constants.enums.Role;
 import com.service.entities.Address;
 import com.service.entities.User;
+import com.service.jwt.JwtTokenUtility;
 import com.service.model.AddressModel;
+import com.service.model.GlobalResponse;
 import com.service.model.UserCredentials;
 import com.service.repos.AddressRepo;
 import com.service.repos.UserRepo;
 import com.service.utilites.EncryptDecrypt;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +34,8 @@ public class UserService {
     @Autowired
     AddressRepo addressRepo;
 
+    @Autowired
+    JwtTokenUtility jwtTokenUtility;
     @Autowired
     EncryptDecrypt encryptDecrypt;
     public void saveUserDetails(UserCredentials userCredentials) throws Exception {
@@ -118,6 +123,17 @@ public class UserService {
             return userCredentials;
         }else{
             return  null;
+        }
+    }
+
+    public GlobalResponse updateUserToken(String token,String jwt) {
+        User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(jwt));
+        if(null != user){
+                user.setToken(token);
+                userRepo.save(user);
+                return new GlobalResponse("Token updated", HttpStatus.OK.value(),true,null);
+        }else{
+                return null;
         }
     }
 }

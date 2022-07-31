@@ -6,6 +6,7 @@ import com.service.model.CategoryModel;
 import com.service.model.DisplayProductModel;
 import com.service.model.GlobalResponse;
 import com.service.model.ProductModel;
+import com.service.repos.CategoryRepo;
 import com.service.repos.ImageRepository;
 import com.service.repos.InstockRepo;
 import com.service.repos.ProductRepo;
@@ -30,6 +31,9 @@ public class ProductService {
 
     @Autowired
     ImageRepository imageRepository;
+
+    @Autowired
+    CategoryRepo categoryRepo;
 
     @Autowired
     InstockRepo instockRepo;
@@ -150,4 +154,23 @@ public class ProductService {
         return categoryModel;
     }
 
+    public List<DisplayProductModel> getProductsByCatId(Long catId) {
+        Category category = categoryRepo.findByIdAndIsValid(catId,true);
+       List<Product> products = productRepo.findProductByCategoryAndIsValid(category,true);
+       return convertProductIntoDisplayProduct(products);
+    }
+
+    private List<DisplayProductModel> convertProductIntoDisplayProduct(List<Product> products){
+        List<DisplayProductModel> productModels = new ArrayList<>();
+
+        for (Product product : products){
+            DisplayProductModel displayProductModel = new DisplayProductModel();
+            displayProductModel.setModel(getProductModelByProduct(product));
+            displayProductModel.setImages(imageService.getAllImageByProduct(product));
+            displayProductModel.setId(product.getId());
+            productModels.add(displayProductModel);
+
+        }
+        return productModels;
+    }
 }
