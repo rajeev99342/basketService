@@ -18,8 +18,7 @@ public class CartController {
     @PostMapping("/add-to-cart")
     GlobalResponse addToCart(@RequestBody CartProductMappingModel cartProductMappingModel){
         try{
-            cartService.addToCart(cartProductMappingModel);
-            return new GlobalResponse("Success",200);
+            return cartService.addToCart(cartProductMappingModel);
         }catch (Exception e){
             e.printStackTrace();
             return new GlobalResponse("Failed "+e,500);
@@ -37,10 +36,21 @@ public class CartController {
         }
     }
 
+    @CrossOrigin(origins = "*")
+    @PostMapping("/item-count")
+    GlobalResponse getItemCount(@RequestParam("token") String token){
+        try{
+            return cartService.getItemCount(token);
+        }catch (Exception e){
+            e.printStackTrace();
+            return  null;
+        }
+    }
+
 
     @CrossOrigin(value = "*")
     @PostMapping("/delete-cart-item")
-    Boolean deleteCartProduct(@RequestBody CartDeleteModel cartDeleteModel){
+    GlobalResponse deleteCartProduct(@RequestBody CartDeleteModel cartDeleteModel){
         try{
             return cartService.deleteCartItem(cartDeleteModel);
         }catch (Exception e){
@@ -48,6 +58,8 @@ public class CartController {
             return  null;
         }
     }
+
+
 
 
 }

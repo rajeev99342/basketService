@@ -2,12 +2,10 @@ package com.service.service;
 
 import com.service.entities.*;
 import com.service.jwt.JwtTokenUtility;
-import com.service.model.CartDeleteModel;
-import com.service.model.CartProductMappingModel;
-import com.service.model.DisplayCartProduct;
-import com.service.model.UserCredentials;
+import com.service.model.*;
 import com.service.repos.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -45,10 +43,10 @@ public class CartService {
     @Autowired
     JwtTokenUtility jwtTokenUtility;
 
-    public void addToCart(CartProductMappingModel cartProductMappingModel) {
+    public GlobalResponse addToCart(CartProductMappingModel cartProductMappingModel) {
         Cart cart = cartRepo.findCartByUser(userRepo.findUserByPhone(cartProductMappingModel.getUserPhone()));
         if(null == cart){
-           return;
+           return null;
         }
 
         List<CartDetails> cartDetailsListByCartOrUser = cartDetailsRepo.findCartDetailsByCart(cart);
@@ -73,6 +71,8 @@ public class CartService {
         }
         cartDetails.setUpdatedAt(new Date(System.currentTimeMillis()));
         cartDetailsRepo.save(cartDetails);
+        long count = cartDetailsRepo.getCountOfProductByCart(cart.getId());
+        return new GlobalResponse("Added into cart", HttpStatus.CREATED.value(),true,count);
     }
 
     public List<DisplayCartProduct> getProductByCartDetails(String token){
@@ -109,13 +109,22 @@ public class CartService {
         cartRepo.save(cart);
     }
     @Transactional
-    public Boolean deleteCartItem(CartDeleteModel cartDeleteModel) {
+    public GlobalResponse deleteCartItem(CartDeleteModel cartDeleteModel) {
         User user = userRepo.findUserByPhone(cartDeleteModel.getUserPhone());
         Cart cart = cartRepo.findCartByUser(user);
         Product product = productRepo.getById(cartDeleteModel.getProductId());
         CartDetails cartDetails = cartDetailsRepo.findCartDetailsByCartAndProduct(cart,product);
         cartDetailsRepo.delete(cartDetails);
-        return true;
+        Integer count = cartDetailsRepo.getCountOfProductByCart(cart.getId());
+        return new GlobalResponse("Deleted cart item",HttpStatus.OK.value(),true,count);
+    }
+
+    public GlobalResponse getItemCount(String token) {
+        String phone = jwtTokenUtility.getUsernameFromToken(token);
+        Cart cart = cartRepo.findCartByUser(userRepo.findUserByPhone(phone));
+
+        Integer count = cartDetailsRepo.getCountOfProductByCart(cart.getId());
+        return new GlobalResponse("Cart item count fetched",HttpStatus.OK.value(),true, count);
     }
 
 //    public List<DisplayCartProduct> isProductAlreadyPresent(String jwt, Long productId) {
