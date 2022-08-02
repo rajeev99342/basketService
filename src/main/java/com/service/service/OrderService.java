@@ -1,10 +1,12 @@
 package com.service.service;
 
 import com.service.constants.enums.OrderStatus;
+import com.service.constants.enums.Role;
 import com.service.entities.*;
 import com.service.jwt.JwtTokenUtility;
 import com.service.model.DisplayCartProduct;
 import com.service.model.OrderModel;
+import com.service.model.OrderWiseProduct;
 import com.service.model.ProductWiseOrder;
 import com.service.repos.*;
 import com.service.utilites.Payment;
@@ -15,6 +17,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+
+import static com.service.constants.enums.Role.*;
 
 @Service
 public class OrderService {
@@ -192,5 +196,16 @@ public class OrderService {
             Integer inStock = stock.getInStock() + restoreCount;
             stock.setInStock(inStock);
             instockRepo.save(stock);
+    }
+
+    public List<OrderWiseProduct> fetchAllOrderByDate(String token,OrderStatus status) {
+        User user  = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
+        List<Role> roles = user.getRoles();
+        if(roles.contains(MASTER)){
+            orderRepo.findOrderByOrderStatus(OrderStatus.PLACED);
+           return null;
+        }else{
+            return null;
+        }
     }
 }
