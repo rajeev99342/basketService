@@ -1,17 +1,18 @@
 package com.service.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.service.constants.enums.OrderStatus;
 import com.service.constants.enums.PaymentModeEnum;
 import com.service.entities.User;
 import lombok.Data;
 
-import javax.persistence.*;
 import java.util.Date;
 import java.util.List;
 
 @Data
-public class OrderWiseProduct {
+public class OrderDetailsModel {
 
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private User user;
 
     private OrderStatus orderStatus;
@@ -23,8 +24,10 @@ public class OrderWiseProduct {
     private Date orderDate;
 
     private String completeAddress;
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private List<DeliveryProductDetails> deliveryProducts;
 
-    List<ProductWiseOrder> deliveryProducts;
 
+    private AddressModel addressModel;
 
 }

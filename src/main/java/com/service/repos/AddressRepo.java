@@ -8,5 +8,6 @@ import java.util.List;
 
 public interface AddressRepo extends JpaRepository<Address,Long> {
     List<Address> findAddressByUser(User user);
+    Address findAddressByUserAndIsDefault(User user,Boolean isDefault);
 
 }

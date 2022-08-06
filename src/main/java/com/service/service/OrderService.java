@@ -4,15 +4,13 @@ import com.service.constants.enums.OrderStatus;
 import com.service.constants.enums.Role;
 import com.service.entities.*;
 import com.service.jwt.JwtTokenUtility;
-import com.service.model.DisplayCartProduct;
-import com.service.model.OrderModel;
-import com.service.model.OrderWiseProduct;
-import com.service.model.ProductWiseOrder;
+import com.service.model.*;
 import com.service.repos.*;
 import com.service.utilites.Payment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -56,8 +54,8 @@ public class OrderService {
     @Autowired
     JwtTokenUtility jwtTokenUtility;
 
-    public  List<ProductWiseOrder> placeOrder(OrderModel orderModel){
-        List<ProductWiseOrder> productWiseOrders = new ArrayList<>();
+    public  List<DeliveryProductDetails> placeOrder(OrderModel orderModel){
+        List<DeliveryProductDetails> productWiseOrders = new ArrayList<>();
         User user  = userRepo.findUserByPhone(orderModel.getUserPhone());
         Order order = new Order();
         order.setOrderDate(new Date(System.currentTimeMillis()));
@@ -68,7 +66,7 @@ public class OrderService {
         orderRepo.save(order);
 
         for(DisplayCartProduct cartProduct : orderModel.getCartProducts()){
-            ProductWiseOrder productWiseOrder = new ProductWiseOrder();
+            DeliveryProductDetails productWiseOrder = new DeliveryProductDetails();
 
             try{
                 // check for product availability --> someone could have order this
@@ -113,10 +111,10 @@ public class OrderService {
                 // delete from the cart
             Cart cart = cartRepo.findCartByUser(userRepo.findUserByPhone(orderModel.getUserPhone()));
             List<CartDetails> cartDetails = cartDetailsRepo.findCartDetailsByCart(cart);
-            List<ProductWiseOrder> successfullyOrdredProduct = productWiseOrders.stream().
+            List<DeliveryProductDetails> successfullyOrdredProduct = productWiseOrders.stream().
                 filter(productWiseOrder -> productWiseOrder.getOrderStatus().equals(OrderStatus.PLACED)).collect(Collectors.toList());
 
-            for(ProductWiseOrder productWiseOrder : successfullyOrdredProduct){
+            for(DeliveryProductDetails productWiseOrder : successfullyOrdredProduct){
                     CartDetails cartDetails1 = cartDetailsRepo.findCartDetailsByCartAndProduct(cart,productRepo.getById(productWiseOrder.getProductId()));
                     cartDetailsRepo.delete(cartDetails1);
             }
@@ -143,15 +141,15 @@ public class OrderService {
 
     }
 
-    public List<ProductWiseOrder> getOrderListByUser(String token) {
+    public List<DeliveryProductDetails> getOrderListByUser(String token) {
         User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
         List<Order> orders = this.orderRepo.findOrderByUser(user);
-        List<ProductWiseOrder> productWiseOrders = new ArrayList<>();
+        List<DeliveryProductDetails> productWiseOrders = new ArrayList<>();
 
         for(Order order : orders){
             List<ProductDelivery> productsDeliveryList = productDeliveryRepo.findProductDeliveryByOrder(order);
             for(ProductDelivery productDelivery : productsDeliveryList){
-                ProductWiseOrder productWiseOrder = new ProductWiseOrder();
+                DeliveryProductDetails productWiseOrder = new DeliveryProductDetails();
                 SimpleDateFormat parser = new SimpleDateFormat("dd-MM-yyyy");
                 try {
                     SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy hh:mm");
@@ -198,14 +196,58 @@ public class OrderService {
             instockRepo.save(stock);
     }
 
-    public List<OrderWiseProduct> fetchAllOrderByDate(String token,OrderStatus status) {
+    // for admin
+    @Transactional
+    public List<OrderDetailsModel> fetchAllOrderByStatus(String token, OrderStatus status) {
         User user  = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
         List<Role> roles = user.getRoles();
         if(roles.contains(MASTER)){
-            orderRepo.findOrderByOrderStatus(OrderStatus.PLACED);
-           return null;
+           List<Order> orders = orderRepo.findOrderByOrderStatus(status);
+           List<OrderDetailsModel> orderDetailsModelList = new ArrayList<>();
+           for( Order order : orders){
+               OrderDetailsModel orderDetailsModel = new OrderDetailsModel();
+
+               orderDetailsModel.setUser(order.getUser());
+                orderDetailsModel.setOrderDate(order.getOrderDate());
+                orderDetailsModel.setOrderStatus(order.getOrderStatus());
+                Address address = addressRepo.findAddressByUserAndIsDefault(order.getUser(),true);
+                orderDetailsModel.setAddressModel(convertIntoAddressModel(address));
+                List<DeliveryProductDetails> deliveryProductList = new ArrayList<>();
+                List<ProductDelivery> productDeliveries = productDeliveryRepo.findProductDeliveryByOrderAndOrderStatus(order,status);
+                for(ProductDelivery productDelivery : productDeliveries){
+                    DeliveryProductDetails deliveryProductDetails = new DeliveryProductDetails();
+                    deliveryProductDetails.setDeliveryAgentDetails("Rajeev");
+                    deliveryProductDetails.setDeliveryDate(productDelivery.getDeliveryDate().toString());
+                    deliveryProductDetails.setProductId(productDelivery.getProduct().getId());
+                    deliveryProductDetails.setProductName(productDelivery.getProduct().getName());
+                    deliveryProductDetails.setOrderStatus(productDelivery.getOrderStatus());
+                    deliveryProductDetails.setTotalProductCount(productDelivery.getOrderedTotalCount());
+
+                    deliveryProductDetails.setImage(imageService.getAllImageByProduct(productDelivery.getProduct()));
+                    deliveryProductDetails.setPrice(productDelivery.getProduct().getSellingPrice());
+                    deliveryProductList.add(deliveryProductDetails);
+                }
+                orderDetailsModel.setDeliveryProducts(deliveryProductList);
+               orderDetailsModelList.add(orderDetailsModel);
+           }
+           return orderDetailsModelList;
         }else{
             return null;
         }
     }
+
+    private AddressModel convertIntoAddressModel(Address address) {
+        AddressModel addressModel = new AddressModel();
+        addressModel.setAddressOne(address.getAddressOne());
+        addressModel.setArea(address.getArea());
+        addressModel.setCity(address.getCity());
+        addressModel.setMobile(address.getMobile());
+        addressModel.setId(address.getId());
+        addressModel.setIsDefault(address.getIsDefault());
+        addressModel.setLandmark(address.getLandmark());
+        addressModel.setPincode(address.getPincode());
+        addressModel.setUserPhone(address.getMobile());
+        return addressModel;
+    }
+
 }

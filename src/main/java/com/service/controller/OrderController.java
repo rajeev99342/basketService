@@ -1,12 +1,13 @@
 package com.service.controller;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.service.constants.enums.OrderStatus;
 import com.service.model.*;
-import com.service.service.CartService;
 import com.service.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,10 +20,9 @@ public class OrderController {
 
     @CrossOrigin(value = "*")
     @PostMapping("/place-order")
-    List<ProductWiseOrder> placeOrder(@RequestBody OrderModel orderModel) {
+    List<DeliveryProductDetails> placeOrder(@RequestBody OrderModel orderModel) {
         try {
             return orderService.placeOrder(orderModel);
-
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -32,7 +32,7 @@ public class OrderController {
 
     @CrossOrigin(value = "*")
     @PostMapping("/get-order-by-user")
-    List<ProductWiseOrder> getOrder(@RequestParam("token") String token) {
+    List<DeliveryProductDetails> getOrder(@RequestParam("token") String token) {
         try {
             return orderService.getOrderListByUser(token);
         } catch (Exception e) {
@@ -57,20 +57,23 @@ public class OrderController {
 
     @CrossOrigin(value = "*")
     @PostMapping("/get-order-by-status")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @Transactional
+
         // for admin
-    List<OrderWiseProduct> getOrderAllOrderByStatus(@RequestParam("token") String token, String status) {
-        List<OrderWiseProduct> orderWiseProducts = new ArrayList<>();
+    List<OrderDetailsModel> getOrderAllOrderByStatus(@RequestParam("token") String token, String status) {
+        List<OrderDetailsModel> orderWiseProducts = new ArrayList<>();
         try {
             if (OrderStatus.PLACED.name().equals(status)) {
-                orderService.fetchAllOrderByDate(token, OrderStatus.PLACED);
+               return orderService.fetchAllOrderByStatus(token, OrderStatus.PLACED);
             } else if (OrderStatus.ON_THE_WAY.name().equals(status)) {
-                orderService.fetchAllOrderByDate(token, OrderStatus.ON_THE_WAY);
+                return  orderService.fetchAllOrderByStatus(token, OrderStatus.ON_THE_WAY);
             } else if (OrderStatus.PACKING.name().equals(status)) {
-                orderService.fetchAllOrderByDate(token, OrderStatus.PACKING);
+                return  orderService.fetchAllOrderByStatus(token, OrderStatus.PACKING);
             } else if (OrderStatus.DISPATCHED.name().equals(status)) {
-                orderService.fetchAllOrderByDate(token, OrderStatus.DISPATCHED);
+                return  orderService.fetchAllOrderByStatus(token, OrderStatus.DISPATCHED);
             } else  if(OrderStatus.DELIVERED.name().equals(status)){
-                orderService.fetchAllOrderByDate(token,OrderStatus.DELIVERED);
+                return  orderService.fetchAllOrderByStatus(token,OrderStatus.DELIVERED);
             }else{
                 System.out.println("No order");
             }

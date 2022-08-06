@@ -3,11 +3,10 @@ package com.service.model;
 import com.service.constants.enums.OrderStatus;
 import lombok.Data;
 
-import java.util.Date;
 import java.util.List;
 
 @Data
-public class ProductWiseOrder {
+public class DeliveryProductDetails {
     private Long productId;
     private String productName;
     private Integer totalProductCount ;
