@@ -208,7 +208,7 @@ public class OrderService {
                OrderDetailsModel orderDetailsModel = new OrderDetailsModel();
 
                orderDetailsModel.setUser(order.getUser());
-                orderDetailsModel.setOrderDate(order.getOrderDate());
+                orderDetailsModel.setOrderDate(order.getOrderDate().toString());
                 orderDetailsModel.setOrderStatus(order.getOrderStatus());
                 Address address = addressRepo.findAddressByUserAndIsDefault(order.getUser(),true);
                 orderDetailsModel.setAddressModel(convertIntoAddressModel(address));
