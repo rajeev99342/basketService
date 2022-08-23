@@ -1,12 +1,15 @@
 package com.service.controller;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.service.constants.enums.Status;
 import com.service.entities.Address;
-import com.service.entities.User;
 import com.service.jwt.JwtTokenUtility;
 import com.service.jwt.MyUserDetailsService;
-import com.service.model.*;
+import com.service.model.AddressModel;
+import com.service.model.GlobalResponse;
+import com.service.model.UserCredentials;
+import com.service.model.UserModel;
 import com.service.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +22,15 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
 @RestController
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@Transactional
+
 public class UserController {
     @Autowired
     private AuthenticationManager authenticationManager;

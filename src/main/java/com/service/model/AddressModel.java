@@ -10,7 +10,7 @@ public class AddressModel {
     private String mobile;
     private String landmark;
     private String area;
-    private Long pincode;
+    private String pincode;
     private String addressOne;
     private Boolean isDefault;
 }

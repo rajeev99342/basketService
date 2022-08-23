@@ -59,9 +59,10 @@ public class OrderService {
         User user  = userRepo.findUserByPhone(orderModel.getUserPhone());
         Order order = new Order();
         order.setOrderDate(new Date(System.currentTimeMillis()));
-        order.setOrderStatus(OrderStatus.PLACED);
+        order.setOrderStatus(orderModel.getOrderStatus());
         order.setPaymentMode(payment.getPaymentMode(orderModel.getPaymentMode().getMethod()));
         order.setUser(user);
+        order.setOrderStatus(OrderStatus.PLACED);
         order.setTotalCost(orderModel.getFinalAmount());
         orderRepo.save(order);
 
@@ -86,8 +87,8 @@ public class OrderService {
                     productDelivery.setOrderedTotalWeight(cartProduct.getSelectedWeight());
                     Address address = addressRepo.getById(orderModel.getAddressId());
                     productDelivery.setAddress(address);
-                    String completeAddress = address.getLandmark() +", "+address.getAddressOne() + ", " + address.getArea() +", " + address.getCity() + "-"+
-                            +address.getPincode() + ", Mobile - " + address.getMobile();
+                    String completeAddress = address.getLandmark() +", "+address.getAddressOne() + ", " + address.getArea() +", " + address.getCity() + "-".concat(address.getPincode() )+
+                       ", Mobile - " + address.getMobile();
                     productDeliveryRepo.save(productDelivery);
                     productWiseOrder.setProductId(cartProduct.getId());
                     productWiseOrder.setOrderStatus(OrderStatus.PLACED);
@@ -141,6 +142,45 @@ public class OrderService {
 
     }
 
+
+    @Transactional
+    public List<OrderDetailsModel> getOrderDetails(String token) {
+        User user  = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
+            List<Order> orders = orderRepo.findOrderByUser(user);
+            List<OrderDetailsModel> orderDetailsModelList = new ArrayList<>();
+            for( Order order : orders){
+                OrderDetailsModel orderDetailsModel = new OrderDetailsModel();
+                orderDetailsModel.setUser(order.getUser());
+                orderDetailsModel.setOrderDate(order.getOrderDate().toString());
+                orderDetailsModel.setOrderStatus(order.getOrderStatus());
+                Address address = addressRepo.findAddressByUserAndIsDefault(order.getUser(),true);
+                orderDetailsModel.setAddressModel(convertIntoAddressModel(address));
+                List<DeliveryProductDetails> deliveryProductList = new ArrayList<>();
+                Double totalCost = 0.00;
+                List<ProductDelivery> productDeliveries = productDeliveryRepo.findProductDeliveryByOrder(order);
+                for(ProductDelivery productDelivery : productDeliveries){
+                    DeliveryProductDetails deliveryProductDetails = new DeliveryProductDetails();
+                    deliveryProductDetails.setDeliveryAgentDetails("Rajeev");
+                    deliveryProductDetails.setDeliveryDate(productDelivery.getDeliveryDate().toString());
+                    deliveryProductDetails.setProductId(productDelivery.getProduct().getId());
+                    deliveryProductDetails.setProductName(productDelivery.getProduct().getName());
+                    deliveryProductDetails.setOrderStatus(productDelivery.getOrderStatus());
+                    deliveryProductDetails.setTotalProductCount(productDelivery.getOrderedTotalCount());
+                    totalCost = totalCost + productDelivery.getProduct().getSellingPrice();
+                    deliveryProductDetails.setImage(imageService.getAllImageByProduct(productDelivery.getProduct()));
+                    deliveryProductDetails.setPrice(productDelivery.getProduct().getSellingPrice());
+                    deliveryProductList.add(deliveryProductDetails);
+                }
+                orderDetailsModel.setOrderId(order.getId());
+                orderDetailsModel.setDeliveryProducts(deliveryProductList);
+                orderDetailsModel.setTotalCost(order.getTotalCost());
+                orderDetailsModelList.add(orderDetailsModel);
+            }
+            return orderDetailsModelList;
+
+    }
+
+
     public List<DeliveryProductDetails> getOrderListByUser(String token) {
         User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
         List<Order> orders = this.orderRepo.findOrderByUser(user);
@@ -169,10 +209,10 @@ public class OrderService {
                 productWiseOrder.setDeliveryAgentDetails("Rajeev Kumar, Mobile - 9878979798");
                 productWiseOrder.setTotalProductCount(productDelivery.getOrderedTotalCount());
                 Address address = productDelivery.getAddress();
-                String completeAddress = address.getLandmark() +", "+address.getAddressOne() + ", " + address.getArea() +", " + address.getCity() + "-"+
-                        +address.getPincode() + ", Mobile - " + address.getMobile();
+                String completeAddress = address.getLandmark() +", "+address.getAddressOne() + ", " + address.getArea() +", " + address.getCity() + "-".concat(address.getPincode())
+                         + ", Mobile - " + address.getMobile();
 
-
+                productWiseOrder.setOrderId(order.getId());
                 productWiseOrder.setCompleteAddress(completeAddress);
                 productWiseOrders.add(productWiseOrder);
             }
@@ -182,10 +222,42 @@ public class OrderService {
     }
 
     public Boolean cancelOrder(Long id) {
+//        List<ProductDelivery> productDeliveries = productDeliveryRepo.findProductDeliveryByOrder()
         ProductDelivery productDelivery = productDeliveryRepo.getById(id);
         productDelivery.setOrderStatus(OrderStatus.CANCELED);
         productDeliveryRepo.save(productDelivery);
+//        Order order = orderRepo.getById()
         updateProductInventory(productDelivery.getProduct(),productDelivery.getOrderedTotalCount());
+        return true;
+    }
+
+    public Boolean packingOrder(Long id) {
+        Order order = orderRepo.getById(id);
+        List<ProductDelivery> productDeliveries = productDeliveryRepo.findProductDeliveryByOrder(order);
+        productDeliveries.stream().forEach(p -> p.setOrderStatus(OrderStatus.PACKING));
+        productDeliveryRepo.saveAll(productDeliveries);
+        order.setOrderStatus(OrderStatus.PACKING);
+        orderRepo.save(order);
+        return true;
+    }
+
+    public Boolean markedDelivered(Long id) {
+        Order order = orderRepo.getById(id);
+        List<ProductDelivery> productDeliveries = productDeliveryRepo.findProductDeliveryByOrder(order);
+        productDeliveries.stream().forEach(p -> p.setOrderStatus(OrderStatus.DELIVERED));
+        productDeliveryRepo.saveAll(productDeliveries);
+        order.setOrderStatus(OrderStatus.DELIVERED);
+        orderRepo.save(order);
+        return true;
+    }
+
+    public Boolean updateOnTheWay(Long id) {
+        Order order = orderRepo.getById(id);
+        List<ProductDelivery> productDeliveries = productDeliveryRepo.findProductDeliveryByOrder(order);
+        productDeliveries.stream().forEach(p -> p.setOrderStatus(OrderStatus.ON_THE_WAY));
+        productDeliveryRepo.saveAll(productDeliveries);
+        order.setOrderStatus(OrderStatus.ON_THE_WAY);
+        orderRepo.save(order);
         return true;
     }
 
@@ -213,6 +285,7 @@ public class OrderService {
                 Address address = addressRepo.findAddressByUserAndIsDefault(order.getUser(),true);
                 orderDetailsModel.setAddressModel(convertIntoAddressModel(address));
                 List<DeliveryProductDetails> deliveryProductList = new ArrayList<>();
+                Double totalCost = 0.00;
                 List<ProductDelivery> productDeliveries = productDeliveryRepo.findProductDeliveryByOrderAndOrderStatus(order,status);
                 for(ProductDelivery productDelivery : productDeliveries){
                     DeliveryProductDetails deliveryProductDetails = new DeliveryProductDetails();
@@ -222,12 +295,14 @@ public class OrderService {
                     deliveryProductDetails.setProductName(productDelivery.getProduct().getName());
                     deliveryProductDetails.setOrderStatus(productDelivery.getOrderStatus());
                     deliveryProductDetails.setTotalProductCount(productDelivery.getOrderedTotalCount());
-
+                    totalCost = totalCost + productDelivery.getProduct().getSellingPrice();
                     deliveryProductDetails.setImage(imageService.getAllImageByProduct(productDelivery.getProduct()));
                     deliveryProductDetails.setPrice(productDelivery.getProduct().getSellingPrice());
                     deliveryProductList.add(deliveryProductDetails);
                 }
+                orderDetailsModel.setOrderId(order.getId());
                 orderDetailsModel.setDeliveryProducts(deliveryProductList);
+                orderDetailsModel.setTotalCost(order.getTotalCost());
                orderDetailsModelList.add(orderDetailsModel);
            }
            return orderDetailsModelList;

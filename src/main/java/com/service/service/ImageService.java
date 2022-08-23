@@ -19,13 +19,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class ImageService {
-    String RESOURCES_DIR ="/home/rajeev/Documents/images/";
+    String RESOURCES_DIR ="C:/Users/91775/Desktop/OneStore/images/";
 
     @Autowired
     private ImageDetailsRepository imageDetailsRepository;

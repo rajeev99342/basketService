@@ -1,5 +1,6 @@
 package com.service.model;
 
+import com.service.constants.enums.OrderStatus;
 import lombok.Data;
 
 import java.util.List;
@@ -11,4 +12,5 @@ public class OrderModel {
     private PaymentMode paymentMode;
     private final Double finalAmount;
     private final  Long addressId;
+    private final OrderStatus orderStatus;
 }

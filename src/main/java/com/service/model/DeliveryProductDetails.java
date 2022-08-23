@@ -18,4 +18,5 @@ public class DeliveryProductDetails {
     private String orderDate;
     private String deliveryDate;
     private Long productDeliveryId;
+    private Long orderId;
 }

@@ -35,7 +35,7 @@ public class Address {
     private String area;
 
     @Column(name = "PIN")
-    private Long pincode;
+    private String pincode;
 
     @Column(name = "MOBILE")
     private String mobile;

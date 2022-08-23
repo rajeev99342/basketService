@@ -32,9 +32,9 @@ public class OrderController {
 
     @CrossOrigin(value = "*")
     @PostMapping("/get-order-by-user")
-    List<DeliveryProductDetails> getOrder(@RequestParam("token") String token) {
+    List<OrderDetailsModel> getOrder(@RequestParam("token") String token) {
         try {
-            return orderService.getOrderListByUser(token);
+            return orderService.getOrderDetails(token);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -47,6 +47,45 @@ public class OrderController {
     Boolean cancelOrder(@RequestBody Long id) {
         try {
             return orderService.cancelOrder(id);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
+
+    @CrossOrigin(value = "*")
+    @PostMapping("/update-packing-order")
+    Boolean packingOrder(@RequestBody Long id) {
+        try {
+            return orderService.packingOrder(id);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
+    @CrossOrigin(value = "*")
+    @PostMapping("/marked-delivered")
+    Boolean markedDelivered(@RequestBody Long id) {
+        try {
+            return orderService.markedDelivered(id);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    @CrossOrigin(value = "*")
+    @PostMapping("/update-on-the-way-order")
+    Boolean updateOnTheWay(@RequestBody Long id) {
+        try {
+            return orderService.updateOnTheWay(id);
 
         } catch (Exception e) {
             e.printStackTrace();
