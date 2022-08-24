@@ -6,6 +6,7 @@ import com.service.constants.enums.PaymentModeEnum;
 import com.service.entities.User;
 import lombok.Data;
 
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -26,6 +27,7 @@ public class OrderDetailsModel {
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private List<DeliveryProductDetails> deliveryProducts;
     private AddressModel addressModel;
-
+    private Date expectedDeliveryDate ;
     private Long orderId;
+    private String displayOrderStatus;
 }

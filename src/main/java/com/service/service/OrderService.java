@@ -12,11 +12,13 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import static com.service.constants.enums.Role.*;
+import static com.service.constants.enums.Role.MASTER;
 
 @Service
 public class OrderService {
@@ -59,6 +61,9 @@ public class OrderService {
         User user  = userRepo.findUserByPhone(orderModel.getUserPhone());
         Order order = new Order();
         order.setOrderDate(new Date(System.currentTimeMillis()));
+        LocalDate localDate = LocalDate.now().plusDays(2);
+        Date expectedDate = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        order.setExpectedDeliveryDate(expectedDate);
         order.setOrderStatus(orderModel.getOrderStatus());
         order.setPaymentMode(payment.getPaymentMode(orderModel.getPaymentMode().getMethod()));
         order.setUser(user);
@@ -171,6 +176,7 @@ public class OrderService {
                     deliveryProductDetails.setPrice(productDelivery.getProduct().getSellingPrice());
                     deliveryProductList.add(deliveryProductDetails);
                 }
+                orderDetailsModel.setExpectedDeliveryDate(order.getExpectedDeliveryDate());
                 orderDetailsModel.setOrderId(order.getId());
                 orderDetailsModel.setDeliveryProducts(deliveryProductList);
                 orderDetailsModel.setTotalCost(order.getTotalCost());
@@ -300,6 +306,7 @@ public class OrderService {
                     deliveryProductDetails.setPrice(productDelivery.getProduct().getSellingPrice());
                     deliveryProductList.add(deliveryProductDetails);
                 }
+                orderDetailsModel.setExpectedDeliveryDate(order.getExpectedDeliveryDate());
                 orderDetailsModel.setOrderId(order.getId());
                 orderDetailsModel.setDeliveryProducts(deliveryProductList);
                 orderDetailsModel.setTotalCost(order.getTotalCost());

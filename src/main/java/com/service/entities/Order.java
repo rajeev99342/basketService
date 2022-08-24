@@ -34,5 +34,9 @@ public class Order {
     @Column(name = "ORDER_DATE")
     private Date orderDate;
 
+    @Column(name = "ORDER_EXPECTED_DELIVERY_DATE")
+    private Date expectedDeliveryDate;
 
+    @Column(name = "ORDER_DELIVERED_DATE")
+    private Date orderDeliveredAt;
 }
