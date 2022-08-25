@@ -2,6 +2,8 @@ package com.service.model;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class ProductModel {
  private  Long id;
@@ -16,4 +18,5 @@ public class ProductModel {
     private Integer inStock;
     private Boolean isValid;
     private CategoryModel category;
+    private List<QuantityModel> quantityModelList;
 }

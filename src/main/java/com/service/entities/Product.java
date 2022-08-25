@@ -48,4 +48,5 @@ public class Product{
     @ManyToMany
     private List<CartDetails> cartDetails;
 
+
 }

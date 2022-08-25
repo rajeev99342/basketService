@@ -4,7 +4,6 @@ import lombok.Data;
 
 import javax.persistence.*;
 import java.util.Date;
-import java.util.List;
 
 @Data
 @Entity
@@ -29,8 +28,13 @@ public class CartDetails {
     Integer selectedCount;
 
     @JoinColumn(name = "PRODUCT_ID",referencedColumnName = "ID")
-    @ManyToMany
-    List<Product> product;
+    @OneToOne
+    Product product;
+
+
+    @JoinColumn(name = "QUANTITY_ID",referencedColumnName = "ID")
+    @OneToOne
+    Quantity quantity;
 
     @Column(name = "CREATED_AT")
     Date createdAt;

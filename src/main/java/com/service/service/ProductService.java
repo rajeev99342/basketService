@@ -2,15 +2,10 @@ package com.service.service;
 
 import com.service.constants.enums.ImgType;
 import com.service.entities.*;
-import com.service.model.CategoryModel;
-import com.service.model.DisplayProductModel;
-import com.service.model.GlobalResponse;
-import com.service.model.ProductModel;
-import com.service.repos.CategoryRepo;
-import com.service.repos.ImageRepository;
-import com.service.repos.InstockRepo;
-import com.service.repos.ProductRepo;
+import com.service.model.*;
+import com.service.repos.*;
 import com.service.utilites.ImageUtility;
+import com.service.utilites.Utility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,9 +14,15 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
+
+    @Autowired
+    Utility utility;
+    @Autowired
+    QuantityRepo quantityRepo;
     @Autowired
     ImageUtility imageUtility;
     @Autowired
@@ -59,6 +60,7 @@ public class ProductService {
             }else{
                 // delete previous Image
                 imageUtility.deleteProductImages(product);
+                utility.deletePreviousQuantityList(product);
             }
             product.setPricePerUnit(model.getPriceForGivenUnit());
             product.setProdBrand(model.getBrand());
@@ -93,6 +95,7 @@ public class ProductService {
             stock.setProduct(product);
             stock.setInStock(model.getInStock());
             instockRepo.save(stock);
+            saveQuantityList(model.getQuantityModelList(),product);
             response = new GlobalResponse("success", HttpStatus.OK.value(),true,product);
         }catch (Exception e){
             e.printStackTrace();
@@ -100,6 +103,15 @@ public class ProductService {
         }
         return response;
 
+    }
+
+    private void saveQuantityList(List<QuantityModel> quantityModelList,Product product) throws Exception {
+            if(quantityModelList != null && quantityModelList.size() > 0){
+                List<Quantity> quantities = quantityModelList.stream().map(q -> new Quantity(q.getId(),product,q.getUnit(),q.getQuantity(),q.getPrice())).collect(Collectors.toList());
+                quantityRepo.saveAll(quantities);
+            }else{
+                throw new Exception("Quantity not found");
+            }
     }
 
 
@@ -110,6 +122,7 @@ public class ProductService {
             DisplayProductModel displayProductModel = new DisplayProductModel();
             displayProductModel.setModel(getProductModelByProduct(product));
             displayProductModel.setImages(imageService.getAllImageByProduct(product));
+            displayProductModel.setQuantityModelList(getQuantityModelFromEntity(quantityRepo.findAllByProduct(product)));
             displayProductModel.setId(product.getId());
             productModels.add(displayProductModel);
 
@@ -122,10 +135,14 @@ public class ProductService {
         DisplayProductModel displayProductModel = new DisplayProductModel();
         displayProductModel.setModel(getProductModelByProduct(product));
         displayProductModel.setImages(imageService.getAllImageByProduct(product));
+        displayProductModel.setQuantityModelList(getQuantityModelFromEntity(quantityRepo.findAllByProduct(product)));
         displayProductModel.setId(product.getId());
         return displayProductModel;
     }
 
+    public List<QuantityModel> getQuantityModelFromEntity(List<Quantity> quantities){
+        return quantities.stream().map(q -> new QuantityModel(q.getId(),q.getUnit(),q.getPrice(),q.getQuantity(),false)).collect(Collectors.toList());
+    }
 
     public ProductModel getProductModelByProduct(Product product){
         ProductModel productModel = new ProductModel();

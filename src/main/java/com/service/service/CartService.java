@@ -6,8 +6,6 @@ import com.service.model.*;
 import com.service.repos.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -43,6 +41,9 @@ public class CartService {
     @Autowired
     JwtTokenUtility jwtTokenUtility;
 
+    @Autowired
+    QuantityRepo quantityRepo;
+
     public GlobalResponse addToCart(CartProductMappingModel cartProductMappingModel) {
         Cart cart = cartRepo.findCartByUser(userRepo.findUserByPhone(cartProductMappingModel.getUserPhone()));
         if(null == cart){
@@ -50,25 +51,26 @@ public class CartService {
         }
 
         List<CartDetails> cartDetailsListByCartOrUser = cartDetailsRepo.findCartDetailsByCart(cart);
-
+        Product product = null;
         CartDetails cartDetails = new CartDetails();
         for (CartDetails cartDetails1 : cartDetailsListByCartOrUser){
-            Product productInCartDetails = productRepo.getById(cartProductMappingModel.getProductId());
-            if(productInCartDetails.getId().equals(cartDetails1.getProduct().get(0).getId())){
+            if(cartDetails1.getProduct().getId().equals(cartProductMappingModel.getProductId())){
                 cartDetails = cartDetails1;
                 break;
             }
         }
+        if(null == cartDetails.getId()){
+            product = productRepo.getById(cartProductMappingModel.getProductId());
+        }
         cartDetails.setCart(cart);
-        List<Product> list = new ArrayList<>();
-        list.add(productRepo.getById(cartProductMappingModel.getProductId()));
-        cartDetails.setProduct(list);
+        cartDetails.setProduct(product);
         cartDetails.setSelectedSize(cartProductMappingModel.getSelectedProductSize());
         cartDetails.setSelectedWeight(cartProductMappingModel.getSelectedProductWeight());
         cartDetails.setSelectedCount(cartProductMappingModel.getSelectedProductCount());
         if(null == cartDetails.getId()){
             cartDetails.setCreatedAt(new Date(System.currentTimeMillis()));
         }
+        cartDetails.setQuantity(quantityRepo.getById(cartProductMappingModel.getQuantityId()));
         cartDetails.setUpdatedAt(new Date(System.currentTimeMillis()));
         cartDetailsRepo.save(cartDetails);
         long count = cartDetailsRepo.getCountOfProductByCart(cart.getId());
@@ -83,7 +85,7 @@ public class CartService {
 
          for(CartDetails cartDetails1 : cartDetails){
              DisplayCartProduct displayCartProduct = new DisplayCartProduct();
-             Product  product = productRepo.getById(cartDetails1.getProduct().get(0).getId());
+             Product  product = productRepo.getById(cartDetails1.getProduct().getId());
              List<Image> images = imageRepository.findImageByProduct(product);
              List<Object> imageLinkList = new ArrayList<>();
              for(Image image : images){
@@ -97,7 +99,13 @@ public class CartService {
              displayCartProduct.setSelectedSize(cartDetails1.getSelectedSize());
              displayCartProduct.setSelectedWeight(cartDetails1.getSelectedWeight());
              displayCartProduct.setId(product.getId());
+             displayCartProduct.setQuantityModel(new QuantityModel(cartDetails1.getQuantity().getId(),
+                     cartDetails1.getQuantity().getUnit(),
+                     cartDetails1.getQuantity().getPrice(),
+                     cartDetails1.getQuantity().getQuantity(),
+                     true));
              displayCartProducts.add(displayCartProduct);
+
          }
          return displayCartProducts;
     }

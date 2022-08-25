@@ -9,4 +9,5 @@ public class DisplayProductModel {
     private Long id;
     private ProductModel model;
     private List<Object> images;
+    private List<QuantityModel> quantityModelList;
 }

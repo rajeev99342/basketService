@@ -1,6 +1,5 @@
 package com.service.model;
 
-import com.service.entities.Image;
 import lombok.Data;
 
 import java.util.List;
@@ -16,5 +15,6 @@ public class DisplayCartProduct {
     private Double eachProductPrice;
     private Double totalSumPriceOfThisProduct;
     private Integer inStock;
+    private QuantityModel quantityModel;
 
 }
