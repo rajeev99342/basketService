@@ -1,14 +1,11 @@
 package com.service.controller;
+
 import com.google.gson.Gson;
-import com.service.entities.Category;
-import com.service.entities.ImageDetails;
-import com.service.entities.Product;
-import com.service.model.*;
-import com.service.service.CategoryService;
-import com.service.service.ImageService;
+import com.service.model.DisplayProductModel;
+import com.service.model.GlobalResponse;
+import com.service.model.ProductModel;
 import com.service.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,6 +28,21 @@ public class ProductController {
             Gson gson = new Gson();
             ProductModel productModel = gson.fromJson(productString, ProductModel.class);
           return  productService.addProduct(productModel,images);
+        }catch (Exception e){
+            e.printStackTrace();
+            globalResponse.setMessage("Failed");
+        }
+
+        return globalResponse;
+    }
+
+
+    @CrossOrigin(origins = "*")
+    @PostMapping("/delete-product-quantity")
+    public GlobalResponse deleteProductQuantity(@RequestParam("id") Long  id,@RequestParam("token") String  token){
+        GlobalResponse globalResponse = new GlobalResponse();
+        try {
+            return  productService.deleteProductQuantity(id,token);
         }catch (Exception e){
             e.printStackTrace();
             globalResponse.setMessage("Failed");

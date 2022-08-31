@@ -21,7 +21,7 @@ public class OrderDetailsModel {
 
     private PaymentModeEnum paymentMode;
 
-    private String orderDate;
+    private Date orderDate;
 
     private String completeAddress;
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
@@ -30,4 +30,5 @@ public class OrderDetailsModel {
     private Date expectedDeliveryDate ;
     private Long orderId;
     private String displayOrderStatus;
+    private Boolean  isNew = true;
 }

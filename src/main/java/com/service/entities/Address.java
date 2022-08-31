@@ -42,6 +42,6 @@ public class Address {
 
 
     @Column(name = "IS_DEFAULT")
-    private Boolean isDefault;
+    private Boolean isDefault = true;
 
 }

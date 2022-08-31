@@ -1,7 +1,9 @@
 package com.service.service;
 
 import com.service.constants.enums.ImgType;
+import com.service.constants.enums.Role;
 import com.service.entities.*;
+import com.service.jwt.JwtTokenUtility;
 import com.service.model.*;
 import com.service.repos.*;
 import com.service.utilites.ImageUtility;
@@ -39,28 +41,48 @@ public class ProductService {
     @Autowired
     InstockRepo instockRepo;
 
-    public GlobalResponse deleteProduct(Long id){
-         Product product = productRepo.findProductByIdAndIsValid(id,true);
-         product.setIsValid(false);
-         productRepo.save(product);
-         return new GlobalResponse("Deleted",HttpStatus.OK.value(),true,null);
+    @Autowired
+    JwtTokenUtility jwtTokenUtility;
+
+    @Autowired
+    UserRepo userRepo;
+
+    public GlobalResponse deleteProductQuantity(Long id, String token) {
+        try {
+            User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
+            if (user.getRoles().contains(Role.MASTER)) {
+                quantityRepo.deleteById(id);
+                return new GlobalResponse("Deleted", HttpStatus.OK.value(), true, null);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new GlobalResponse("Failed to delete", HttpStatus.INTERNAL_SERVER_ERROR.value(), false, null);
+
+    }
+
+    public GlobalResponse deleteProduct(Long id) {
+        Product product = productRepo.findProductByIdAndIsValid(id, true);
+        product.setIsValid(false);
+        productRepo.save(product);
+        return new GlobalResponse("Deleted", HttpStatus.OK.value(), true, null);
     }
 
     @Transactional
-    public GlobalResponse addProduct(ProductModel model, List<MultipartFile> imageList){
+    public GlobalResponse addProduct(ProductModel model, List<MultipartFile> imageList) {
         Product product = null;
         GlobalResponse response = null;
-        try{
+        try {
 
-            if(null != model.getId()){
+            if (null != model.getId()) {
                 product = productRepo.getById(model.getId());
             }
-            if(null == product){
+            if (null == product) {
                 product = new Product();
-            }else{
+            } else {
                 // delete previous Image
                 imageUtility.deleteProductImages(product);
-                utility.deletePreviousQuantityList(product);
             }
             product.setPricePerUnit(model.getPriceForGivenUnit());
             product.setProdBrand(model.getBrand());
@@ -77,10 +99,9 @@ public class ProductService {
             category.setId(model.getCategory().getId());
             product.setCategory(category);
             product = productRepo.save(product);
-            for (MultipartFile file : imageList)
-            {
+            for (MultipartFile file : imageList) {
                 String imageReference = imageUtility.getImageName("product", product.getName());
-                GlobalResponse imageResponse = imageService.saveImage(file,imageReference);
+                GlobalResponse imageResponse = imageService.saveImage(file, imageReference);
                 ImageDetails imageDetails = (ImageDetails) imageResponse.getBody();
                 Image image = new Image();
                 image.setImageDetails(imageDetails);
@@ -89,36 +110,36 @@ public class ProductService {
                 imageRepository.save(image);
             }
             Stock stock = instockRepo.findStockByProduct(product);
-            if(null == stock){
+            if (null == stock) {
                 stock = new Stock();
             }
             stock.setProduct(product);
             stock.setInStock(model.getInStock());
             instockRepo.save(stock);
-            saveQuantityList(model.getQuantityModelList(),product);
-            response = new GlobalResponse("success", HttpStatus.OK.value(),true,product);
-        }catch (Exception e){
+            saveQuantityList(model.getQuantityModelList(), product);
+            response = new GlobalResponse("success", HttpStatus.OK.value(), true, product);
+        } catch (Exception e) {
             e.printStackTrace();
-            response = new GlobalResponse("Failed", HttpStatus.BAD_REQUEST.value(),false,product);
+            response = new GlobalResponse("Failed", HttpStatus.BAD_REQUEST.value(), false, product);
         }
         return response;
 
     }
 
-    private void saveQuantityList(List<QuantityModel> quantityModelList,Product product) throws Exception {
-            if(quantityModelList != null && quantityModelList.size() > 0){
-                List<Quantity> quantities = quantityModelList.stream().map(q -> new Quantity(q.getId(),product,q.getUnit(),q.getQuantity(),q.getPrice())).collect(Collectors.toList());
-                quantityRepo.saveAll(quantities);
-            }else{
-                throw new Exception("Quantity not found");
-            }
+    private void saveQuantityList(List<QuantityModel> quantityModelList, Product product) throws Exception {
+        if (quantityModelList != null && quantityModelList.size() > 0) {
+            List<Quantity> quantities = quantityModelList.stream().map(q -> new Quantity(q.getId(), product, q.getUnit(), q.getQuantity(), q.getPrice())).collect(Collectors.toList());
+            quantityRepo.saveAll(quantities);
+        } else {
+            throw new Exception("Quantity not found");
+        }
     }
 
 
-    public List<DisplayProductModel> fetchAllProducts(){
+    public List<DisplayProductModel> fetchAllProducts() {
         List<DisplayProductModel> productModels = new ArrayList<>();
         List<Product> products = productRepo.findProductByIsValid(true);
-        for (Product product : products){
+        for (Product product : products) {
             DisplayProductModel displayProductModel = new DisplayProductModel();
             displayProductModel.setModel(getProductModelByProduct(product));
             displayProductModel.setImages(imageService.getAllImageByProduct(product));
@@ -130,7 +151,7 @@ public class ProductService {
         return productModels;
     }
 
-    public DisplayProductModel getProductDetails(Long id){
+    public DisplayProductModel getProductDetails(Long id) {
         Product product = productRepo.getById(id);
         DisplayProductModel displayProductModel = new DisplayProductModel();
         displayProductModel.setModel(getProductModelByProduct(product));
@@ -140,11 +161,11 @@ public class ProductService {
         return displayProductModel;
     }
 
-    public List<QuantityModel> getQuantityModelFromEntity(List<Quantity> quantities){
-        return quantities.stream().map(q -> new QuantityModel(q.getId(),q.getUnit(),q.getPrice(),q.getQuantity(),false)).collect(Collectors.toList());
+    public List<QuantityModel> getQuantityModelFromEntity(List<Quantity> quantities) {
+        return quantities.stream().map(q -> new QuantityModel(q.getId(), q.getUnit(), q.getPrice(), q.getQuantity(), false)).collect(Collectors.toList());
     }
 
-    public ProductModel getProductModelByProduct(Product product){
+    public ProductModel getProductModelByProduct(Product product) {
         ProductModel productModel = new ProductModel();
         productModel.setCategory(getCategoryModel(product.getCategory()));
         productModel.setDiscount(product.getDiscount());
@@ -155,7 +176,7 @@ public class ProductService {
         productModel.setPriceForGivenUnit(product.getPricePerUnit());
         productModel.setId(product.getId());
         Stock stock = instockRepo.findStockByProduct(product);
-        if(null != stock){
+        if (null != stock) {
             productModel.setInStock(stock.getInStock());
         }
         productModel.setName(product.getName());
@@ -163,7 +184,7 @@ public class ProductService {
         return productModel;
     }
 
-    private CategoryModel getCategoryModel(Category category){
+    private CategoryModel getCategoryModel(Category category) {
         CategoryModel categoryModel = new CategoryModel();
         categoryModel.setCategoryType(category.getCatType());
         categoryModel.setCategoryName(category.getCatName());
@@ -172,18 +193,19 @@ public class ProductService {
     }
 
     public List<DisplayProductModel> getProductsByCatId(Long catId) {
-        Category category = categoryRepo.findByIdAndIsValid(catId,true);
-       List<Product> products = productRepo.findProductByCategoryAndIsValid(category,true);
-       return convertProductIntoDisplayProduct(products);
+        Category category = categoryRepo.findByIdAndIsValid(catId, true);
+        List<Product> products = productRepo.findProductByCategoryAndIsValid(category, true);
+        return convertProductIntoDisplayProduct(products);
     }
 
-    private List<DisplayProductModel> convertProductIntoDisplayProduct(List<Product> products){
+    private List<DisplayProductModel> convertProductIntoDisplayProduct(List<Product> products) {
         List<DisplayProductModel> productModels = new ArrayList<>();
 
-        for (Product product : products){
+        for (Product product : products) {
             DisplayProductModel displayProductModel = new DisplayProductModel();
             displayProductModel.setModel(getProductModelByProduct(product));
             displayProductModel.setImages(imageService.getAllImageByProduct(product));
+            displayProductModel.setQuantityModelList(getQuantityModelFromEntity(quantityRepo.findAllByProduct(product)));
             displayProductModel.setId(product.getId());
             productModels.add(displayProductModel);
 

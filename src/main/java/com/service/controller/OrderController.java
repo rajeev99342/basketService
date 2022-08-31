@@ -2,8 +2,14 @@ package com.service.controller;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.service.constants.enums.OrderStatus;
-import com.service.model.*;
+import com.service.entities.User;
+import com.service.jwt.JwtTokenUtility;
+import com.service.model.DeliveryProductDetails;
+import com.service.model.OrderDetailsModel;
+import com.service.model.OrderModel;
+import com.service.model.RequestModel;
 import com.service.service.OrderService;
+import com.service.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,8 +21,14 @@ import java.util.List;
 @RestController
 public class OrderController {
 
+
+    @Autowired
+    UserService userService;
     @Autowired
     OrderService orderService;
+
+    @Autowired
+    JwtTokenUtility jwtTokenUtility;
 
     @CrossOrigin(value = "*")
     @PostMapping("/place-order")
@@ -32,9 +44,9 @@ public class OrderController {
 
     @CrossOrigin(value = "*")
     @PostMapping("/get-order-by-user")
-    List<OrderDetailsModel> getOrder(@RequestParam("token") String token) {
+    List<OrderDetailsModel> getOrder(@RequestBody RequestModel requestModel) {
         try {
-            return orderService.getOrderDetails(token);
+            return orderService.getOrderDetails(requestModel.getToken(),requestModel.getOrderStatusList());
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -44,17 +56,16 @@ public class OrderController {
 
     @CrossOrigin(value = "*")
     @PostMapping("/cancel-order")
-    Boolean cancelOrder(@RequestBody Long id) {
+    Boolean cancelOrder(@RequestBody RequestModel requestModel) {
         try {
-            return orderService.cancelOrder(id);
-
+            String userPhone = jwtTokenUtility.getUsernameFromToken(requestModel.getToken());
+            User user = userService.getUserByPhoneNumber(userPhone);
+            return orderService.cancelOrder(requestModel.getId(),user);
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
         }
+        return false;
     }
-
-
 
     @CrossOrigin(value = "*")
     @PostMapping("/update-packing-order")
@@ -74,7 +85,6 @@ public class OrderController {
     Boolean markedDelivered(@RequestBody Long id) {
         try {
             return orderService.markedDelivered(id);
-
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -104,16 +114,16 @@ public class OrderController {
         List<OrderDetailsModel> orderWiseProducts = new ArrayList<>();
         try {
             if (OrderStatus.PLACED.name().equals(status)) {
-               return orderService.fetchAllOrderByStatus(token, OrderStatus.PLACED);
+                return orderService.fetchAllOrderByStatus(token, OrderStatus.PLACED);
             } else if (OrderStatus.ON_THE_WAY.name().equals(status)) {
-                return  orderService.fetchAllOrderByStatus(token, OrderStatus.ON_THE_WAY);
+                return orderService.fetchAllOrderByStatus(token, OrderStatus.ON_THE_WAY);
             } else if (OrderStatus.PACKING.name().equals(status)) {
-                return  orderService.fetchAllOrderByStatus(token, OrderStatus.PACKING);
+                return orderService.fetchAllOrderByStatus(token, OrderStatus.PACKING);
             } else if (OrderStatus.DISPATCHED.name().equals(status)) {
-                return  orderService.fetchAllOrderByStatus(token, OrderStatus.DISPATCHED);
-            } else  if(OrderStatus.DELIVERED.name().equals(status)){
-                return  orderService.fetchAllOrderByStatus(token,OrderStatus.DELIVERED);
-            }else{
+                return orderService.fetchAllOrderByStatus(token, OrderStatus.DISPATCHED);
+            } else if (OrderStatus.DELIVERED.name().equals(status)) {
+                return orderService.fetchAllOrderByStatus(token, OrderStatus.DELIVERED);
+            } else {
                 System.out.println("No order");
             }
         } catch (Exception e) {

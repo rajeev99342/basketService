@@ -56,9 +56,9 @@ public class OrderService {
     @Autowired
     JwtTokenUtility jwtTokenUtility;
 
-    public  List<DeliveryProductDetails> placeOrder(OrderModel orderModel){
+    public List<DeliveryProductDetails> placeOrder(OrderModel orderModel) {
         List<DeliveryProductDetails> productWiseOrders = new ArrayList<>();
-        User user  = userRepo.findUserByPhone(orderModel.getUserPhone());
+        User user = userRepo.findUserByPhone(orderModel.getUserPhone());
         Order order = new Order();
         order.setOrderDate(new Date(System.currentTimeMillis()));
         LocalDate localDate = LocalDate.now().plusDays(2);
@@ -71,41 +71,41 @@ public class OrderService {
         order.setTotalCost(orderModel.getFinalAmount());
         orderRepo.save(order);
 
-        for(DisplayCartProduct cartProduct : orderModel.getCartProducts()){
+        for (DisplayCartProduct cartProduct : orderModel.getCartProducts()) {
             DeliveryProductDetails productWiseOrder = new DeliveryProductDetails();
 
-            try{
+            try {
                 // check for product availability --> someone could have order this
 
                 Stock stock = instockRepo.findStockByProduct(productRepo.getById(cartProduct.getId()));
                 Integer inStock = stock.getInStock();
-                if(inStock >=  cartProduct.getSelectedCount() && cartProduct.getSelectedCount() != 0){
+                if (inStock >= cartProduct.getSelectedCount() && cartProduct.getSelectedCount() != 0) {
                     Integer availableStockAfterThisOrder = inStock - cartProduct.getSelectedCount();
                     stock.setInStock(availableStockAfterThisOrder);
                     instockRepo.save(stock);
                     ProductDelivery productDelivery = new ProductDelivery();
                     productDelivery.setOrderStatus(OrderStatus.PLACED);
                     productDelivery.setProduct(productRepo.getById(cartProduct.getId()));
-                    productDelivery.setDeliveryDate(new Date(System.currentTimeMillis()+86400000));
+                    productDelivery.setDeliveryDate(new Date(System.currentTimeMillis() + 86400000));
                     productDelivery.setOrder(order);
                     productDelivery.setOrderedTotalCount(cartProduct.getSelectedCount());
                     productDelivery.setOrderedTotalWeight(cartProduct.getSelectedWeight());
                     Address address = addressRepo.getById(orderModel.getAddressId());
                     productDelivery.setAddress(address);
-                    String completeAddress = address.getLandmark() +", "+address.getAddressOne() + ", " + address.getArea() +", " + address.getCity() + "-".concat(address.getPincode() )+
-                       ", Mobile - " + address.getMobile();
+                    String completeAddress = address.getLandmark() + ", " + address.getAddressOne() + ", " + address.getArea() + ", " + address.getCity() + "-".concat(address.getPincode()) +
+                            ", Mobile - " + address.getMobile();
                     productDeliveryRepo.save(productDelivery);
                     productWiseOrder.setProductId(cartProduct.getId());
                     productWiseOrder.setOrderStatus(OrderStatus.PLACED);
-                    productWiseOrder.setPrice(cartProduct.getEachProductPrice());
+                    productWiseOrder.setPrice(cartProduct.getQuantityModel().getPrice());
                     productWiseOrder.setCompleteAddress(completeAddress);
                     productWiseOrder.setDeliveryAgentDetails("Rajeev Kumar, Mobile - 9878979798");
-                }else{
+                } else {
                     productWiseOrder.setProductId(cartProduct.getId());
                     productWiseOrder.setTotalProductCount(cartProduct.getSelectedCount());
                     productWiseOrder.setOrderStatus(OrderStatus.CANCELED_DUE_TO_OUT_OF_STOCK);
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 productWiseOrder.setProductId(cartProduct.getId());
                 productWiseOrder.setOrderStatus(OrderStatus.FAILED_DUE_TO_TECHNICAL_ISSUE);
             }
@@ -114,34 +114,34 @@ public class OrderService {
 
         }
 
-                // delete from the cart
-            Cart cart = cartRepo.findCartByUser(userRepo.findUserByPhone(orderModel.getUserPhone()));
-            List<CartDetails> cartDetails = cartDetailsRepo.findCartDetailsByCart(cart);
-            List<DeliveryProductDetails> successfullyOrdredProduct = productWiseOrders.stream().
+        // delete from the cart
+        Cart cart = cartRepo.findCartByUser(userRepo.findUserByPhone(orderModel.getUserPhone()));
+        List<CartDetails> cartDetails = cartDetailsRepo.findCartDetailsByCart(cart);
+        List<DeliveryProductDetails> successfullyOrdredProduct = productWiseOrders.stream().
                 filter(productWiseOrder -> productWiseOrder.getOrderStatus().equals(OrderStatus.PLACED)).collect(Collectors.toList());
 
-            for(DeliveryProductDetails productWiseOrder : successfullyOrdredProduct){
-                    CartDetails cartDetails1 = cartDetailsRepo.findCartDetailsByCartAndProduct(cart,productRepo.getById(productWiseOrder.getProductId()));
-                    cartDetailsRepo.delete(cartDetails1);
-            }
+        for (DeliveryProductDetails productWiseOrder : successfullyOrdredProduct) {
+            CartDetails cartDetails1 = cartDetailsRepo.findCartDetailsByCartAndProduct(cart, productRepo.getById(productWiseOrder.getProductId()));
+            cartDetailsRepo.delete(cartDetails1);
+        }
 
-            if(null != productWiseOrders && productWiseOrders.size() > 0){
-                Map<String,String> data = new HashMap<>();
-                data.put("order_status",OrderStatus.PLACED.name());
-                data.put("title","BABA BASKET");
-                data.put("text","Your order confirmed");
-                data.put("token",user.getToken());
-                data.put("image","https://thumbnails-photos.amazon.com/v1/thumbnail/AplBBbD9TLGIyHKBq5LOUA?viewBox=835%2C835&ownerId=A14ZH0T6C5GQSW");
-                try {
-                    firebasePushNotificationService.sendPushMessage(data);
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }else{
-
+        if (null != productWiseOrders && productWiseOrders.size() > 0) {
+            Map<String, String> data = new HashMap<>();
+            data.put("order_status", OrderStatus.PLACED.name());
+            data.put("title", "BABA BASKET");
+            data.put("text", "Your order confirmed");
+            data.put("token", user.getToken());
+            data.put("image", "https://thumbnails-photos.amazon.com/v1/thumbnail/AplBBbD9TLGIyHKBq5LOUA?viewBox=835%2C835&ownerId=A14ZH0T6C5GQSW");
+            try {
+                firebasePushNotificationService.sendPushMessage(data);
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
+        } else {
+
+        }
 
         return productWiseOrders;
 
@@ -149,21 +149,29 @@ public class OrderService {
 
 
     @Transactional
-    public List<OrderDetailsModel> getOrderDetails(String token) {
-        User user  = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
-            List<Order> orders = orderRepo.findOrderByUser(user);
-            List<OrderDetailsModel> orderDetailsModelList = new ArrayList<>();
-            for( Order order : orders){
+    public List<OrderDetailsModel> getOrderDetails(String token, List<OrderStatus> statusList) {
+        User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
+
+        List<String> list = statusList.stream().map(status -> status.toString()).collect(Collectors.toList());
+        List<Order> orders = orderRepo.findOrderByUser(user);
+        List<OrderDetailsModel> orderDetailsModelList = new ArrayList<>();
+
+        for (Order order : orders) {
+
+            if (statusList.contains(order.getOrderStatus())) {
                 OrderDetailsModel orderDetailsModel = new OrderDetailsModel();
                 orderDetailsModel.setUser(order.getUser());
-                orderDetailsModel.setOrderDate(order.getOrderDate().toString());
+                if(statusList.contains(OrderStatus.DELIVERED)){
+                    orderDetailsModel.setIsNew(false);
+                }
+                orderDetailsModel.setOrderDate(order.getOrderDate());
                 orderDetailsModel.setOrderStatus(order.getOrderStatus());
-                Address address = addressRepo.findAddressByUserAndIsDefault(order.getUser(),true);
+                Address address = addressRepo.findAddressByUserAndIsDefault(order.getUser(), true);
                 orderDetailsModel.setAddressModel(convertIntoAddressModel(address));
                 List<DeliveryProductDetails> deliveryProductList = new ArrayList<>();
                 Double totalCost = 0.00;
                 List<ProductDelivery> productDeliveries = productDeliveryRepo.findProductDeliveryByOrder(order);
-                for(ProductDelivery productDelivery : productDeliveries){
+                for (ProductDelivery productDelivery : productDeliveries) {
                     DeliveryProductDetails deliveryProductDetails = new DeliveryProductDetails();
                     deliveryProductDetails.setDeliveryAgentDetails("Rajeev");
                     deliveryProductDetails.setDeliveryDate(productDelivery.getDeliveryDate().toString());
@@ -182,7 +190,16 @@ public class OrderService {
                 orderDetailsModel.setTotalCost(order.getTotalCost());
                 orderDetailsModelList.add(orderDetailsModel);
             }
-            return orderDetailsModelList;
+
+        }
+
+        Collections.sort(orderDetailsModelList, new Comparator<OrderDetailsModel>() {
+            @Override
+            public int compare(OrderDetailsModel o1, OrderDetailsModel o2) {
+                return o2.getOrderDate().compareTo(o1.getOrderDate());
+            }
+        });
+        return orderDetailsModelList;
 
     }
 
@@ -192,9 +209,9 @@ public class OrderService {
         List<Order> orders = this.orderRepo.findOrderByUser(user);
         List<DeliveryProductDetails> productWiseOrders = new ArrayList<>();
 
-        for(Order order : orders){
+        for (Order order : orders) {
             List<ProductDelivery> productsDeliveryList = productDeliveryRepo.findProductDeliveryByOrder(order);
-            for(ProductDelivery productDelivery : productsDeliveryList){
+            for (ProductDelivery productDelivery : productsDeliveryList) {
                 DeliveryProductDetails productWiseOrder = new DeliveryProductDetails();
                 SimpleDateFormat parser = new SimpleDateFormat("dd-MM-yyyy");
                 try {
@@ -211,12 +228,12 @@ public class OrderService {
                 productWiseOrder.setProductId(productDelivery.getProduct().getId());
                 productWiseOrder.setProductName(productDelivery.getProduct().getName());
                 productWiseOrder.setOrderStatus(productDelivery.getOrderStatus());
-                productWiseOrder.setPrice(productDelivery.getOrderedTotalCount()*productDelivery.getProduct().getSellingPrice());
+                productWiseOrder.setPrice(productDelivery.getOrderedTotalCount() * productDelivery.getProduct().getSellingPrice());
                 productWiseOrder.setDeliveryAgentDetails("Rajeev Kumar, Mobile - 9878979798");
                 productWiseOrder.setTotalProductCount(productDelivery.getOrderedTotalCount());
                 Address address = productDelivery.getAddress();
-                String completeAddress = address.getLandmark() +", "+address.getAddressOne() + ", " + address.getArea() +", " + address.getCity() + "-".concat(address.getPincode())
-                         + ", Mobile - " + address.getMobile();
+                String completeAddress = address.getLandmark() + ", " + address.getAddressOne() + ", " + address.getArea() + ", " + address.getCity() + "-".concat(address.getPincode())
+                        + ", Mobile - " + address.getMobile();
 
                 productWiseOrder.setOrderId(order.getId());
                 productWiseOrder.setCompleteAddress(completeAddress);
@@ -227,14 +244,23 @@ public class OrderService {
         return productWiseOrders;
     }
 
-    public Boolean cancelOrder(Long id) {
-//        List<ProductDelivery> productDeliveries = productDeliveryRepo.findProductDeliveryByOrder()
-        ProductDelivery productDelivery = productDeliveryRepo.getById(id);
-        productDelivery.setOrderStatus(OrderStatus.CANCELED);
-        productDeliveryRepo.save(productDelivery);
-//        Order order = orderRepo.getById()
-        updateProductInventory(productDelivery.getProduct(),productDelivery.getOrderedTotalCount());
-        return true;
+    public Boolean cancelOrder(Long id, User user) {
+        try {
+            Order order = orderRepo.getById(id);
+            List<ProductDelivery> productDeliveries = productDeliveryRepo.findProductDeliveryByOrder(order);
+            order.setOrderStatus(OrderStatus.CANCELED);
+            productDeliveries.forEach(productDelivery -> productDelivery.setOrderStatus(OrderStatus.CANCELED));
+            productDeliveryRepo.saveAll(productDeliveries);
+            orderRepo.save(order);
+            for (ProductDelivery productDelivery : productDeliveries) {
+                updateProductInventory(productDelivery.getProduct(), productDelivery.getOrderedTotalCount());
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
     public Boolean packingOrder(Long id) {
@@ -244,6 +270,22 @@ public class OrderService {
         productDeliveryRepo.saveAll(productDeliveries);
         order.setOrderStatus(OrderStatus.PACKING);
         orderRepo.save(order);
+
+        Map<String, String> data = new HashMap<>();
+        data.put("order_status", OrderStatus.PLACED.name());
+        data.put("title", "BABA BASKET");
+        data.put("text", "Your order is getting packed");
+        data.put("token", order.getUser().getToken());
+        data.put("image", "https://thumbnails-photos.amazon.com/v1/thumbnail/AplBBbD9TLGIyHKBq5LOUA?viewBox=835%2C835&ownerId=A14ZH0T6C5GQSW");
+        try {
+            firebasePushNotificationService.sendPushMessage(data);
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+
         return true;
     }
 
@@ -267,33 +309,33 @@ public class OrderService {
         return true;
     }
 
-    public void updateProductInventory(Product product,Integer restoreCount){
-            Stock stock = instockRepo.findStockByProduct(product);
-            Integer inStock = stock.getInStock() + restoreCount;
-            stock.setInStock(inStock);
-            instockRepo.save(stock);
+    public void updateProductInventory(Product product, Integer restoreCount) {
+        Stock stock = instockRepo.findStockByProduct(product);
+        Integer inStock = stock.getInStock() + restoreCount;
+        stock.setInStock(inStock);
+        instockRepo.save(stock);
     }
 
     // for admin
     @Transactional
     public List<OrderDetailsModel> fetchAllOrderByStatus(String token, OrderStatus status) {
-        User user  = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
+        User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
         List<Role> roles = user.getRoles();
-        if(roles.contains(MASTER)){
-           List<Order> orders = orderRepo.findOrderByOrderStatus(status);
-           List<OrderDetailsModel> orderDetailsModelList = new ArrayList<>();
-           for( Order order : orders){
-               OrderDetailsModel orderDetailsModel = new OrderDetailsModel();
+        if (roles.contains(MASTER)) {
+            List<Order> orders = orderRepo.findOrderByOrderStatus(status);
+            List<OrderDetailsModel> orderDetailsModelList = new ArrayList<>();
+            for (Order order : orders) {
+                OrderDetailsModel orderDetailsModel = new OrderDetailsModel();
 
-               orderDetailsModel.setUser(order.getUser());
-                orderDetailsModel.setOrderDate(order.getOrderDate().toString());
+                orderDetailsModel.setUser(order.getUser());
+                orderDetailsModel.setOrderDate(order.getOrderDate());
                 orderDetailsModel.setOrderStatus(order.getOrderStatus());
-                Address address = addressRepo.findAddressByUserAndIsDefault(order.getUser(),true);
+                Address address = addressRepo.findAddressByUserAndIsDefault(order.getUser(), true);
                 orderDetailsModel.setAddressModel(convertIntoAddressModel(address));
                 List<DeliveryProductDetails> deliveryProductList = new ArrayList<>();
                 Double totalCost = 0.00;
-                List<ProductDelivery> productDeliveries = productDeliveryRepo.findProductDeliveryByOrderAndOrderStatus(order,status);
-                for(ProductDelivery productDelivery : productDeliveries){
+                List<ProductDelivery> productDeliveries = productDeliveryRepo.findProductDeliveryByOrderAndOrderStatus(order, status);
+                for (ProductDelivery productDelivery : productDeliveries) {
                     DeliveryProductDetails deliveryProductDetails = new DeliveryProductDetails();
                     deliveryProductDetails.setDeliveryAgentDetails("Rajeev");
                     deliveryProductDetails.setDeliveryDate(productDelivery.getDeliveryDate().toString());
@@ -310,10 +352,10 @@ public class OrderService {
                 orderDetailsModel.setOrderId(order.getId());
                 orderDetailsModel.setDeliveryProducts(deliveryProductList);
                 orderDetailsModel.setTotalCost(order.getTotalCost());
-               orderDetailsModelList.add(orderDetailsModel);
-           }
-           return orderDetailsModelList;
-        }else{
+                orderDetailsModelList.add(orderDetailsModel);
+            }
+            return orderDetailsModelList;
+        } else {
             return null;
         }
     }

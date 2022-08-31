@@ -81,13 +81,13 @@ public class UserController {
     public GlobalResponse signup(@RequestBody UserCredentials userDetails) {
         GlobalResponse globalResponse = new GlobalResponse();
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
             userService.saveUserDetails(userDetails);
             globalResponse.setStatus(true);
             globalResponse.setMessage(Status.SUCCESS.toString());
         } catch (Exception e) {
             e.printStackTrace();
-            globalResponse.setMessage("Failed");
+            globalResponse.setMessage(e.getMessage());
+
         }
 
         return globalResponse;
@@ -131,7 +131,7 @@ public class UserController {
 
     @CrossOrigin(origins = "*")
     @GetMapping("/get-address")
-    public List<Address> getUserAddress(@RequestParam("userPhone") String userPhone) {
+    public Address getUserAddress(@RequestParam("userPhone") String userPhone) {
         try {
             return userService.getAddressByUser(userPhone);
         } catch (Exception e) {

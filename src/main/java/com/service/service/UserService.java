@@ -18,8 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -62,6 +60,10 @@ public class UserService {
     }
 
 
+    public User getUserByPhoneNumber(String phone){
+        return userRepo.findUserByPhone(phone);
+    }
+
     public void reset(UserCredentials userCredentials) throws Exception {
 
         User user = userRepo.findUserByPhone(userCredentials.getMobile());
@@ -99,17 +101,11 @@ public class UserService {
         address.setPincode(addressModel.getPincode());
         address.setMobile(addressModel.getMobile());
         Address recentDefaultAddress = addressRepo.save(address);
-        List<Address> addresses = addressRepo.findAddressByUser(user);
-        List<Address> listOfOtherAddress =  addresses.stream().filter(address1 -> !address1.getId().equals(recentDefaultAddress.getId()))
-                        .map(add ->
-                                new Address(add.getId(),add.getUser(),add.getAddressOne(),add.getLandmark(),add.getCity(),add.getArea(),add.getPincode(),
-                                        add.getMobile(),false))
-                                .collect(Collectors.toList());
-        addressRepo.saveAll(listOfOtherAddress);
-        return recentDefaultAddress;
+        return  addressRepo.findAddressByUser(user);
+
     }
 
-    public List<Address> getAddressByUser(String userPhone) {
+    public Address getAddressByUser(String userPhone) {
         User user = userRepo.findUserByPhone(userPhone);
         return addressRepo.findAddressByUser(user);
     }

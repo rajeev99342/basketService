@@ -1,6 +1,8 @@
 package com.service.entities;
 
 import lombok.Data;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -33,7 +35,8 @@ public class CartDetails {
 
 
     @JoinColumn(name = "QUANTITY_ID",referencedColumnName = "ID")
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
+    @NotFound(action = NotFoundAction.IGNORE)
     Quantity quantity;
 
     @Column(name = "CREATED_AT")
