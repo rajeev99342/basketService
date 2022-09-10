@@ -1,6 +1,5 @@
 package com.service.controller;
 
-import com.service.entities.CartDetails;
 import com.service.model.*;
 import com.service.service.CartService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +52,17 @@ public class CartController {
     GlobalResponse deleteCartProduct(@RequestBody CartDeleteModel cartDeleteModel){
         try{
             return cartService.deleteCartItem(cartDeleteModel);
+        }catch (Exception e){
+            e.printStackTrace();
+            return  null;
+        }
+    }
+
+    @CrossOrigin(value = "*")
+    @PostMapping("/update-cart-item-count")
+    GlobalResponse updateCartItemCount(@RequestBody CartDetailsRequestModel cartDetailsRequestModel){
+        try{
+            return cartService.updateCount(cartDetailsRequestModel);
         }catch (Exception e){
             e.printStackTrace();
             return  null;

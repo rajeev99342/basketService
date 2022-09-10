@@ -16,5 +16,6 @@ public class DisplayCartProduct {
     private Double totalSumPriceOfThisProduct;
     private Integer inStock;
     private QuantityModel quantityModel;
+    private Long cartDetailsId;
 
 }

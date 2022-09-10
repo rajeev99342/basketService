@@ -10,6 +10,7 @@ import com.service.model.AddressModel;
 import com.service.model.GlobalResponse;
 import com.service.model.UserCredentials;
 import com.service.model.UserModel;
+import com.service.service.TwilioMessageSenderService;
 import com.service.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,9 @@ import java.util.List;
 @Transactional
 
 public class UserController {
+
+    @Autowired
+    TwilioMessageSenderService twilioMessageSenderService;
     @Autowired
     private AuthenticationManager authenticationManager;
 
@@ -191,5 +195,17 @@ public class UserController {
 
     }
 
+
+    @CrossOrigin(origins = "*")
+    @PostMapping("/auto-verify-phone")
+    public Integer verifyPhoneNumber(@RequestParam("phoneNumber") String phoneNumber) {
+        try {
+            return twilioMessageSenderService.getOtp(phoneNumber);
+        } catch (Exception e) {
+            log.error("Failed to get user address due to " + e);
+            return null;
+        }
+
+    }
 
 }

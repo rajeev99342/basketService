@@ -1,16 +1,16 @@
 package com.service.controller;
 
-import com.service.model.GlobalResponse;
-import com.service.model.UserCredentials;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class TestController {
 
-    @CrossOrigin(origins = "*")
-    @GetMapping("/test")
-    public String test() {
-
-       return "Success";
-    }
+//    @Autowired
+//    TwilioMessageSenderService twillioMessageSenderService;
+//    @CrossOrigin(origins = "*")
+//    @GetMapping("/test")
+//    public String test() {
+//        twillioMessageSenderService.sendMessage(null);
+//       return "Success";
+//    }
 }

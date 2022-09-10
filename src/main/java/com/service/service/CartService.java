@@ -101,6 +101,7 @@ public class CartService {
                 displayCartProduct.setSelectedSize(cartDetails1.getSelectedSize());
                 displayCartProduct.setSelectedWeight(cartDetails1.getSelectedWeight());
                 displayCartProduct.setId(product.getId());
+                displayCartProduct.setCartDetailsId(cartDetails1.getId());
                 if(cartDetails1.getQuantity() != null){
                     displayCartProduct.setQuantityModel(new QuantityModel(cartDetails1.getQuantity().getId(),
                             cartDetails1.getQuantity().getUnit(),
@@ -148,4 +149,11 @@ public class CartService {
 //        Cart cart = cartRepo.findCartByUser(user);
 //        CartDetails
 //    }
+
+    public GlobalResponse updateCount(CartDetailsRequestModel cartDetailsRequestModel){
+            CartDetails cartDetails = cartDetailsRepo.getById(cartDetailsRequestModel.getCartDetailsid());
+            cartDetails.setSelectedCount(cartDetailsRequestModel.getCount());
+            cartDetailsRepo.save(cartDetails);
+            return new GlobalResponse("updated",HttpStatus.CREATED.value());
+    }
 }
