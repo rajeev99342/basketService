@@ -17,6 +17,7 @@ public class ProductModel {
     private Double discount ;
     private Integer inStock;
     private Boolean isValid;
+    private Long sellerId;
     private CategoryModel category;
     private List<QuantityModel> quantityModelList;
 }

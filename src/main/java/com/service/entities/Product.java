@@ -3,6 +3,7 @@ package com.service.entities;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -44,6 +45,17 @@ public class Product{
 
     @Column(name = "IS_VALID")
     private Boolean isValid;
+
+    @Column(name = "SELLER_ID")
+    private Long sellerId;
+
+
+    @Column(name = "CREATED_AT")
+    private Date createdAt;
+
+    @Column(name = "UPDATED_AT")
+    private Date updatedAt;
+
 
     @ManyToMany
     private List<CartDetails> cartDetails;

@@ -9,12 +9,16 @@ import com.service.repos.*;
 import com.service.utilites.ImageUtility;
 import com.service.utilites.Utility;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -76,14 +80,16 @@ public class ProductService {
         try {
 
             if (null != model.getId()) {
-                product = productRepo.getById(model.getId());
+                product = productRepo.findById(model.getId()).get();
             }
             if (null == product) {
                 product = new Product();
+                product.setCreatedAt(new Date(System.currentTimeMillis()));
             } else {
                 // delete previous Image
                 imageUtility.deleteProductImages(product);
             }
+            product.setUpdatedAt(new Date(System.currentTimeMillis()));
             product.setPricePerUnit(model.getPriceForGivenUnit());
             product.setProdBrand(model.getBrand());
             product.setDescription(model.getDesc());
@@ -98,6 +104,7 @@ public class ProductService {
             category.setCatName(model.getCategory().getCategoryName());
             category.setId(model.getCategory().getId());
             product.setCategory(category);
+            product.setSellerId(model.getSellerId());
             product = productRepo.save(product);
             for (MultipartFile file : imageList) {
                 String imageReference = imageUtility.getImageName("product", product.getName());
@@ -136,9 +143,12 @@ public class ProductService {
     }
 
 
-    public List<DisplayProductModel> fetchAllProducts() {
+    public List<DisplayProductModel> fetchAllProducts(Integer page,Integer size) {
         List<DisplayProductModel> productModels = new ArrayList<>();
-        List<Product> products = productRepo.findProductByIsValid(true);
+
+        Pageable paging = PageRequest.of(page, size,Sort.by("updatedAt").descending());
+
+        List<Product> products = productRepo.findProductByIsValid(true,paging);
         for (Product product : products) {
             DisplayProductModel displayProductModel = new DisplayProductModel();
             displayProductModel.setModel(getProductModelByProduct(product));
@@ -152,7 +162,7 @@ public class ProductService {
     }
 
     public DisplayProductModel getProductDetails(Long id) {
-        Product product = productRepo.getById(id);
+        Product product = productRepo.findById(id).get();
         DisplayProductModel displayProductModel = new DisplayProductModel();
         displayProductModel.setModel(getProductModelByProduct(product));
         displayProductModel.setImages(imageService.getAllImageByProduct(product));
@@ -192,9 +202,12 @@ public class ProductService {
         return categoryModel;
     }
 
-    public List<DisplayProductModel> getProductsByCatId(Long catId) {
+    public List<DisplayProductModel> getProductsByCatId(Long catId,Integer page,Integer size) {
+        Pageable pageable =
+                PageRequest.of(page, size);
+
         Category category = categoryRepo.findByIdAndIsValid(catId, true);
-        List<Product> products = productRepo.findProductByCategoryAndIsValid(category, true);
+        List<Product> products = productRepo.findProductByCategoryAndIsValid(category, true,pageable);
         return convertProductIntoDisplayProduct(products);
     }
 
@@ -211,5 +224,30 @@ public class ProductService {
 
         }
         return productModels;
+    }
+
+    public List<DisplayProductModel> searchProduct(String searchTerm, int page, int size) {
+
+        Pageable sortedByPriceDescNameAsc =
+                PageRequest.of(page, size, Sort.by("name").descending());
+        Pageable paging = PageRequest.of(page, size);
+        List<Product> products =  productRepo.findByNameContains(searchTerm,sortedByPriceDescNameAsc);
+//        List<Product> products =  pageableProducts.getContent();
+        List<DisplayProductModel> productModels = new ArrayList<>();
+
+        for (Product product : products) {
+            DisplayProductModel displayProductModel = new DisplayProductModel();
+            displayProductModel.setModel(getProductModelByProduct(product));
+            displayProductModel.setImages(imageService.getAllImageByProduct(product));
+            displayProductModel.setQuantityModelList(getQuantityModelFromEntity(quantityRepo.findAllByProduct(product)));
+            displayProductModel.setId(product.getId());
+            productModels.add(displayProductModel);
+
+        }
+        return productModels;
+    }
+
+    public Long getCount() {
+        return productRepo.count();
     }
 }

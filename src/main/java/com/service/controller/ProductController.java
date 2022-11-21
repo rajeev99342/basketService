@@ -21,14 +21,14 @@ public class ProductController {
 
     @CrossOrigin(origins = "*")
     @PostMapping("/add-product")
-    public GlobalResponse saveProduct(@RequestParam("product") String product,@RequestParam("document") List<MultipartFile> images){
+    public GlobalResponse saveProduct(@RequestParam("product") String product, @RequestParam("document") List<MultipartFile> images) {
         GlobalResponse globalResponse = new GlobalResponse();
         try {
             String productString = product;
             Gson gson = new Gson();
             ProductModel productModel = gson.fromJson(productString, ProductModel.class);
-          return  productService.addProduct(productModel,images);
-        }catch (Exception e){
+            return productService.addProduct(productModel, images);
+        } catch (Exception e) {
             e.printStackTrace();
             globalResponse.setMessage("Failed");
         }
@@ -39,11 +39,11 @@ public class ProductController {
 
     @CrossOrigin(origins = "*")
     @PostMapping("/delete-product-quantity")
-    public GlobalResponse deleteProductQuantity(@RequestParam("id") Long  id,@RequestParam("token") String  token){
+    public GlobalResponse deleteProductQuantity(@RequestParam("id") Long id, @RequestParam("token") String token) {
         GlobalResponse globalResponse = new GlobalResponse();
         try {
-            return  productService.deleteProductQuantity(id,token);
-        }catch (Exception e){
+            return productService.deleteProductQuantity(id, token);
+        } catch (Exception e) {
             e.printStackTrace();
             globalResponse.setMessage("Failed");
         }
@@ -54,11 +54,11 @@ public class ProductController {
 
     @CrossOrigin(origins = "*")
     @PostMapping("/delete-product")
-    public GlobalResponse deleteProduct(@RequestParam("id") Long  id){
+    public GlobalResponse deleteProduct(@RequestParam("id") Long id) {
         GlobalResponse globalResponse = new GlobalResponse();
         try {
-            return  productService.deleteProduct(id);
-        }catch (Exception e){
+            return productService.deleteProduct(id);
+        } catch (Exception e) {
             e.printStackTrace();
             globalResponse.setMessage("Failed");
         }
@@ -67,32 +67,35 @@ public class ProductController {
     }
 
 
-
-
     @CrossOrigin(origins = "*")
     @GetMapping("/fetch-all-product")
-    public List<DisplayProductModel> fetchAllProduct(){
-
+    public List<DisplayProductModel> fetchAllProduct(@RequestParam(defaultValue = "0") int page,
+                                                     @RequestParam(defaultValue = "10") int size) {
         List<DisplayProductModel> list = new ArrayList<>();
         try {
-            list  = productService.fetchAllProducts();
-        }catch (Exception e){
+            list = productService.fetchAllProducts(page,size);
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
         return list;
     }
-
+    @CrossOrigin(origins = "*")
+    @GetMapping("/product-count")
+    public Long count() {
+        return productService.getCount();
+    }
 
 
     @CrossOrigin(origins = "*")
     @GetMapping("/fetch-all-product-by-category")
-    public List<DisplayProductModel> fetchAllProduct(@RequestParam("catId") Long catId){
+    public List<DisplayProductModel> fetchAllProduct(@RequestParam("catId") Long catId,@RequestParam(defaultValue = "0") int page,
+                                                     @RequestParam(defaultValue = "10") int size) {
 
         List<DisplayProductModel> list = new ArrayList<>();
         try {
-            list = productService.getProductsByCatId(catId);
-        }catch (Exception e){
+            list = productService.getProductsByCatId(catId,page,size);
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -100,19 +103,27 @@ public class ProductController {
     }
 
 
-
     @CrossOrigin(origins = "*")
     @GetMapping("/get-product-details")
-    public DisplayProductModel getProductDetails(@RequestParam("id") Long id){
-
+    public DisplayProductModel getProductDetails(@RequestParam("id") Long id) {
         DisplayProductModel productModel = null;
         try {
-            productModel  = productService.getProductDetails(id);
-        }catch (Exception e){
+            productModel = productService.getProductDetails(id);
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
         return productModel;
     }
+
+    @CrossOrigin(origins = "*")
+    @GetMapping("/search-product")
+    public List<DisplayProductModel> search(@RequestParam(required = false) String searchTerm,
+                                            @RequestParam(defaultValue = "0") int page,
+                                            @RequestParam(defaultValue = "10") int size) {
+        return productService.searchProduct(searchTerm, page, size);
+
+    }
+
 
 }

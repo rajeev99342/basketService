@@ -1,6 +1,5 @@
 package com.service.model;
 
-import com.service.constants.enums.Role;
 import lombok.Data;
 
 import java.util.List;
@@ -13,5 +12,6 @@ public class UserModel {
     private String phone;
     private String password;
     private String jwt;
+    private AddressModel address;
     private List<String> roles;
 }

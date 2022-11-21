@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -66,8 +67,8 @@ public class ImageService {
 
 
 
-    public GlobalResponse saveImage(MultipartFile photo,String imageReference) {
-        try{
+    public GlobalResponse saveImage(MultipartFile photo,String imageReference) throws IOException {
+
             Path newFile = Paths.get(RESOURCES_DIR + imageReference);
             Files.createDirectories(newFile.getParent());
             Files.write(newFile, photo.getBytes());
@@ -80,10 +81,7 @@ public class ImageService {
             }
             System.out.println("Image created");
             return successfully_created;
-        }catch (Exception e){
-            e.printStackTrace();
-            return null;
-        }
+
 
 
     }

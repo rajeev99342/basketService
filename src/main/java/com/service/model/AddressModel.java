@@ -5,7 +5,6 @@ import lombok.Data;
 @Data
 public class AddressModel {
     private Long id;
-    private String userPhone;
     private String city;
     private String mobile;
     private String landmark;

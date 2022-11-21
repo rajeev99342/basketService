@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface QuantityRepo extends JpaRepository<Quantity,Long> {
     List<Quantity> findAllByProduct(Product product);
+
 }

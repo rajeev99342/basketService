@@ -60,7 +60,7 @@ public class CartService {
             }
         }
         if (null == cartDetails.getId()) {
-            product = productRepo.getById(cartProductMappingModel.getProductId());
+            product = productRepo.findById(cartProductMappingModel.getProductId()).get();
         }
         cartDetails.setCart(cart);
         cartDetails.setProduct(product);
@@ -87,7 +87,7 @@ public class CartService {
 
             for (CartDetails cartDetails1 : cartDetails) {
                 DisplayCartProduct displayCartProduct = new DisplayCartProduct();
-                Product product = productRepo.getById(cartDetails1.getProduct().getId());
+                Product product = productRepo.findById(cartDetails1.getProduct().getId()).get();
                 List<Image> images = imageRepository.findImageByProduct(product);
                 List<Object> imageLinkList = new ArrayList<>();
                 for (Image image : images) {
@@ -129,7 +129,7 @@ public class CartService {
     public GlobalResponse deleteCartItem(CartDeleteModel cartDeleteModel) {
         User user = userRepo.findUserByPhone(cartDeleteModel.getUserPhone());
         Cart cart = cartRepo.findCartByUser(user);
-        Product product = productRepo.getById(cartDeleteModel.getProductId());
+        Product product = productRepo.findById(cartDeleteModel.getProductId()).get();
         CartDetails cartDetails = cartDetailsRepo.findCartDetailsByCartAndProduct(cart, product);
         cartDetailsRepo.delete(cartDetails);
         Integer count = cartDetailsRepo.getCountOfProductByCart(cart.getId());

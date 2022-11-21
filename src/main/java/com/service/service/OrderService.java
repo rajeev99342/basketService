@@ -7,6 +7,8 @@ import com.service.jwt.JwtTokenUtility;
 import com.service.model.*;
 import com.service.repos.*;
 import com.service.utilites.Payment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,13 +17,13 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static com.service.constants.enums.Role.MASTER;
 
 @Service
 public class OrderService {
+    private static Logger LOG = LoggerFactory.getLogger(OrderService.class);
 
     @Autowired
     FirebasePushNotificationService firebasePushNotificationService;
@@ -56,7 +58,11 @@ public class OrderService {
     @Autowired
     JwtTokenUtility jwtTokenUtility;
 
+    @Autowired
+    QuantityRepo quantityRepo;
+
     public List<DeliveryProductDetails> placeOrder(OrderModel orderModel) {
+        String sellerToken = null;
         List<DeliveryProductDetails> productWiseOrders = new ArrayList<>();
         User user = userRepo.findUserByPhone(orderModel.getUserPhone());
         Order order = new Order();
@@ -77,7 +83,7 @@ public class OrderService {
             try {
                 // check for product availability --> someone could have order this
 
-                Stock stock = instockRepo.findStockByProduct(productRepo.getById(cartProduct.getId()));
+                Stock stock = instockRepo.findStockByProduct(productRepo.findById(cartProduct.getId()).get());
                 Integer inStock = stock.getInStock();
                 if (inStock >= cartProduct.getSelectedCount() && cartProduct.getSelectedCount() != 0) {
                     Integer availableStockAfterThisOrder = inStock - cartProduct.getSelectedCount();
@@ -85,11 +91,14 @@ public class OrderService {
                     instockRepo.save(stock);
                     ProductDelivery productDelivery = new ProductDelivery();
                     productDelivery.setOrderStatus(OrderStatus.PLACED);
-                    productDelivery.setProduct(productRepo.getById(cartProduct.getId()));
+                    productDelivery.setProduct(productRepo.findById(cartProduct.getId()).get());
                     productDelivery.setDeliveryDate(new Date(System.currentTimeMillis() + 86400000));
                     productDelivery.setOrder(order);
+                    productDelivery.setQuantity(getQuantityEntity(cartProduct.getQuantityModel()));
                     productDelivery.setOrderedTotalCount(cartProduct.getSelectedCount());
                     productDelivery.setOrderedTotalWeight(cartProduct.getSelectedWeight());
+                    productDelivery.setSellerId(cartProduct.getModel().getSellerId());
+                    sellerToken = getSellerToken(cartProduct.getModel().getSellerId());
                     Address address = addressRepo.getById(orderModel.getAddressId());
                     productDelivery.setAddress(address);
                     String completeAddress = address.getLandmark() + ", " + address.getAddressOne() + ", " + address.getArea() + ", " + address.getCity() + "-".concat(address.getPincode()) +
@@ -101,11 +110,13 @@ public class OrderService {
                     productWiseOrder.setCompleteAddress(completeAddress);
                     productWiseOrder.setDeliveryAgentDetails("Rajeev Kumar, Mobile - 9878979798");
                 } else {
+                    LOG.error("Unable to process order by user "+order.getUser().getPhone()+" "+ "[OUT OF STOCK]");
                     productWiseOrder.setProductId(cartProduct.getId());
                     productWiseOrder.setTotalProductCount(cartProduct.getSelectedCount());
                     productWiseOrder.setOrderStatus(OrderStatus.CANCELED_DUE_TO_OUT_OF_STOCK);
                 }
             } catch (Exception e) {
+                LOG.error("Unable to process order by user "+order.getUser().getPhone(),e);
                 productWiseOrder.setProductId(cartProduct.getId());
                 productWiseOrder.setOrderStatus(OrderStatus.FAILED_DUE_TO_TECHNICAL_ISSUE);
             }
@@ -121,29 +132,24 @@ public class OrderService {
                 filter(productWiseOrder -> productWiseOrder.getOrderStatus().equals(OrderStatus.PLACED)).collect(Collectors.toList());
 
         for (DeliveryProductDetails productWiseOrder : successfullyOrdredProduct) {
-            CartDetails cartDetails1 = cartDetailsRepo.findCartDetailsByCartAndProduct(cart, productRepo.getById(productWiseOrder.getProductId()));
+            CartDetails cartDetails1 = cartDetailsRepo.findCartDetailsByCartAndProduct(cart, productRepo.findById(productWiseOrder.getProductId()).get());
             cartDetailsRepo.delete(cartDetails1);
         }
 
-        if (null != productWiseOrders && productWiseOrders.size() > 0) {
-            Map<String, String> data = new HashMap<>();
-            data.put("order_status", OrderStatus.PLACED.name());
-            data.put("title", "BABA BASKET");
-            data.put("text", "Your order confirmed");
-            data.put("token", user.getToken());
-            data.put("image", "https://thumbnails-photos.amazon.com/v1/thumbnail/AplBBbD9TLGIyHKBq5LOUA?viewBox=835%2C835&ownerId=A14ZH0T6C5GQSW");
-            try {
-                firebasePushNotificationService.sendPushMessage(data);
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        } else {
 
-        }
-
+        sendOrderUpdateNotification(OrderStatus.PLACED,"Order placed by User "+order.getUser().getUserName(),null,sellerToken);
+        sendOrderUpdateNotification(OrderStatus.PLACED,"Order placed",null,order.getUser().getToken());
         return productWiseOrders;
+
+    }
+
+    private String getSellerToken(Long sellerId) {
+        if(null != sellerId){
+            User user = userRepo.getById(sellerId);
+            return user.getToken();
+        }else{
+            return null;
+        }
 
     }
 
@@ -179,9 +185,9 @@ public class OrderService {
                     deliveryProductDetails.setProductName(productDelivery.getProduct().getName());
                     deliveryProductDetails.setOrderStatus(productDelivery.getOrderStatus());
                     deliveryProductDetails.setTotalProductCount(productDelivery.getOrderedTotalCount());
-                    totalCost = totalCost + productDelivery.getProduct().getSellingPrice();
+                    totalCost = totalCost + productDelivery.getQuantity().getPrice();
                     deliveryProductDetails.setImage(imageService.getAllImageByProduct(productDelivery.getProduct()));
-                    deliveryProductDetails.setPrice(productDelivery.getProduct().getSellingPrice());
+                    deliveryProductDetails.setPrice(productDelivery.getQuantity().getPrice());
                     deliveryProductList.add(deliveryProductDetails);
                 }
                 orderDetailsModel.setExpectedDeliveryDate(order.getExpectedDeliveryDate());
@@ -264,31 +270,36 @@ public class OrderService {
     }
 
     public Boolean packingOrder(Long id) {
+
         Order order = orderRepo.getById(id);
         List<ProductDelivery> productDeliveries = productDeliveryRepo.findProductDeliveryByOrder(order);
         productDeliveries.stream().forEach(p -> p.setOrderStatus(OrderStatus.PACKING));
         productDeliveryRepo.saveAll(productDeliveries);
         order.setOrderStatus(OrderStatus.PACKING);
         orderRepo.save(order);
-
-        Map<String, String> data = new HashMap<>();
-        data.put("order_status", OrderStatus.PLACED.name());
-        data.put("title", "BABA BASKET");
-        data.put("text", "Your order is getting packed");
-        data.put("token", order.getUser().getToken());
-        data.put("image", "https://thumbnails-photos.amazon.com/v1/thumbnail/AplBBbD9TLGIyHKBq5LOUA?viewBox=835%2C835&ownerId=A14ZH0T6C5GQSW");
-        try {
-            firebasePushNotificationService.sendPushMessage(data);
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-
+        sendOrderUpdateNotification(OrderStatus.PACKING,"Order accepted",null,order.getUser().getToken());
         return true;
     }
 
+    private void sendOrderUpdateNotification(OrderStatus status , String message, String image,String token) {
+       try{
+           firebasePushNotificationService.sendPushMessage(prepareNotificationData(status,message,image,token));
+       }catch ( Exception e){
+            e.printStackTrace();
+       }
+
+
+    }
+
+    private Map<String,String> prepareNotificationData(OrderStatus status , String message, String image,String token){
+        Map<String, String> data = new HashMap<>();
+        data.put("order_status", status.name());
+        data.put("title", "BABA BASKET");
+        data.put("text", message);
+        data.put("token", token);
+        data.put("image", "image");
+        return data;
+    }
     public Boolean markedDelivered(Long id) {
         Order order = orderRepo.getById(id);
         List<ProductDelivery> productDeliveries = productDeliveryRepo.findProductDeliveryByOrder(order);
@@ -296,6 +307,8 @@ public class OrderService {
         productDeliveryRepo.saveAll(productDeliveries);
         order.setOrderStatus(OrderStatus.DELIVERED);
         orderRepo.save(order);
+        sendOrderUpdateNotification(OrderStatus.DELIVERED,"Order is delivered on time",null,order.getUser().getToken());
+
         return true;
     }
 
@@ -306,6 +319,8 @@ public class OrderService {
         productDeliveryRepo.saveAll(productDeliveries);
         order.setOrderStatus(OrderStatus.ON_THE_WAY);
         orderRepo.save(order);
+        sendOrderUpdateNotification(OrderStatus.ON_THE_WAY,"Order is on the way",null,order.getUser().getToken());
+
         return true;
     }
 
@@ -343,7 +358,7 @@ public class OrderService {
                     deliveryProductDetails.setProductName(productDelivery.getProduct().getName());
                     deliveryProductDetails.setOrderStatus(productDelivery.getOrderStatus());
                     deliveryProductDetails.setTotalProductCount(productDelivery.getOrderedTotalCount());
-                    totalCost = totalCost + productDelivery.getProduct().getSellingPrice();
+                    totalCost = totalCost + productDelivery.getQuantity().getPrice();
                     deliveryProductDetails.setImage(imageService.getAllImageByProduct(productDelivery.getProduct()));
                     deliveryProductDetails.setPrice(productDelivery.getProduct().getSellingPrice());
                     deliveryProductList.add(deliveryProductDetails);
@@ -370,8 +385,11 @@ public class OrderService {
         addressModel.setIsDefault(address.getIsDefault());
         addressModel.setLandmark(address.getLandmark());
         addressModel.setPincode(address.getPincode());
-        addressModel.setUserPhone(address.getMobile());
+        addressModel.setMobile(address.getMobile());
         return addressModel;
     }
 
+    private Quantity getQuantityEntity(QuantityModel model){
+        return quantityRepo.getById(model.getId());
+    }
 }

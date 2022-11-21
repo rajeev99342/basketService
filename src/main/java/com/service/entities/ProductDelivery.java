@@ -44,6 +44,10 @@ public class ProductDelivery {
     private OrderStatus orderStatus;
 
     @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "QUANT_ID",referencedColumnName = "ID")
+    private Quantity quantity;
+
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ADDRESS_ID",referencedColumnName = "ADDRESS_ID")
     private Address address;
 }
