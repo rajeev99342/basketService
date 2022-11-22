@@ -172,19 +172,34 @@ public class UserService {
         return user;
     }
 
-    public Address saveUserAddress(AddressModel addressModel) {
-        User user = userRepo.findUserByPhone(addressModel.getMobile());
-        Address address = new Address();
-        address.setIsDefault(true);
-        address.setAddressOne(addressModel.getAddressOne());
-        address.setArea(addressModel.getArea());
-        address.setUser(user);
-        address.setCity(addressModel.getCity());
-        address.setLandmark(addressModel.getLandmark());
-        address.setPincode(addressModel.getPincode());
-        address.setMobile(addressModel.getMobile());
-        Address recentDefaultAddress = addressRepo.save(address);
-        return addressRepo.findAddressByUser(user);
+    public GlobalResponse saveUserAddress(AddressModel addressModel) {
+
+        GlobalResponse globalResponse = new GlobalResponse();
+        try {
+            User user = userRepo.findUserByPhone(addressModel.getMobile());
+            Address address = new Address();
+            address.setIsDefault(true);
+            address.setAddressOne(addressModel.getAddressOne());
+            address.setArea(addressModel.getArea());
+            address.setUser(user);
+            address.setCity(addressModel.getCity());
+            address.setLandmark(addressModel.getLandmark());
+            address.setPincode(addressModel.getPincode());
+            address.setMobile(addressModel.getMobile());
+            if(null != addressModel.getId()){
+                address.setId(addressModel.getId());
+            }
+            Address savedAddress = addressRepo.save(address);
+            globalResponse.setStatus(true);
+            globalResponse.setBody(savedAddress);
+            globalResponse.setMessage(Status.SUCCESS.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+            globalResponse.setMessage("Failed");
+        }
+
+        return globalResponse;
+
 
     }
 
@@ -238,13 +253,20 @@ public class UserService {
         }
     }
 
-    private String getAddressInOneString(Address address){
-        return address.getAddressOne() + " "+ address.getArea() + " "+ address.getLandmark() + " "+address.getCity() + " "
-        + address.getPincode();
-    }
 
-    public AddressModel updateUserName(String username, Authentication authentication) {
-        authentication.getPrincipal();
-        return null;
+    public Status updateUserName(String username, Authentication authentication) {
+
+        try{
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String userPhone = userDetails.getUsername();
+            User user = userRepo.findUserByPhone(userPhone);
+            user.setUserName(username);
+            userRepo.save(user);
+            return Status.SUCCESS;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return Status.FAILED;
+
     }
 }

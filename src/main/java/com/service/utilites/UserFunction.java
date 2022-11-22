@@ -15,6 +15,8 @@ public class UserFunction {
         model.setLandmark(address.getLandmark());
         model.setMobile(address.getMobile());
         model.setAddressOne(address.getAddressOne());
+        model.setPincode(address.getPincode());
+        model.setId(address.getId());
         return model;
     };
 }

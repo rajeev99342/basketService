@@ -1,9 +1,7 @@
 package com.service.controller;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.service.constants.enums.Status;
-import com.service.entities.Address;
 import com.service.entities.User;
 import com.service.jwt.JwtTokenUtility;
 import com.service.jwt.MyUserDetailsService;
@@ -62,19 +60,7 @@ public class UserController {
     @CrossOrigin(origins = "*")
     @PostMapping("/save-address")
     public GlobalResponse saveAddress(@RequestBody AddressModel address) {
-        GlobalResponse globalResponse = new GlobalResponse();
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            Address recentDefaultAddress = userService.saveUserAddress(address);
-            globalResponse.setStatus(true);
-            globalResponse.setBody(recentDefaultAddress);
-            globalResponse.setMessage(Status.SUCCESS.toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-            globalResponse.setMessage("Failed");
-        }
-
-        return globalResponse;
+        return userService.saveUserAddress(address);
     }
 
 
@@ -138,7 +124,7 @@ public class UserController {
     }
     @CrossOrigin(origins = "*")
     @PutMapping("/update-user-name")
-    public AddressModel getUserAddress(@RequestParam("username") String username, Authentication authentication) {
+    public Status getUserAddress(@RequestParam("username") String username, Authentication authentication) {
         try {
             return userService.updateUserName(username,authentication);
         } catch (Exception e) {
