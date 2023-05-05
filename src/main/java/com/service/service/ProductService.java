@@ -1,7 +1,7 @@
 package com.service.service;
 
 import com.service.constants.enums.ImgType;
-import com.service.constants.enums.Role;
+import com.service.constants.enums.UserRole;
 import com.service.entities.*;
 import com.service.jwt.JwtTokenUtility;
 import com.service.model.*;
@@ -54,7 +54,7 @@ public class ProductService {
     public GlobalResponse deleteProductQuantity(Long id, String token) {
         try {
             User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
-            if (user.getRoles().contains(Role.MASTER)) {
+            if (user.getRoles().contains(UserRole.MASTER)) {
                 quantityRepo.deleteById(id);
                 return new GlobalResponse("Deleted", HttpStatus.OK.value(), true, null);
             }

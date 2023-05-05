@@ -2,6 +2,7 @@ package com.service.controller;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.service.constants.enums.Status;
+import com.service.constants.enums.UserRole;
 import com.service.entities.User;
 import com.service.jwt.JwtTokenUtility;
 import com.service.jwt.MyUserDetailsService;
@@ -43,6 +44,13 @@ public class UserController {
     public GlobalResponse login(@RequestBody UserCredentials loginDetails) {
         return userService.signIn(loginDetails);
     }
+
+    @CrossOrigin(origins = "*")
+    @PostMapping("/sign-in-as")
+    public GlobalResponse loginAs(@RequestParam("role") UserRole role, Authentication authentication) {
+        return userService.signInAs(role,authentication);
+    }
+
 
     @CrossOrigin(origins = "*")
     @PostMapping("/sign-up")

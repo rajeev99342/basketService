@@ -1,6 +1,6 @@
 package com.service.jwt;
 
-import com.service.constants.enums.Role;
+import com.service.constants.enums.UserRole;
 import com.service.entities.User;
 import com.service.repos.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +25,9 @@ public class MyUserDetailsService implements UserDetailsService {
     @Transactional
     public UserDetails loadUserByUsername(String userPhone) throws UsernameNotFoundException {
         User user = userRepo.findUserByPhone(userPhone);
-        List<Role> roles = user.getRoles();
+        List<UserRole> roles = user.getRoles();
         List<GrantedAuthority> authorities = new ArrayList<>();
-
-        for(Role role : roles){
+        for(UserRole role : roles){
             GrantedAuthority grantedAuthority = new SimpleGrantedAuthority(role.name());
             authorities.add(grantedAuthority);
         }

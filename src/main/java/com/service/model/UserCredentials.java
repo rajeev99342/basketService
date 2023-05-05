@@ -1,6 +1,6 @@
 package com.service.model;
 
-import com.service.constants.enums.Role;
+import com.service.constants.enums.UserRole;
 import lombok.Data;
 
 import java.util.List;
@@ -12,7 +12,7 @@ public class UserCredentials {
     private String name;
     private String password;
     private String token;
-    private List<Role> roles;
+    private List<UserRole> roles;
     private String uid;
 
 }

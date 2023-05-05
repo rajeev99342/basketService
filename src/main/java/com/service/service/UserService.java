@@ -1,19 +1,18 @@
 package com.service.service;
 
-import com.service.constants.enums.Role;
+import com.google.api.Http;
+import com.service.constants.enums.UserRole;
 import com.service.constants.enums.Status;
 import com.service.entities.Address;
 import com.service.entities.User;
 import com.service.jwt.JwtTokenUtility;
 import com.service.jwt.MyUserDetailsService;
-import com.service.model.AddressModel;
-import com.service.model.GlobalResponse;
-import com.service.model.UserCredentials;
-import com.service.model.UserModel;
+import com.service.model.*;
 import com.service.repos.AddressRepo;
 import com.service.repos.UserRepo;
 import com.service.utilites.EncryptDecrypt;
 import com.service.utilites.UserFunction;
+import com.service.utilites.UserUtility;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -24,6 +23,7 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -90,7 +90,9 @@ public class UserService {
         for (GrantedAuthority grantedAuthority : userDetails.getAuthorities()) {
             roles.add(grantedAuthority.getAuthority());
         }
+        User roleUser = userRepo.findUserByPhone(userModel.getPhone());
         userModel.setRoles(roles);
+        userModel.setLoggedInAs(roleUser.getLoggedInAs());
         globalResponse.setMessage("Login successfully");
         globalResponse.setStatus(true);
         globalResponse.setHttpStatusCode(HttpStatus.OK.value());
@@ -117,10 +119,11 @@ public class UserService {
             if (null != userCredentials.getRoles() && userCredentials.getRoles().size() > 0) {
                 user.setRoles(userCredentials.getRoles());
             } else {
-                user.setRoles(new ArrayList<Role>(Collections.singleton(Role.CUSTOMER)));
+                user.setRoles(new ArrayList<UserRole>(Collections.singleton(UserRole.CUSTOMER)));
             }
             user.setUserName(userCredentials.getName());
             user.setPhone(userCredentials.getMobile());
+            user.setLoggedInAs(UserRole.CUSTOMER);
             user.setPassword(bcryptEncoder.encode(userCredentials.getPassword()));
             userRepo.save(user);
             cartService.createCartByUser(user);
@@ -269,4 +272,15 @@ public class UserService {
         return Status.FAILED;
 
     }
+
+    public GlobalResponse signInAs(UserRole role, Authentication authentication) {
+
+        UserDetails userDetails = UserUtility.getPrincipal();
+        User user = userRepo.findUserByPhone(userDetails.getUsername());
+        user.setLoggedInAs(role);
+        userRepo.save(user);
+        log.info("{} is logged in",userDetails.getUsername());
+        return new GlobalResponse(String.format("%s is logged in as : %s",userDetails.getUsername(),role.name()), HttpStatus.OK.value());
+    }
+
 }

@@ -1,6 +1,6 @@
 package com.service.entities;
 
-import com.service.constants.enums.Role;
+import com.service.constants.enums.UserRole;
 import com.service.constants.enums.UserType;
 import lombok.Data;
 
@@ -19,8 +19,10 @@ public class User {
     @Column(name = "USER_NAME")
     private String userName;
 
-    @Column(name = "USER_TYPE")
-    private UserType userType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "CRNT_USER_TYPE")
+    private UserRole loggedInAs;
 
     @Column(name = "PHONE")
     private String phone;
@@ -32,8 +34,8 @@ public class User {
     private String token;
 
     @Column(name = "ROLES")
-    @ElementCollection(targetClass = Role.class)
+    @ElementCollection(targetClass = UserRole.class)
     @Enumerated(EnumType.STRING)
-    private List<Role> roles;
+    private List<UserRole> roles;
 
 }

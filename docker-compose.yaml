@@ -1,0 +1,20 @@
+version: "3.7"
+
+services:
+  db:
+    image: mysql:5.7
+    restart: always
+    volumes:
+      - todo-mysql-data:/var/lib/mysql
+    environment:
+      MYSQL_PASSWORD: 'root'
+      MYSQL_USER: 'root'
+      MYSQL_DATABASE: 'store'
+      MYSQL_ROOT_PASSWORD: 'root'
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306'
+
+volumes:
+      todo-mysql-data:

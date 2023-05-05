@@ -1,7 +1,7 @@
 package com.service.service;
 
 import com.service.constants.enums.OrderStatus;
-import com.service.constants.enums.Role;
+import com.service.constants.enums.UserRole;
 import com.service.entities.*;
 import com.service.jwt.JwtTokenUtility;
 import com.service.model.*;
@@ -19,7 +19,7 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.service.constants.enums.Role.MASTER;
+import static com.service.constants.enums.UserRole.MASTER;
 
 @Service
 public class OrderService {
@@ -335,7 +335,7 @@ public class OrderService {
     @Transactional
     public List<OrderDetailsModel> fetchAllOrderByStatus(String token, OrderStatus status) {
         User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
-        List<Role> roles = user.getRoles();
+        List<UserRole> roles = user.getRoles();
         if (roles.contains(MASTER)) {
             List<Order> orders = orderRepo.findOrderByOrderStatus(status);
             List<OrderDetailsModel> orderDetailsModelList = new ArrayList<>();

@@ -31,16 +31,15 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
             "/sign-in",
             "/sign-up",
             "/get-product-details",
-            "/delete-cart-item",
             "/save-address",
             "/get-address",
+            "/reset-password",
             "/add-category",
             "/fetch-all-category",
             "/fetch-all-category-name",
             "/upload-image",
             "/get-uploaded-image",
             "/get-order-by-user",
-            "/cancel-order",
             "/fetch-all-product",
 
     };
@@ -49,7 +48,8 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
             "/fetch-product-by-cart",
             "/add-to-cart",
             "/place-order",
-            "/hello"
+            "/hello",
+            "/sign-in-as"
     };
 
     @Override
