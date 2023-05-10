@@ -8,10 +8,10 @@ import java.util.Date;
 
 @Data
 @Entity
-@Table(name = "PRODUCT_DELIVERY")
-public class ProductDelivery {
+@Table(name = "ORDER_DETAILS")
+public class OrderDetails {
     @Id
-    @Column(name = "PD_ID")
+    @Column(name = "ID")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -20,21 +20,16 @@ public class ProductDelivery {
     private Product product;
 
 
+    @Column(name = "QUANTITY")
+    private Integer quantity;
+
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ORDER_ID",referencedColumnName = "ORDER_ID")
     private Order order;
 
-    @Column(name = "DELIVERY_DATE")
-    private Date deliveryDate;
-
-    @Column(name = "SELLER_ID")
-    private Long sellerId;
-
-    @Column(name = "ORDERED_COUNT")
-    private Integer orderedTotalCount;
-
-    @Column(name = "ORDERED_TOTAL_WEIGHT")
-    private Double orderedTotalWeight;
+    @Column(name = "ITEM_PRICE")
+    private Double itemPrice;
 
     @Column(name = "DISCOUNT_ON_THIS_ITEM")
     private Double itemDiscount;
@@ -43,11 +38,8 @@ public class ProductDelivery {
     @Column(name = "ORDER_STATUS")
     private OrderStatus orderStatus;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "QUANT_ID",referencedColumnName = "ID")
-    private Quantity quantity;
+    @Column(name = "TXN_ID")
+    private OrderStatus transactionId;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ADDRESS_ID",referencedColumnName = "ADDRESS_ID")
-    private Address address;
+
 }

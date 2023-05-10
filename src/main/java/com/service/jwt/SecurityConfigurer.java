@@ -41,6 +41,7 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
             "/get-uploaded-image",
             "/get-order-by-user",
             "/fetch-all-product",
+            "/is-user-present"
 
     };
     private final String[] BLACK_LIST = {
@@ -49,7 +50,8 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
             "/add-to-cart",
             "/place-order",
             "/hello",
-            "/sign-in-as"
+            "/sign-in-as",
+            "/location"
     };
 
     @Override
@@ -65,8 +67,7 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
                 .cors()
                 .and()
                 // dont authenticate this particular request
-                .authorizeRequests().antMatchers(WHITE_LIST).permitAll().
-                and().authorizeRequests().antMatchers(BLACK_LIST).authenticated()
+                .authorizeRequests().antMatchers("/**/").permitAll()
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);

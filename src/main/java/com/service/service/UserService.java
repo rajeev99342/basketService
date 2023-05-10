@@ -26,13 +26,14 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
-
+import com.service.utilites.UserFunction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 @Slf4j
-@Service
+@Component
 public class UserService {
     @Autowired
     private ApplicationContext applicationContext;
@@ -178,28 +179,20 @@ public class UserService {
     public GlobalResponse saveUserAddress(AddressModel addressModel) {
 
         GlobalResponse globalResponse = new GlobalResponse();
-        try {
-            User user = userRepo.findUserByPhone(addressModel.getMobile());
-            Address address = new Address();
-            address.setIsDefault(true);
-            address.setAddressOne(addressModel.getAddressOne());
-            address.setArea(addressModel.getArea());
-            address.setUser(user);
-            address.setCity(addressModel.getCity());
-            address.setLandmark(addressModel.getLandmark());
-            address.setPincode(addressModel.getPincode());
-            address.setMobile(addressModel.getMobile());
-            if(null != addressModel.getId()){
-                address.setId(addressModel.getId());
-            }
-            Address savedAddress = addressRepo.save(address);
-            globalResponse.setStatus(true);
-            globalResponse.setBody(savedAddress);
-            globalResponse.setMessage(Status.SUCCESS.toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-            globalResponse.setMessage("Failed");
-        }
+//        try {
+//            User user = userRepo.findUserByPhone(addressModel.getMobile());
+//            Address address = new Address();
+//            if(null != addressModel.getId()){
+//                address.setId(addressModel.getId());
+//            }
+//            Address savedAddress = addressRepo.save(address);
+//            globalResponse.setStatus(true);
+//            globalResponse.setBody(savedAddress);
+//            globalResponse.setMessage(Status.SUCCESS.toString());
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            globalResponse.setMessage("Failed");
+//        }
 
         return globalResponse;
 
@@ -273,14 +266,35 @@ public class UserService {
 
     }
 
-    public GlobalResponse signInAs(UserRole role, Authentication authentication) {
-
-        UserDetails userDetails = UserUtility.getPrincipal();
-        User user = userRepo.findUserByPhone(userDetails.getUsername());
+    public GlobalResponse signInAs(UserRole role,String phone , Authentication authentication) {
+        User user = userRepo.findUserByPhone(phone);
         user.setLoggedInAs(role);
         userRepo.save(user);
-        log.info("{} is logged in",userDetails.getUsername());
-        return new GlobalResponse(String.format("%s is logged in as : %s",userDetails.getUsername(),role.name()), HttpStatus.OK.value());
+        log.info("{} is logged in",phone);
+        return new GlobalResponse(String.format("%s is logged in as : %s",phone,role.name()), HttpStatus.OK.value());
     }
 
+    public GlobalResponse updateLocation(AddressModel addressModel,Authentication authentication) {
+        try{
+            Address address ;
+            User user = userRepo.findUserByPhone(addressModel.getUserPhone());
+            Address alreadySavedAddress = addressRepo.findAddressByUser(user);
+            if(alreadySavedAddress != null){
+                address = alreadySavedAddress;
+            }else{
+                address = new Address();
+            }
+            address.setAddressLine(addressModel.getAddressLine());
+            address.setCompleteAddress(addressModel.getCompleteAddress());
+            address.setLatitude(addressModel.getLatitude());
+            address.setLongitude(addressModel.getLongitude());
+            address.setUser(user);
+            addressRepo.save(address);
+            return new GlobalResponse("Location updated", 200,true,addressModel);
+        }catch(Exception ex){
+            return new GlobalResponse("Failed to update location : "+ex.getMessage(), 401);
+        }
+
+
+    }
 }

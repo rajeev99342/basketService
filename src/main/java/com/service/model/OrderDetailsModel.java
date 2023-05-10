@@ -25,7 +25,7 @@ public class OrderDetailsModel {
 
     private String completeAddress;
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-    private List<DeliveryProductDetails> deliveryProducts;
+    private List<ProductOrderDetails> deliveryProducts;
     private AddressModel addressModel;
     private Date expectedDeliveryDate ;
     private Long orderId;

@@ -11,6 +11,5 @@ public class OrderModel {
     private List<DisplayCartProduct> cartProducts;
     private PaymentMode paymentMode;
     private final Double finalAmount;
-    private final  Long addressId;
     private final OrderStatus orderStatus;
 }

@@ -22,26 +22,19 @@ public class Address {
     @JoinColumn(name = "USER_ID",referencedColumnName = "USER_ID")
     private User user;
 
-    @Column(name = "ADDRESS_ONE")
-    private String addressOne;
+    @Column(name = "COMPLETE_ADD",columnDefinition = "longtext")
+    private String completeAddress;
 
-    @Column(name = "LANDMARK")
-    private String landmark;
-
-    @Column(name = "CITY")
-    private String city;
-
-    @Column(name = "AREA")
-    private String area;
-
-    @Column(name = "PIN")
-    private String pincode;
-
-    @Column(name = "MOBILE")
-    private String mobile;
+    @Column(name = "ADDRESS_LINE")
+    private String addressLine;
 
 
-    @Column(name = "IS_DEFAULT")
-    private Boolean isDefault = true;
+    @Column(name = "LATITUDE")
+    private String latitude;
+
+    @Column(name = "LONGITUDE")
+    private String longitude;
+
+
 
 }

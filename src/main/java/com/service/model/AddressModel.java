@@ -2,14 +2,14 @@ package com.service.model;
 
 import lombok.Data;
 
+import javax.persistence.Column;
+
 @Data
 public class AddressModel {
     private Long id;
-    private String city;
-    private String mobile;
-    private String landmark;
-    private String area;
-    private String pincode;
-    private String addressOne;
-    private Boolean isDefault;
+    private String userPhone;
+    private String completeAddress;
+    private String addressLine;
+    private String latitude;
+    private String longitude;
 }

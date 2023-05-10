@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.service.constants.enums.OrderStatus;
 import com.service.entities.User;
 import com.service.jwt.JwtTokenUtility;
-import com.service.model.DeliveryProductDetails;
+import com.service.model.ProductOrderDetails;
 import com.service.model.OrderDetailsModel;
 import com.service.model.OrderModel;
 import com.service.model.RequestModel;
@@ -32,7 +32,7 @@ public class OrderController {
 
     @CrossOrigin(value = "*")
     @PostMapping("/place-order")
-    List<DeliveryProductDetails> placeOrder(@RequestBody OrderModel orderModel) {
+    List<ProductOrderDetails> placeOrder(@RequestBody OrderModel orderModel) {
         try {
             return orderService.placeOrder(orderModel);
         } catch (Exception e) {

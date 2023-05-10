@@ -8,6 +8,7 @@ import com.service.jwt.JwtTokenUtility;
 import com.service.jwt.MyUserDetailsService;
 import com.service.model.AddressModel;
 import com.service.model.GlobalResponse;
+import com.service.model.LocationCord;
 import com.service.model.UserCredentials;
 import com.service.service.TwilioMessageSenderService;
 import com.service.service.UserService;
@@ -23,7 +24,6 @@ import javax.transaction.Transactional;
 @RestController
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Transactional
-
 public class UserController {
 
     @Autowired
@@ -47,8 +47,8 @@ public class UserController {
 
     @CrossOrigin(origins = "*")
     @PostMapping("/sign-in-as")
-    public GlobalResponse loginAs(@RequestParam("role") UserRole role, Authentication authentication) {
-        return userService.signInAs(role,authentication);
+    public GlobalResponse loginAs(@RequestParam("userPhone") String userPhone, @RequestParam("role") UserRole role,Authentication authentication) {
+        return userService.signInAs(role,userPhone,authentication);
     }
 
 
@@ -140,6 +140,14 @@ public class UserController {
             return null;
         }
 
+    }
+
+
+
+    @CrossOrigin(origins = "*")
+    @PostMapping("/location")
+    public GlobalResponse updateLocation(@RequestBody AddressModel addressModel, Authentication authentication) {
+        return userService.updateLocation(addressModel,authentication);
     }
 
 }

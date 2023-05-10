@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class DeliveryProductDetails {
+public class ProductOrderDetails {
     private Long productId;
     private String productName;
     private Integer totalProductCount ;

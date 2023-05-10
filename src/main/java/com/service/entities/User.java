@@ -38,4 +38,10 @@ public class User {
     @Enumerated(EnumType.STRING)
     private List<UserRole> roles;
 
+    @Column(name = "lat")
+    private String lat;
+
+    @Column(name = "lon")
+    private String lon;
+
 }
