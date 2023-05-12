@@ -39,7 +39,7 @@ public class OrderDetails {
     private OrderStatus orderStatus;
 
     @Column(name = "TXN_ID")
-    private OrderStatus transactionId;
+    private String transactionId;
 
 
 }

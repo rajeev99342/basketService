@@ -31,4 +31,8 @@ public class OrderDetailsModel {
     private Long orderId;
     private String displayOrderStatus;
     private Boolean  isNew = true;
+    private Date deliveredAt ;
+    private Date lastModifiedDate;
+    private String refundTxnId;
+    private String txnId;
 }

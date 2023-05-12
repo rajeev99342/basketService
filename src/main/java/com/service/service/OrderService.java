@@ -7,21 +7,24 @@ import com.service.jwt.JwtTokenUtility;
 import com.service.model.*;
 import com.service.repos.*;
 import com.service.utilites.Payment;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import static com.service.constants.enums.UserRole.MASTER;
+import static com.service.constants.enums.UserRole.ADMIN;
 
 @Service
+@Slf4j
 public class OrderService {
     private static Logger LOG = LoggerFactory.getLogger(OrderService.class);
 
@@ -61,7 +64,7 @@ public class OrderService {
     @Autowired
     QuantityRepo quantityRepo;
 
-    public List<ProductOrderDetails> placeOrder(OrderModel orderModel) {
+    public GlobalResponse placeOrder(OrderModel orderModel) {
         String sellerToken = null;
         List<ProductOrderDetails> productWiseOrders = new ArrayList<>();
         User user = userRepo.findUserByPhone(orderModel.getUserPhone());
@@ -71,10 +74,11 @@ public class OrderService {
         Date expectedDate = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
         order.setExpectedDeliveryDate(expectedDate);
         order.setUser(user);
+        order.setModifiedDate(new Date());
         order.setOrderStatus(OrderStatus.PLACED);
         order.setTotalCost(orderModel.getFinalAmount());
         orderRepo.save(order);
-
+        List<String> outOfStockProducts = new ArrayList<>();
         for (DisplayCartProduct cartProduct : orderModel.getCartProducts()) {
             ProductOrderDetails productWiseOrder = new ProductOrderDetails();
             try {
@@ -103,6 +107,7 @@ public class OrderService {
                 } else {
                     LOG.error("Unable to process order by user "+order.getUser().getPhone()+" "+ "[OUT OF STOCK]");
                     productWiseOrder.setProductId(cartProduct.getId());
+                    outOfStockProducts.add(cartProduct.getModel().getName());
                     productWiseOrder.setTotalProductCount(cartProduct.getSelectedCount());
                     productWiseOrder.setOrderStatus(OrderStatus.CANCELED_DUE_TO_OUT_OF_STOCK);
                 }
@@ -121,18 +126,39 @@ public class OrderService {
         List<CartDetails> cartDetails = cartDetailsRepo.findCartDetailsByCart(cart);
         List<ProductOrderDetails> successfullyOrdredProduct = productWiseOrders.stream().
                 filter(productWiseOrder -> productWiseOrder.getOrderStatus().equals(OrderStatus.PLACED)).collect(Collectors.toList());
-
+        String unsuccessfulOrderName = null ;
+        if(successfullyOrdredProduct.size() <=0){
+            return new GlobalResponse("ORDERED PRODUCTS ARE OUT OF STOCKS", HttpStatus.FORBIDDEN.value());
+        }else if(outOfStockProducts.size() > 0){
+            unsuccessfulOrderName =  String.join(",", outOfStockProducts);
+            sendOrderUpdateNotification(OrderStatus.PLACED,"These items are out of stock : "+unsuccessfulOrderName,null,order.getUser().getToken());
+        }
         for (ProductOrderDetails productWiseOrder : successfullyOrdredProduct) {
             CartDetails cartDetails1 = cartDetailsRepo.findCartDetailsByCartAndProduct(cart, productRepo.findById(productWiseOrder.getProductId()).get());
             cartDetailsRepo.delete(cartDetails1);
         }
-
-
-        sendOrderUpdateNotification(OrderStatus.PLACED,"Order placed by User "+order.getUser().getUserName(),null,sellerToken);
+        log.info("Order placed by user : {} "+order.getUser().getPhone());
+        notifyAdmin(order.getUser().getUserName());
         sendOrderUpdateNotification(OrderStatus.PLACED,"Order placed",null,order.getUser().getToken());
-        return productWiseOrders;
+        String message = unsuccessfulOrderName != null ? "Order successfully place "+"but these items are out of stocks "+unsuccessfulOrderName: "Order placed successfully";
+        return new GlobalResponse(message, HttpStatus.OK.value(), true,productWiseOrders);
+    }
+
+    private void notifyAdmin(String buyerName)  {
+        try{
+            List<String> adminUserList = userRepo.findToken(ADMIN.name());
+            Map<String,String> map = new HashMap<>();
+            map.put("buyer", buyerName);
+            map.put("message", "New order arrived");
+            firebasePushNotificationService.sendBulkPushMessage(map,adminUserList);
+
+        }catch (Exception e){
+            log.error(e.getMessage());
+        }
 
     }
+
+
 
     private String getSellerToken(Long sellerId) {
         if(null != sellerId){
@@ -175,6 +201,7 @@ public class OrderService {
                     deliveryProductDetails.setProductId(productDelivery.getProduct().getId());
                     deliveryProductDetails.setProductName(productDelivery.getProduct().getName());
                     deliveryProductDetails.setOrderStatus(productDelivery.getOrderStatus());
+                    deliveryProductDetails.setPrice(productDelivery.getItemPrice());
                     deliveryProductDetails.setImage(imageService.getAllImageByProduct(productDelivery.getProduct()));
                     deliveryProductList.add(deliveryProductDetails);
                 }
@@ -182,6 +209,8 @@ public class OrderService {
                 orderDetailsModel.setOrderId(order.getId());
                 orderDetailsModel.setDeliveryProducts(deliveryProductList);
                 orderDetailsModel.setTotalCost(order.getTotalCost());
+                orderDetailsModel.setDeliveredAt(order.getOrderDeliveredAt());
+                orderDetailsModel.setLastModifiedDate(order.getModifiedDate());
                 orderDetailsModelList.add(orderDetailsModel);
             }
 
@@ -190,7 +219,7 @@ public class OrderService {
         Collections.sort(orderDetailsModelList, new Comparator<OrderDetailsModel>() {
             @Override
             public int compare(OrderDetailsModel o1, OrderDetailsModel o2) {
-                return o2.getOrderDate().compareTo(o1.getOrderDate());
+                return o2.getLastModifiedDate().compareTo(o1.getLastModifiedDate());
             }
         });
         return orderDetailsModelList;
@@ -245,6 +274,7 @@ public class OrderService {
             order.setOrderStatus(OrderStatus.CANCELED);
             productDeliveries.forEach(productDelivery -> productDelivery.setOrderStatus(OrderStatus.CANCELED));
             orderDetailsRepository.saveAll(productDeliveries);
+            order.setModifiedDate(new Date());
             orderRepo.save(order);
             for (OrderDetails productDelivery : productDeliveries) {
 //                updateProductInventory(productDelivery.getProduct(), productDelivery.getOrderedTotalCount());
@@ -264,6 +294,8 @@ public class OrderService {
         productDeliveries.stream().forEach(p -> p.setOrderStatus(OrderStatus.PACKING));
         orderDetailsRepository.saveAll(productDeliveries);
         order.setOrderStatus(OrderStatus.PACKING);
+        order.setOrderDeliveredAt(new Date());
+        order.setModifiedDate(new Date());
         orderRepo.save(order);
         sendOrderUpdateNotification(OrderStatus.PACKING,"Order accepted",null,order.getUser().getToken());
         return true;
@@ -293,7 +325,9 @@ public class OrderService {
         List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder(order);
         productDeliveries.stream().forEach(p -> p.setOrderStatus(OrderStatus.DELIVERED));
         orderDetailsRepository.saveAll(productDeliveries);
+        order.setOrderDeliveredAt(new Date());
         order.setOrderStatus(OrderStatus.DELIVERED);
+        order.setModifiedDate(new Date());
         orderRepo.save(order);
         sendOrderUpdateNotification(OrderStatus.DELIVERED,"Order is delivered on time",null,order.getUser().getToken());
 
@@ -306,6 +340,7 @@ public class OrderService {
         productDeliveries.stream().forEach(p -> p.setOrderStatus(OrderStatus.ON_THE_WAY));
         orderDetailsRepository.saveAll(productDeliveries);
         order.setOrderStatus(OrderStatus.ON_THE_WAY);
+        order.setModifiedDate(new Date());
         orderRepo.save(order);
         sendOrderUpdateNotification(OrderStatus.ON_THE_WAY,"Order is on the way",null,order.getUser().getToken());
 
@@ -324,7 +359,7 @@ public class OrderService {
     public List<OrderDetailsModel> fetchAllOrderByStatus(String token, OrderStatus status) {
         User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
         List<UserRole> roles = user.getRoles();
-        if (roles.contains(MASTER)) {
+        if (roles.contains(ADMIN)) {
             List<Order> orders = orderRepo.findOrderByOrderStatus(status);
             List<OrderDetailsModel> orderDetailsModelList = new ArrayList<>();
             for (Order order : orders) {
@@ -342,14 +377,16 @@ public class OrderService {
                 for (OrderDetails productDelivery : productDeliveries) {
                     ProductOrderDetails deliveryProductDetails = new ProductOrderDetails();
                     deliveryProductDetails.setDeliveryAgentDetails("Rajeev");
+                    deliveryProductDetails.setTotalProductCount(productDelivery.getQuantity());
 //                    deliveryProductDetails.setDeliveryDate(productDelivery.getDeliveryDate().toString());
                     deliveryProductDetails.setProductId(productDelivery.getProduct().getId());
                     deliveryProductDetails.setProductName(productDelivery.getProduct().getName());
                     deliveryProductDetails.setOrderStatus(productDelivery.getOrderStatus());
 //                    deliveryProductDetails.setTotalProductCount(productDelivery.getOrderedTotalCount());
 //                    totalCost = totalCost + productDelivery.getQuantity().getPrice();
+                    deliveryProductDetails.setPrice(productDelivery.getItemPrice());
                     deliveryProductDetails.setImage(imageService.getAllImageByProduct(productDelivery.getProduct()));
-                    deliveryProductDetails.setPrice(productDelivery.getProduct().getSellingPrice());
+                    deliveryProductDetails.setPrice(productDelivery.getItemPrice());
                     deliveryProductList.add(deliveryProductDetails);
                 }
                 orderDetailsModel.setExpectedDeliveryDate(order.getExpectedDeliveryDate());
@@ -380,5 +417,47 @@ public class OrderService {
 
     private Quantity getQuantityEntity(QuantityModel model){
         return quantityRepo.getById(model.getId());
+    }
+
+    public GlobalResponse returnRequest(Long id, User user) {
+        Order order = null;
+        try {
+            order = orderRepo.getById(id);
+            Instant start = order.getOrderDate().toInstant();
+            Instant end = Instant.now();
+            Duration timeElapsed = Duration.between(start, end);
+            System.out.println("Time taken: " + timeElapsed.toMillis() + " milliseconds");
+            Integer durationInHr = Math.toIntExact(timeElapsed.toMillis() / (1000 * 60 * 60));
+            if (durationInHr > 18) {
+                log.error("Order can not be return because its {} hr old ", durationInHr);
+                return new GlobalResponse("This order is too old", HttpStatus.CONFLICT.value());
+            } else {
+                List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder(order);
+                order.setOrderStatus(OrderStatus.RETURN_INITIATED);
+                order.setModifiedDate(new Date());
+
+                productDeliveries.forEach(productDelivery -> productDelivery.setOrderStatus(OrderStatus.RETURN_INITIATED));
+                orderDetailsRepository.saveAll(productDeliveries);
+                orderRepo.save(order);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("Failed return order by user {} due to {}", order.getUser().getPhone(),e.getMessage());
+            return new GlobalResponse("Failed to initiate return : " + e.getMessage(), HttpStatus.CONFLICT.value());
+        }
+
+        return new GlobalResponse("This order is too old", HttpStatus.CONFLICT.value());
+    }
+
+    public GlobalResponse doRefund(RefundOrder refundOrder) {
+        Order order = orderRepo.getById(refundOrder.getOrderId());
+        List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder(order);
+        order.setRefundTxnId(refundOrder.getRefundTxnId());
+        order.setOrderStatus(OrderStatus.REFUNDED);
+        productDeliveries.forEach(productDelivery -> productDelivery.setOrderStatus(OrderStatus.RETURN_INITIATED));
+        orderDetailsRepository.saveAll(productDeliveries);
+        orderRepo.save(order);
+        return new GlobalResponse("Refund completed", HttpStatus.OK.value());
     }
 }

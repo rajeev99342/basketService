@@ -4,10 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.service.constants.enums.OrderStatus;
 import com.service.entities.User;
 import com.service.jwt.JwtTokenUtility;
-import com.service.model.ProductOrderDetails;
-import com.service.model.OrderDetailsModel;
-import com.service.model.OrderModel;
-import com.service.model.RequestModel;
+import com.service.model.*;
 import com.service.service.OrderService;
 import com.service.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +29,7 @@ public class OrderController {
 
     @CrossOrigin(value = "*")
     @PostMapping("/place-order")
-    List<ProductOrderDetails> placeOrder(@RequestBody OrderModel orderModel) {
+    GlobalResponse placeOrder(@RequestBody OrderModel orderModel) {
         try {
             return orderService.placeOrder(orderModel);
         } catch (Exception e) {
@@ -46,7 +43,7 @@ public class OrderController {
     @PostMapping("/get-order-by-user")
     List<OrderDetailsModel> getOrder(@RequestBody RequestModel requestModel) {
         try {
-            return orderService.getOrderDetails(requestModel.getToken(),requestModel.getOrderStatusList());
+            return orderService.getOrderDetails(requestModel.getToken(), requestModel.getOrderStatusList());
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -60,12 +57,22 @@ public class OrderController {
         try {
             String userPhone = jwtTokenUtility.getUsernameFromToken(requestModel.getToken());
             User user = userService.getUserByPhoneNumber(userPhone);
-            return orderService.cancelOrder(requestModel.getId(),user);
+            return orderService.cancelOrder(requestModel.getId(), user);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
     }
+
+    @CrossOrigin(value = "*")
+    @PostMapping("/request-return")
+    GlobalResponse returnRequest(@RequestBody RequestModel requestModel) {
+        String userPhone = jwtTokenUtility.getUsernameFromToken(requestModel.getToken());
+        User user = userService.getUserByPhoneNumber(userPhone);
+        return orderService.returnRequest(requestModel.getId(), user);
+
+    }
+
 
     @CrossOrigin(value = "*")
     @PostMapping("/update-packing-order")
@@ -103,6 +110,12 @@ public class OrderController {
         }
     }
 
+    @CrossOrigin(value = "*")
+    @PutMapping("/do-refund")
+    GlobalResponse refund(@RequestBody RefundOrder refundOrder) {
+        return orderService.doRefund(refundOrder);
+    }
+
 
     @CrossOrigin(value = "*")
     @PostMapping("/get-order-by-status")
@@ -123,6 +136,8 @@ public class OrderController {
                 return orderService.fetchAllOrderByStatus(token, OrderStatus.DISPATCHED);
             } else if (OrderStatus.DELIVERED.name().equals(status)) {
                 return orderService.fetchAllOrderByStatus(token, OrderStatus.DELIVERED);
+            } else if (OrderStatus.RETURN_INITIATED.name().equals(status)) {
+                return orderService.fetchAllOrderByStatus(token, OrderStatus.RETURN_INITIATED);
             } else {
                 System.out.println("No order");
             }

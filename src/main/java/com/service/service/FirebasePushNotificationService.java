@@ -1,15 +1,16 @@
 package com.service.service;
 
-import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
+import com.google.firebase.messaging.MulticastMessage;
+import com.google.firebase.messaging.Notification;
 import com.service.messaging.FcmClient;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.unbescape.html.HtmlEscape;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -22,7 +23,7 @@ public class FirebasePushNotificationService {
 
     private int id = 0;
 
-    public FirebasePushNotificationService(FcmClient fcmClient) {
+    public FirebasePushNotificationService( FcmClient fcmClient) {
         this.restTemplate = new RestTemplate();
         this.fcmClient = fcmClient;
     }
@@ -41,6 +42,27 @@ public class FirebasePushNotificationService {
 
 
     void sendPushMessage(Map<String,String> data) throws ExecutionException, InterruptedException {
-        this.fcmClient.sendJoke(data);
+        this.fcmClient.sendNotification(data);
     }
+
+
+    void sendBulkPushMessage(Map<String,String> data,List<String> tokens) throws ExecutionException, InterruptedException {
+        this.fcmClient.multiCaseMessage(data,tokens);
+    }
+
+
+
+    public void notifyAllAdmin(List<String> deviceTokens, String title, String body) {
+        MulticastMessage message = MulticastMessage.builder()
+                .setNotification(Notification.builder()
+                        .setTitle(title)
+                        .setBody(body)
+                        .setImage("https://firebasestorage.googleapis.com/v0/b/baba-basket-645b9.appspot.com/o/order-image%2Fnew_order.jpg?alt=media&token=2dee986b-6bcc-4ae6-b4f0-90c4fdc872b8")
+                        .build())
+                .addAllTokens(deviceTokens)
+                .build();
+
+        FirebaseMessaging.getInstance().sendMulticastAsync(message);
+    }
+
 }

@@ -2,6 +2,7 @@ package com.service.entities;
 
 import com.service.constants.enums.OrderStatus;
 import com.service.constants.enums.PaymentModeEnum;
+import com.service.constants.enums.YESNO;
 import lombok.Data;
 import javax.persistence.*;
 import java.util.Date;
@@ -36,6 +37,22 @@ public class Order {
 
     @Column(name = "ORDER_EXPECTED_DELIVERY_DATE")
     private Date expectedDeliveryDate;
+
+    @Column(name = "MODIFIED_DATE")
+    private Date modifiedDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "PAID")
+    private YESNO yesNo;
+
+
+    @Column(name = "TXN_ID")
+    private String transactionId;
+
+
+    @Column(name = "REFUND_TXN_ID")
+    private String refundTxnId;
+
 
     @Column(name = "ORDER_DELIVERED_DATE")
     private Date orderDeliveredAt;
