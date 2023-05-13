@@ -78,7 +78,7 @@ public class FcmClient {
         MulticastMessage message = MulticastMessage.builder()
                 .setAndroidConfig(androidConfig)
                 .setNotification(Notification.builder().setImage("https://firebasestorage.googleapis.com/v0/b/baba-basket-645b9.appspot.com/o/order-image%2Fnew_order.jpg?alt=media&token=2dee986b-6bcc-4ae6-b4f0-90c4fdc872b8")
-                        .setTitle("New order arrived")
+                        .setTitle(data.get("message"))
                         .setBody("Ordered by : "+data.get("buyer"))
                         .build())
                 .addAllTokens(tokens)

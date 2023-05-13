@@ -1,4 +1,4 @@
-package com.service.websocket;
+package com.service.config;
 
 import com.service.constants.values.IpAddress;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,21 +15,17 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @Controller
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    @Autowired
-    IpAddress address;
-
-    
-    @Override
-    public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic");
-//        config.setApplicationDestinationPrefixes("/app");
-
-    }
-
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/temp").setHandshakeHandler(new UserHandshakHandler())
-                .setAllowedOrigins("http://*","https://*","http://localhost:8100","http://localhost:1111").withSockJS();
+        registry.addEndpoint("/websocket")
+                .setAllowedOriginPatterns("*").withSockJS();
     }
+
+    @Override
+    public void configureMessageBroker(MessageBrokerRegistry registry) {
+        registry.setApplicationDestinationPrefixes("/app");
+        registry.enableSimpleBroker("/topic");
+    }
+
 
 }

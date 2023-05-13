@@ -1,12 +1,17 @@
 package com.service.model;
 
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
-@Builder
+
+@NoArgsConstructor
 public class WebSocketMessageModel {
-    @Getter
-    private String from;
-    @Getter
-    private String text;
+    private String name;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 }

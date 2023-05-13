@@ -127,7 +127,8 @@ public class OrderService {
         List<ProductOrderDetails> successfullyOrdredProduct = productWiseOrders.stream().
                 filter(productWiseOrder -> productWiseOrder.getOrderStatus().equals(OrderStatus.PLACED)).collect(Collectors.toList());
         String unsuccessfulOrderName = null ;
-        if(successfullyOrdredProduct.size() <=0){
+        if(successfullyOrdredProduct.size() == 0){
+//            orderRepo.delete(order);
             return new GlobalResponse("ORDERED PRODUCTS ARE OUT OF STOCKS", HttpStatus.FORBIDDEN.value());
         }else if(outOfStockProducts.size() > 0){
             unsuccessfulOrderName =  String.join(",", outOfStockProducts);
@@ -138,18 +139,18 @@ public class OrderService {
             cartDetailsRepo.delete(cartDetails1);
         }
         log.info("Order placed by user : {} "+order.getUser().getPhone());
-        notifyAdmin(order.getUser().getUserName());
+        notifyAdmin(order.getUser().getUserName(),"New order arrived");
         sendOrderUpdateNotification(OrderStatus.PLACED,"Order placed",null,order.getUser().getToken());
         String message = unsuccessfulOrderName != null ? "Order successfully place "+"but these items are out of stocks "+unsuccessfulOrderName: "Order placed successfully";
         return new GlobalResponse(message, HttpStatus.OK.value(), true,productWiseOrders);
     }
 
-    private void notifyAdmin(String buyerName)  {
+    private void notifyAdmin(String buyerName,String message)  {
         try{
             List<String> adminUserList = userRepo.findToken(ADMIN.name());
             Map<String,String> map = new HashMap<>();
             map.put("buyer", buyerName);
-            map.put("message", "New order arrived");
+            map.put("message", message);
             firebasePushNotificationService.sendBulkPushMessage(map,adminUserList);
 
         }catch (Exception e){
@@ -173,7 +174,7 @@ public class OrderService {
 
     @Transactional
     public List<OrderDetailsModel> getOrderDetails(String token, List<OrderStatus> statusList) {
-        User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
+         User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
 
         List<String> list = statusList.stream().map(status -> status.toString()).collect(Collectors.toList());
         List<Order> orders = orderRepo.findOrderByUser(user);
@@ -314,7 +315,7 @@ public class OrderService {
     private Map<String,String> prepareNotificationData(OrderStatus status , String message, String image,String token){
         Map<String, String> data = new HashMap<>();
         data.put("order_status", status.name());
-        data.put("title", "BABA BASKET");
+        data.put("title", "MELAA | Grocery App");
         data.put("text", message);
         data.put("token", token);
         data.put("image", "image");
@@ -447,7 +448,8 @@ public class OrderService {
             return new GlobalResponse("Failed to initiate return : " + e.getMessage(), HttpStatus.CONFLICT.value());
         }
 
-        return new GlobalResponse("This order is too old", HttpStatus.CONFLICT.value());
+        notifyAdmin(order.getUser().getUserName(), "Return order request");
+        return new GlobalResponse("Refund initiated", HttpStatus.CONFLICT.value());
     }
 
     public GlobalResponse doRefund(RefundOrder refundOrder) {
@@ -458,6 +460,7 @@ public class OrderService {
         productDeliveries.forEach(productDelivery -> productDelivery.setOrderStatus(OrderStatus.RETURN_INITIATED));
         orderDetailsRepository.saveAll(productDeliveries);
         orderRepo.save(order);
+        sendOrderUpdateNotification(OrderStatus.REFUNDED,"Payment refunded by Mela",null,order.getUser().getToken());
         return new GlobalResponse("Refund completed", HttpStatus.OK.value());
     }
 }

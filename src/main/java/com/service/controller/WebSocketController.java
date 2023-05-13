@@ -10,7 +10,9 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.HtmlUtils;
 
 import java.security.Principal;
@@ -28,25 +30,24 @@ public class WebSocketController {
         this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
-    @MessageMapping("/message") //<---- sender will send at
-    @SendTo("/topic/messages") //<---- receiver will subscribe it
-    public OutputMessage send(final  WebSocketMessageModel message) throws Exception {
+    @MessageMapping("/dest") //<---- sender will send at
+    @SendTo("/topic/new-order") //<---- receiver will subscribe it
+    public OutputMessage send(WebSocketMessageModel message) throws Exception {
         String time = new SimpleDateFormat("HH:mm").format(new Date());
-        return new OutputMessage(message.getFrom(), message.getText(), time);
+        return new OutputMessage(message.getName(),message.getName(), time);
 
     }
 
-    @MessageMapping("/place-order")
-    @SendTo("/topic/broadcast-order")
-    public OutputMessage clientServerCommunication(final WebSocketMessageModel message) throws Exception {
-        ObjectMapper mapper =new ObjectMapper();
-        Long userId =Long.parseLong( message.getFrom());
-        System.out.println("ORDER PLACED BY USER "+mapper.writeValueAsString(message));
-        String time = new SimpleDateFormat("HH:mm").format(new Date());
-//        notificationService.sendPrivateNotification(userId);
-        return new OutputMessage(message.getFrom(),"Hello, " + HtmlUtils.htmlEscape(message.getFrom()) + "!", time);
-
-    }
+//    @MessageMapping("/place-order")
+//    @SendTo("/topic/broadcast-order")
+//    public OutputMessage clientServerCommunication(final WebSocketMessageModel message) throws Exception {
+//        ObjectMapper mapper =new ObjectMapper();
+//        System.out.println("ORDER PLACED BY USER "+mapper.writeValueAsString(message));
+//        String time = new SimpleDateFormat("HH:mm").format(new Date());
+////        notificationService.sendPrivateNotification(userId);
+//        return new OutputMessage("message.getFrom()","Hello, " + HtmlUtils.htmlEscape(message.getFrom()) + "!", time);
+//
+//    }
 
 //    @MessageMapping("/topic/notify-server")
 //    @SendToUser("/topic/notify-server")
