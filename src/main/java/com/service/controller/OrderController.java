@@ -41,7 +41,7 @@ public class OrderController {
 
     @CrossOrigin(value = "*")
     @PostMapping("/get-order-by-user")
-    List<OrderDetailsModel> getOrder(@RequestBody RequestModel requestModel) {
+    List<OrderRS> getOrder(@RequestBody RequestModel requestModel) {
         try {
             return orderService.getOrderDetails(requestModel.getToken(), requestModel.getOrderStatusList());
         } catch (Exception e) {
@@ -123,8 +123,8 @@ public class OrderController {
     @Transactional
 
         // for admin
-    List<OrderDetailsModel> getOrderAllOrderByStatus(@RequestParam("token") String token, String status) {
-        List<OrderDetailsModel> orderWiseProducts = new ArrayList<>();
+    List<OrderRS> getOrderAllOrderByStatus(@RequestParam("token") String token, String status) {
+        List<OrderRS> orderWiseProducts = new ArrayList<>();
         try {
             if (OrderStatus.PLACED.name().equals(status)) {
                 return orderService.fetchAllOrderByStatus(token, OrderStatus.PLACED);
@@ -146,6 +146,20 @@ public class OrderController {
             return null;
         }
         return orderWiseProducts;
+    }
+
+
+
+
+    @CrossOrigin(value = "*")
+    @GetMapping("/order-details-by-id")
+    GlobalResponse getOrderDetailsById(@RequestParam("id") Long id) {
+        try {
+            return orderService.getOrderById(id);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
 

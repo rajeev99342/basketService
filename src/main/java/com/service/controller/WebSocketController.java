@@ -5,6 +5,7 @@ import com.service.model.OutputMessage;
 import com.service.model.WebSocketMessageModel;
 import com.service.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -49,16 +50,10 @@ public class WebSocketController {
 //
 //    }
 
-//    @MessageMapping("/topic/notify-server")
-//    @SendToUser("/topic/notify-server")
-//    public OutputMessage clientServerCommunication(@Reqtopic/notify-serveruestBody  WebSocketMessageModel message) throws Exception {
-//        ObjectMapper mapper =new ObjectMapper();
-//        Long userId =Long.parseLong( message.getFrom());
-//        System.out.println("ORDER PLACED BY USER"+mapper.writeValueAsString(message));
-//        String time = new SimpleDateFormat("HH:mm").format(new Date());
-//        return new OutputMessage(message.getFrom(), message.getText(), time);
-//
-//    }
+    @MessageMapping("/send/{userId}")
+    public void sendMessageToUser(@DestinationVariable("userId") String userId, String message) {
+        simpMessagingTemplate.convertAndSendToUser(userId, "/topic/messages", message);
+    }
 
 
 }

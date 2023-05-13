@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-public class OrderDetailsModel {
+public class OrderRS {
 
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private User user;

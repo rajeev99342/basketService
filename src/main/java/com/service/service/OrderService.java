@@ -2,11 +2,13 @@ package com.service.service;
 
 import com.service.constants.enums.OrderStatus;
 import com.service.constants.enums.UserRole;
+import com.service.constants.values.Constants;
 import com.service.entities.*;
 import com.service.jwt.JwtTokenUtility;
 import com.service.model.*;
 import com.service.repos.*;
 import com.service.utilites.Payment;
+import com.service.websocket.WebSocketMessageSender;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +20,6 @@ import javax.transaction.Transactional;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static com.service.constants.enums.UserRole.ADMIN;
@@ -26,6 +27,9 @@ import static com.service.constants.enums.UserRole.ADMIN;
 @Service
 @Slf4j
 public class OrderService {
+
+    @Autowired
+    WebSocketMessageSender webSocketMessageSender;
     private static Logger LOG = LoggerFactory.getLogger(OrderService.class);
 
     @Autowired
@@ -139,9 +143,13 @@ public class OrderService {
             cartDetailsRepo.delete(cartDetails1);
         }
         log.info("Order placed by user : {} "+order.getUser().getPhone());
+
         notifyAdmin(order.getUser().getUserName(),"New order arrived");
         sendOrderUpdateNotification(OrderStatus.PLACED,"Order placed",null,order.getUser().getToken());
+        WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
+        webSocketMessageModel.setName(String.valueOf(order.getId()));
         String message = unsuccessfulOrderName != null ? "Order successfully place "+"but these items are out of stocks "+unsuccessfulOrderName: "Order placed successfully";
+        webSocketMessageSender.notifyNewPlacedOrder(Constants.NEW_ORDER_TOPIC,webSocketMessageModel);
         return new GlobalResponse(message, HttpStatus.OK.value(), true,productWiseOrders);
     }
 
@@ -173,26 +181,26 @@ public class OrderService {
 
 
     @Transactional
-    public List<OrderDetailsModel> getOrderDetails(String token, List<OrderStatus> statusList) {
+    public List<OrderRS> getOrderDetails(String token, List<OrderStatus> statusList) {
          User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
 
         List<String> list = statusList.stream().map(status -> status.toString()).collect(Collectors.toList());
         List<Order> orders = orderRepo.findOrderByUser(user);
-        List<OrderDetailsModel> orderDetailsModelList = new ArrayList<>();
+        List<OrderRS> orderRsList = new ArrayList<>();
 
         for (Order order : orders) {
 
             if (statusList.contains(order.getOrderStatus())) {
-                OrderDetailsModel orderDetailsModel = new OrderDetailsModel();
-                orderDetailsModel.setUser(order.getUser());
+                OrderRS orderRS = new OrderRS();
+                orderRS.setUser(order.getUser());
                 if(statusList.contains(OrderStatus.DELIVERED)){
-                    orderDetailsModel.setIsNew(false);
+                    orderRS.setIsNew(false);
                 }
-                orderDetailsModel.setOrderDate(order.getOrderDate());
-                orderDetailsModel.setOrderStatus(order.getOrderStatus());
+                orderRS.setOrderDate(order.getOrderDate());
+                orderRS.setOrderStatus(order.getOrderStatus());
                 Address address = null;
 //                Address address = addressRepo.findAddressByUserAndIsDefault(order.getUser(), true);
-                orderDetailsModel.setAddressModel(convertIntoAddressModel(address));
+                orderRS.setAddressModel(convertIntoAddressModel(address));
                 List<ProductOrderDetails> deliveryProductList = new ArrayList<>();
                 Double totalCost = 0.00;
                 List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder(order);
@@ -206,24 +214,24 @@ public class OrderService {
                     deliveryProductDetails.setImage(imageService.getAllImageByProduct(productDelivery.getProduct()));
                     deliveryProductList.add(deliveryProductDetails);
                 }
-                orderDetailsModel.setExpectedDeliveryDate(order.getExpectedDeliveryDate());
-                orderDetailsModel.setOrderId(order.getId());
-                orderDetailsModel.setDeliveryProducts(deliveryProductList);
-                orderDetailsModel.setTotalCost(order.getTotalCost());
-                orderDetailsModel.setDeliveredAt(order.getOrderDeliveredAt());
-                orderDetailsModel.setLastModifiedDate(order.getModifiedDate());
-                orderDetailsModelList.add(orderDetailsModel);
+                orderRS.setExpectedDeliveryDate(order.getExpectedDeliveryDate());
+                orderRS.setOrderId(order.getId());
+                orderRS.setDeliveryProducts(deliveryProductList);
+                orderRS.setTotalCost(order.getTotalCost());
+                orderRS.setDeliveredAt(order.getOrderDeliveredAt());
+                orderRS.setLastModifiedDate(order.getModifiedDate());
+                orderRsList.add(orderRS);
             }
 
         }
 
-        Collections.sort(orderDetailsModelList, new Comparator<OrderDetailsModel>() {
+        Collections.sort(orderRsList, new Comparator<OrderRS>() {
             @Override
-            public int compare(OrderDetailsModel o1, OrderDetailsModel o2) {
+            public int compare(OrderRS o1, OrderRS o2) {
                 return o2.getLastModifiedDate().compareTo(o1.getLastModifiedDate());
             }
         });
-        return orderDetailsModelList;
+        return orderRsList;
 
     }
 
@@ -280,6 +288,9 @@ public class OrderService {
             for (OrderDetails productDelivery : productDeliveries) {
 //                updateProductInventory(productDelivery.getProduct(), productDelivery.getOrderedTotalCount());
             }
+            WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
+            webSocketMessageModel.setName(String.valueOf(id));
+            webSocketMessageSender.notifyUpdateOrderToUser(order.getUser().getPhone(), "/topic/order/update/", webSocketMessageModel);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -299,6 +310,10 @@ public class OrderService {
         order.setModifiedDate(new Date());
         orderRepo.save(order);
         sendOrderUpdateNotification(OrderStatus.PACKING,"Order accepted",null,order.getUser().getToken());
+        WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
+        webSocketMessageModel.setName(String.valueOf(id));
+        webSocketMessageSender.notifyUpdateOrderToUser(order.getUser().getPhone(), "/topic/order/update/", webSocketMessageModel);
+
         return true;
     }
 
@@ -331,6 +346,9 @@ public class OrderService {
         order.setModifiedDate(new Date());
         orderRepo.save(order);
         sendOrderUpdateNotification(OrderStatus.DELIVERED,"Order is delivered on time",null,order.getUser().getToken());
+        WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
+        webSocketMessageModel.setName(String.valueOf(id));
+        webSocketMessageSender.notifyUpdateOrderToUser(order.getUser().getPhone(), "/topic/order/update/", webSocketMessageModel);
 
         return true;
     }
@@ -344,7 +362,10 @@ public class OrderService {
         order.setModifiedDate(new Date());
         orderRepo.save(order);
         sendOrderUpdateNotification(OrderStatus.ON_THE_WAY,"Order is on the way",null,order.getUser().getToken());
-
+        WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
+        String name = "ON_THE_WAY-"+id;
+        webSocketMessageModel.setName(String.valueOf(id));
+        webSocketMessageSender.notifyUpdateOrderToUser(order.getUser().getPhone(), "/topic/order/update/", webSocketMessageModel);
         return true;
     }
 
@@ -357,14 +378,14 @@ public class OrderService {
 
     // for admin
     @Transactional
-    public List<OrderDetailsModel> fetchAllOrderByStatus(String token, OrderStatus status) {
+    public List<OrderRS> fetchAllOrderByStatus(String token, OrderStatus status) {
         User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
         List<UserRole> roles = user.getRoles();
         if (roles.contains(ADMIN)) {
             List<Order> orders = orderRepo.findOrderByOrderStatus(status);
-            List<OrderDetailsModel> orderDetailsModelList = new ArrayList<>();
+            List<OrderRS> orderDetailsModelList = new ArrayList<>();
             for (Order order : orders) {
-                OrderDetailsModel orderDetailsModel = new OrderDetailsModel();
+                OrderRS orderDetailsModel = new OrderRS();
 
                 orderDetailsModel.setUser(order.getUser());
                 orderDetailsModel.setOrderDate(order.getOrderDate());
@@ -392,10 +413,19 @@ public class OrderService {
                 }
                 orderDetailsModel.setExpectedDeliveryDate(order.getExpectedDeliveryDate());
                 orderDetailsModel.setOrderId(order.getId());
+                orderDetailsModel.setLastModifiedDate(order.getModifiedDate());
                 orderDetailsModel.setDeliveryProducts(deliveryProductList);
                 orderDetailsModel.setTotalCost(order.getTotalCost());
                 orderDetailsModelList.add(orderDetailsModel);
             }
+
+            Collections.sort(orderDetailsModelList, new Comparator<OrderRS>() {
+                @Override
+                public int compare(OrderRS o1, OrderRS o2) {
+                    return o2.getLastModifiedDate().compareTo(o1.getLastModifiedDate());
+                }
+            });
+
             return orderDetailsModelList;
         } else {
             return null;
@@ -449,6 +479,9 @@ public class OrderService {
         }
 
         notifyAdmin(order.getUser().getUserName(), "Return order request");
+        WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
+        webSocketMessageModel.setName(String.valueOf(id));
+        webSocketMessageSender.notifyUpdateOrderToUser(order.getUser().getPhone(), "/topic/order/update/", webSocketMessageModel);
         return new GlobalResponse("Refund initiated", HttpStatus.CONFLICT.value());
     }
 
@@ -460,7 +493,55 @@ public class OrderService {
         productDeliveries.forEach(productDelivery -> productDelivery.setOrderStatus(OrderStatus.RETURN_INITIATED));
         orderDetailsRepository.saveAll(productDeliveries);
         orderRepo.save(order);
+        WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
+        webSocketMessageModel.setName(String.valueOf(refundOrder.getOrderId()));
+        webSocketMessageSender.notifyUpdateOrderToUser(order.getUser().getPhone(), "/topic/order/update/", webSocketMessageModel);
         sendOrderUpdateNotification(OrderStatus.REFUNDED,"Payment refunded by Mela",null,order.getUser().getToken());
         return new GlobalResponse("Refund completed", HttpStatus.OK.value());
     }
+
+    public GlobalResponse getOrderById(Long id) {
+        Order order = orderRepo.getById(id);
+        GlobalResponse globalResponse = new GlobalResponse();
+       try{
+           OrderRS orderDetailsModel = new OrderRS();
+           orderDetailsModel.setUser(order.getUser());
+
+           orderDetailsModel.setOrderDate(order.getOrderDate());
+           orderDetailsModel.setOrderStatus(order.getOrderStatus());
+           Address address = null;
+//                Address address = addressRepo.findAddressByUserAndIsDefault(order.getUser(), true);
+           orderDetailsModel.setAddressModel(convertIntoAddressModel(address));
+           List<ProductOrderDetails> deliveryProductList = new ArrayList<>();
+           Double totalCost = 0.00;
+           List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder(order);
+           for (OrderDetails productDelivery : productDeliveries) {
+               ProductOrderDetails deliveryProductDetails = new ProductOrderDetails();
+               deliveryProductDetails.setDeliveryAgentDetails("Rajeev");
+               deliveryProductDetails.setProductId(productDelivery.getProduct().getId());
+               deliveryProductDetails.setProductName(productDelivery.getProduct().getName());
+               deliveryProductDetails.setOrderStatus(productDelivery.getOrderStatus());
+               deliveryProductDetails.setPrice(productDelivery.getItemPrice());
+               deliveryProductDetails.setImage(imageService.getAllImageByProduct(productDelivery.getProduct()));
+               deliveryProductList.add(deliveryProductDetails);
+           }
+           orderDetailsModel.setExpectedDeliveryDate(order.getExpectedDeliveryDate());
+           orderDetailsModel.setOrderId(order.getId());
+           orderDetailsModel.setDeliveryProducts(deliveryProductList);
+           orderDetailsModel.setTotalCost(order.getTotalCost());
+           orderDetailsModel.setDeliveredAt(order.getOrderDeliveredAt());
+           orderDetailsModel.setLastModifiedDate(order.getModifiedDate());
+           globalResponse.setBody(orderDetailsModel);
+           globalResponse.setMessage("Order fetched successfully");
+           globalResponse.setStatus(true);
+           globalResponse.setHttpStatusCode(HttpStatus.OK.value());
+           return globalResponse;
+       }catch (Exception e){
+
+          log.error("Unable to fetch order by ID : "+id+" ERROR : "+e);
+       }
+       return new GlobalResponse("Failed to fetch order details", HttpStatus.INTERNAL_SERVER_ERROR.value());
+    }
+
+
 }
