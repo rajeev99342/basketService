@@ -107,7 +107,9 @@ public class CartService {
                             cartDetails1.getQuantity().getUnit(),
                             cartDetails1.getQuantity().getPrice(),
                             cartDetails1.getQuantity().getQuantity(),
-                            true));
+                            true,cartDetails1.getQuantity().getInStock(),
+                            cartDetails1.getQuantity().getQuantityInPacket(),
+                            cartDetails1.getQuantity().getQuantityInPacketUnit()));
                 }
 
                 displayCartProducts.add(displayCartProduct);

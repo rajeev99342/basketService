@@ -57,18 +57,12 @@ public class CategoryController {
 
 
     @CrossOrigin(origins = "*")
-    @PostMapping("/delete-category")
+    @DeleteMapping("/delete-category")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     public GlobalResponse deleteCategory(@RequestParam("id") Long id) {
-        GlobalResponse globalResponse = new GlobalResponse();
-        try {
-            categoryService.deleteCategory(id);
-        } catch (Exception e) {
-            e.printStackTrace();
-            globalResponse.setMessage("Failed");
-        }
 
-        return globalResponse;
+          return  categoryService.deleteCategory(id);
+
     }
 
 

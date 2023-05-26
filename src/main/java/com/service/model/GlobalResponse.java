@@ -22,4 +22,8 @@ public class GlobalResponse {
         this.status = false;
         this.body = null;
     }
+
+    public Object getBody(){
+        return this.body;
+    }
 }

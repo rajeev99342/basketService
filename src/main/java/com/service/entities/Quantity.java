@@ -30,4 +30,15 @@ public class Quantity {
     @Column(name = "PRICE")
     private Double price;
 
+
+    @Column(name = "IN_STOCK")
+    private Double inStock ;
+
+    @Column(name = "QUANT_IN_PACKET")
+    private Double quantityInPacket;
+
+    @Column(name = "QUANT_IN_PACKET_UNIT")
+    private String quantityInPacketUnit;
+
+
 }

@@ -135,7 +135,7 @@ public class ProductService {
 
     private void saveQuantityList(List<QuantityModel> quantityModelList, Product product) throws Exception {
         if (quantityModelList != null && quantityModelList.size() > 0) {
-            List<Quantity> quantities = quantityModelList.stream().map(q -> new Quantity(q.getId(), product, q.getUnit(), q.getQuantity(), q.getPrice())).collect(Collectors.toList());
+            List<Quantity> quantities = quantityModelList.stream().map(q -> new Quantity(q.getId(), product, q.getUnit(), q.getQuantity(), q.getPrice(),q.getInStock(),q.getQuantityInPacket(),q.getQuantityInPacketUnit())).collect(Collectors.toList());
             quantityRepo.saveAll(quantities);
         } else {
             throw new Exception("Quantity not found");
@@ -172,7 +172,7 @@ public class ProductService {
     }
 
     public List<QuantityModel> getQuantityModelFromEntity(List<Quantity> quantities) {
-        return quantities.stream().map(q -> new QuantityModel(q.getId(), q.getUnit(), q.getPrice(), q.getQuantity(), false)).collect(Collectors.toList());
+        return quantities.stream().map(q -> new QuantityModel(q.getId(), q.getUnit(), q.getPrice(), q.getQuantity(), false,q.getInStock(),q.getQuantityInPacket(),q.getQuantityInPacketUnit())).collect(Collectors.toList());
     }
 
     public ProductModel getProductModelByProduct(Product product) {

@@ -149,7 +149,7 @@ public class OrderService {
         WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
         webSocketMessageModel.setName(String.valueOf(order.getId()));
         String message = unsuccessfulOrderName != null ? "Order successfully place "+"but these items are out of stocks "+unsuccessfulOrderName: "Order placed successfully";
-        webSocketMessageSender.notifyNewPlacedOrder(Constants.NEW_ORDER_TOPIC,webSocketMessageModel);
+        webSocketMessageSender.notifyNewPlacedOrder(Constants.NOTIFY_ONLY_ADMIN,webSocketMessageModel);
         return new GlobalResponse(message, HttpStatus.OK.value(), true,productWiseOrders);
     }
 

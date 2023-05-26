@@ -13,4 +13,7 @@ public class QuantityModel {
     private Double price;
     private Double quantity;
     private Boolean isChecked;
+    private Double inStock ;
+    private Double quantityInPacket;
+    private String quantityInPacketUnit;
 }

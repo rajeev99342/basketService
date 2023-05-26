@@ -36,6 +36,9 @@ public class CategoryService {
 
     public GlobalResponse deleteCategory(Long id){
            Category category =  categoryRepo.findByIdAndIsValid(id,true);
+           if(category == null){
+               return new GlobalResponse("Already deleted or not found",HttpStatus.NOT_FOUND.value(),false,null);
+           }
            category.setIsValid(false);
            categoryRepo.save(category);
            return new GlobalResponse("Deleted",HttpStatus.OK.value(),true,null);
@@ -108,7 +111,10 @@ public class CategoryService {
         displayModel.setCategoryType(category.getCatType());
         displayModel.setCategoryName(category.getCatName());
         displayModel.setId(category.getId());
-        displayModel.setBase64(imageService.getImage(image.getId()));
+        GlobalResponse res = imageService.getImage(image.getId());
+        if(res != null){
+            displayModel.setBase64(res.getBody());
+        }
         return displayModel;
     }
 }
