@@ -87,38 +87,38 @@ public class OrderService {
             ProductOrderDetails productWiseOrder = new ProductOrderDetails();
             try {
                 // check for product availability --> someone could have order this
+                Quantity quantity = quantityRepo.findById(cartProduct.getQuantityModel().getId()).get();
+                if(quantity.getInStock() >= cartProduct.getSelectedCount()){
+                        OrderDetails productDelivery = new OrderDetails();
+                        productDelivery.setOrderStatus(OrderStatus.PLACED);
+                        productDelivery.setProduct(productRepo.findById(cartProduct.getId()).get());
+                        productDelivery.setOrder(order);
+                        productDelivery.setItemPrice(cartProduct.getQuantityModel().getPrice()*cartProduct.getSelectedCount());
+                        productDelivery.setQuantity(cartProduct.getSelectedCount());
+                        sellerToken = getSellerToken(cartProduct.getModel().getSellerId());
+                        Address address = addressRepo.findAddressByUser(user);
+                        orderDetailsRepository.save(productDelivery);
+                        productWiseOrder.setProductId(cartProduct.getId());
+                        productWiseOrder.setOrderStatus(OrderStatus.PLACED);
+                        productWiseOrder.setPrice(cartProduct.getQuantityModel().getPrice());
+                        productWiseOrder.setDeliveryAgentDetails("Rajeev Kumar, Mobile - 9878979798");
+                        quantity.setInStock(quantity.getInStock() - cartProduct.getSelectedCount());
+                        quantityRepo.save(quantity);
 
-                Stock stock = instockRepo.findStockByProduct(productRepo.findById(cartProduct.getId()).get());
-                Integer inStock = stock.getInStock();
-                if (inStock >= cartProduct.getSelectedCount() && cartProduct.getSelectedCount() != 0) {
-                    Integer availableStockAfterThisOrder = inStock - cartProduct.getSelectedCount();
-                    stock.setInStock(availableStockAfterThisOrder);
-                    instockRepo.save(stock);
-                    OrderDetails productDelivery = new OrderDetails();
-                    productDelivery.setOrderStatus(OrderStatus.PLACED);
-                    productDelivery.setProduct(productRepo.findById(cartProduct.getId()).get());
-                    productDelivery.setOrder(order);
-                    productDelivery.setItemPrice(cartProduct.getQuantityModel().getPrice()*cartProduct.getSelectedCount());
-                    productDelivery.setQuantity(cartProduct.getSelectedCount());
-                    sellerToken = getSellerToken(cartProduct.getModel().getSellerId());
-                    Address address = addressRepo.findAddressByUser(user);
-                    orderDetailsRepository.save(productDelivery);
-                    productWiseOrder.setProductId(cartProduct.getId());
-                    productWiseOrder.setOrderStatus(OrderStatus.PLACED);
-                    productWiseOrder.setPrice(cartProduct.getQuantityModel().getPrice());
-//                    productWiseOrder.setCompleteAddress(completeAddress);
-                    productWiseOrder.setDeliveryAgentDetails("Rajeev Kumar, Mobile - 9878979798");
-                } else {
+                }else{
                     LOG.error("Unable to process order by user "+order.getUser().getPhone()+" "+ "[OUT OF STOCK]");
                     productWiseOrder.setProductId(cartProduct.getId());
                     outOfStockProducts.add(cartProduct.getModel().getName());
                     productWiseOrder.setTotalProductCount(cartProduct.getSelectedCount());
                     productWiseOrder.setOrderStatus(OrderStatus.CANCELED_DUE_TO_OUT_OF_STOCK);
+                    return new GlobalResponse(OrderStatus.CANCELED_DUE_TO_OUT_OF_STOCK.name(),HttpStatus.NOT_FOUND.value(),false,cartProduct);
                 }
+
             } catch (Exception e) {
                 LOG.error("Unable to process order by user "+order.getUser().getPhone(),e);
                 productWiseOrder.setProductId(cartProduct.getId());
                 productWiseOrder.setOrderStatus(OrderStatus.FAILED_DUE_TO_TECHNICAL_ISSUE);
+                return new GlobalResponse(OrderStatus.FAILED_DUE_TO_TECHNICAL_ISSUE.name(),HttpStatus.INTERNAL_SERVER_ERROR.value());
             }
 
             productWiseOrders.add(productWiseOrder);

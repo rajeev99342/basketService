@@ -8,7 +8,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.security.Principal;
 
 public class UserUtility {
-
     public static UserDetails getPrincipal(){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return (UserDetails) auth.getPrincipal();

@@ -1,6 +1,8 @@
 package com.service.service;
 
+import com.github.javafaker.Faker;
 import com.service.constants.enums.ImgType;
+import com.service.constants.enums.Unit;
 import com.service.constants.enums.UserRole;
 import com.service.entities.*;
 import com.service.jwt.JwtTokenUtility;
@@ -13,15 +15,21 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.io.ByteArrayOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.stream.Collectors;
-
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import javax.imageio.ImageIO;
 @Service
 public class ProductService {
 
@@ -106,23 +114,14 @@ public class ProductService {
             product.setCategory(category);
             product.setSellerId(model.getSellerId());
             product = productRepo.save(product);
-            for (MultipartFile file : imageList) {
-                String imageReference = imageUtility.getImageName("product", product.getName());
-                GlobalResponse imageResponse = imageService.saveImage(file, imageReference);
-                ImageDetails imageDetails = (ImageDetails) imageResponse.getBody();
-                Image image = new Image();
-                image.setImageDetails(imageDetails);
-                image.setImgType(ImgType.PRODUCT);
-                image.setProduct(product);
-                imageRepository.save(image);
-            }
-            Stock stock = instockRepo.findStockByProduct(product);
-            if (null == stock) {
-                stock = new Stock();
-            }
-            stock.setProduct(product);
-            stock.setInStock(model.getInStock());
-            instockRepo.save(stock);
+            saveImage(imageList,product);
+//            Stock stock = instockRepo.findStockByProduct(product);
+//            if (null == stock) {
+//                stock = new Stock();
+//            }
+//            stock.setProduct(product);
+//            stock.setInStock(model.getInStock());
+//            instockRepo.save(stock);
             saveQuantityList(model.getQuantityModelList(), product);
             response = new GlobalResponse("success", HttpStatus.OK.value(), true, product);
         } catch (Exception e) {
@@ -199,6 +198,7 @@ public class ProductService {
         categoryModel.setCategoryType(category.getCatType());
         categoryModel.setCategoryName(category.getCatName());
         categoryModel.setId(category.getId());
+        categoryModel.setIsValid(category.getIsValid());
         return categoryModel;
     }
 
@@ -250,4 +250,114 @@ public class ProductService {
     public Long getCount() {
         return productRepo.count();
     }
+
+    public int addRandom() throws Exception {
+        List<MultipartFile> files = displayImage();
+        List<Category> categoryList = categoryRepo.findAll();
+        for(MultipartFile file : files){
+            int pickCat = new Random().nextInt(categoryList.size());
+
+            int pick = new Random().nextInt(Unit.values().length);
+            String unit = String.valueOf(Unit.values()[pick]);
+            Faker faker = new Faker();
+            String name =  faker.food().ingredient();
+            Product product = new Product();
+            product.setName(name);
+            product.setDescription("Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.");
+            product.setUnit(unit);
+            product.setIsValid(true);
+            product.setProdBrand("LOCAL BRAND");
+            product.setCategory(categoryList.get(pickCat));
+            productRepo.save(product);
+            List<MultipartFile> multipartFiles = new ArrayList<>();
+            multipartFiles.add(file);
+            saveImage(multipartFiles,product);
+            List<QuantityModel> quantityModelList = new ArrayList<>();
+            QuantityModel quantityModel = new QuantityModel();
+            quantityModel.setQuantity(2.00);
+            quantityModel.setInStock(10.00);
+            quantityModel.setPrice(234.00);
+            quantityModelList.add(quantityModel);
+            saveQuantityList(quantityModelList,product);
+        }
+        return 0;
+    }
+
+    private MultipartFile pickAnyOne(List<MultipartFile> files) {
+        int pick = new Random().nextInt(files.size());
+        return files.get(pick);
+    }
+
+    public static List<MultipartFile> displayImage(){
+        String PATH_TO_YOUR_DIRECTORY = "C:/Users/Dell/Desktop/store/image/drink";
+         final File dir = new File(PATH_TO_YOUR_DIRECTORY);
+         List<MultipartFile> multipartFiles = new ArrayList<>();
+         final String[] EXTENSIONS = new String[]{
+                "gif", "png", "bmp","jpg","jpeg" // and other formats you need
+        };
+         final FilenameFilter IMAGE_FILTER = new FilenameFilter() {
+            @Override
+            public boolean accept(final File dir, final String name) {
+                for (final String ext : EXTENSIONS) {
+                    if (name.endsWith("." + ext)) {
+                        return (true);
+                    }
+                }
+                return (false);
+            }
+        };
+
+        if (dir.isDirectory()) {
+            for (final File f : dir.listFiles(IMAGE_FILTER)) {
+                BufferedImage img = null;
+                try {
+//                    img = ImageIO.read(f);
+//                    bs64Images.add(encodeToString(img,"png"));
+                    multipartFiles.add(convertIntoMultipartFile(f));
+                } catch (final IOException e) {
+                }
+            }
+        }
+
+        return multipartFiles;
+    }
+
+
+    public static MultipartFile convertIntoMultipartFile(File file) throws IOException {
+        String contentType = "text/plain";
+       byte[] content = Files.readAllBytes(Paths.get(file.getPath()));
+        MultipartFile multipartFile = new MockMultipartFile(file.getName(),file.getName(), contentType, content);
+        return multipartFile;
+    }
+    public static String encodeToString(BufferedImage image, String type) {
+        String imageString = null;
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+        try {
+            ImageIO.write(image, type, bos);
+            byte[] imageBytes = bos.toByteArray();
+
+            Base64.Encoder encoder = Base64.getEncoder();
+            imageString = encoder.encodeToString(imageBytes);
+
+            bos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return imageString;
+    }
+
+    private void saveImage(List<MultipartFile> imageList,Product product) throws IOException {
+        for (MultipartFile file : imageList) {
+            String imageReference = imageUtility.getImageName("product", product.getName());
+            GlobalResponse imageResponse = imageService.saveImage(file, imageReference);
+            ImageDetails imageDetails = (ImageDetails) imageResponse.getBody();
+            Image image = new Image();
+            image.setImageDetails(imageDetails);
+            image.setImgType(ImgType.PRODUCT);
+            image.setProduct(product);
+            imageRepository.save(image);
+        }
+    }
+
 }

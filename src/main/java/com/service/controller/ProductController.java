@@ -1,5 +1,6 @@
 package com.service.controller;
 
+import com.github.javafaker.Faker;
 import com.google.gson.Gson;
 import com.service.model.DisplayProductModel;
 import com.service.model.GlobalResponse;
@@ -125,5 +126,16 @@ public class ProductController {
 
     }
 
+
+    @CrossOrigin(origins = "*")
+    @GetMapping("/random-add-product")
+    public int add() {
+        try{
+            return productService.addRandom();
+        }catch (Exception e){
+
+        }
+        return 0;
+    }
 
 }

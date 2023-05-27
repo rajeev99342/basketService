@@ -94,7 +94,6 @@ public class CartService {
                     Object img = imageService.getImage(image.getId());
                     imageLinkList.add(img);
                 }
-                displayCartProduct.setInStock(instockRepo.findStockByProduct(product).getInStock());
                 displayCartProduct.setImages(imageLinkList);
                 displayCartProduct.setModel(productService.getProductModelByProduct(product));
                 displayCartProduct.setSelectedCount(cartDetails1.getSelectedCount());
@@ -154,6 +153,8 @@ public class CartService {
 
     public GlobalResponse updateCount(CartDetailsRequestModel cartDetailsRequestModel){
             CartDetails cartDetails = cartDetailsRepo.getById(cartDetailsRequestModel.getCartDetailsid());
+            Product product = cartDetails.getProduct();
+
             cartDetails.setSelectedCount(cartDetailsRequestModel.getCount());
             cartDetailsRepo.save(cartDetails);
             return new GlobalResponse("updated",HttpStatus.CREATED.value());

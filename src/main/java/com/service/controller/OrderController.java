@@ -150,7 +150,6 @@ public class OrderController {
 
 
 
-
     @CrossOrigin(value = "*")
     @GetMapping("/order-details-by-id")
     GlobalResponse getOrderDetailsById(@RequestParam("id") Long id) {

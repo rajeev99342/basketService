@@ -25,7 +25,7 @@ import java.util.List;
 @Service
 public class ImageService {
 //    String RESOURCES_DIR ="C:/Users/91775/Desktop/OneStore/images/";
-    String RESOURCES_DIR ="C:/Users/Dell/Pictures/product_image";
+    String RESOURCES_DIR ="C:/Users/Dell/Pictures/product_image/";
 
     @Autowired
     private ImageDetailsRepository imageDetailsRepository;
