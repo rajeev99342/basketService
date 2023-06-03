@@ -13,6 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -181,11 +184,15 @@ public class OrderService {
 
 
     @Transactional
-    public List<OrderRS> getOrderDetails(String token, List<OrderStatus> statusList) {
-         User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
+    public List<OrderRS> getOrderDetails(String token, List<OrderStatus> statusList,int page,int size) {
+        Pageable pageable =
+                PageRequest.of(page, size);
 
+        Pageable paging = PageRequest.of(page, size, Sort.by("modifiedDate").descending());
+
+        User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
         List<String> list = statusList.stream().map(status -> status.toString()).collect(Collectors.toList());
-        List<Order> orders = orderRepo.findOrderByUser(user);
+        List<Order> orders = orderRepo.findOrderByUser(user,paging);
         List<OrderRS> orderRsList = new ArrayList<>();
 
         for (Order order : orders) {
@@ -236,45 +243,45 @@ public class OrderService {
     }
 
 
-    public List<ProductOrderDetails> getOrderListByUser(String token) {
-        User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
-        List<Order> orders = this.orderRepo.findOrderByUser(user);
-        List<ProductOrderDetails> productWiseOrders = new ArrayList<>();
-
-        for (Order order : orders) {
-            List<OrderDetails> productsDeliveryList = orderDetailsRepository.findProductDeliveryByOrder(order);
-            for (OrderDetails productDelivery : productsDeliveryList) {
-                ProductOrderDetails productWiseOrder = new ProductOrderDetails();
-                SimpleDateFormat parser = new SimpleDateFormat("dd-MM-yyyy");
-                try {
-                    SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy hh:mm");
-//                    String deliveryDate = formatter.format(productDelivery.getDeliveryDate());
-                    String orderDate = formatter.format(productDelivery.getOrder().getOrderDate());
-//                    productWiseOrder.setDeliveryDate(deliveryDate);
-                    productWiseOrder.setOrderDate(orderDate);
-                } catch (Exception e) { // won't happen here
-                    System.err.println("Invalid date");
-                }
-                productWiseOrder.setProductDeliveryId(productDelivery.getId());
-                productWiseOrder.setImage(imageService.getAllImageByProduct(productDelivery.getProduct()));
-                productWiseOrder.setProductId(productDelivery.getProduct().getId());
-                productWiseOrder.setProductName(productDelivery.getProduct().getName());
-                productWiseOrder.setOrderStatus(productDelivery.getOrderStatus());
-//                productWiseOrder.setPrice(productDelivery.getOrderedTotalCount() * productDelivery.getProduct().getSellingPrice());
-                productWiseOrder.setDeliveryAgentDetails("Rajeev Kumar, Mobile - 9878979798");
-//                productWiseOrder.setTotalProductCount(productDelivery.getOrderedTotalCount());
-//                Address address = productDelivery.getAddress();
-//                String completeAddress = address.getLandmark() + ", " + address.getAddressOne() + ", " + address.getArea() + ", " + address.getCity() + "-".concat(address.getPincode())
-//                        + ", Mobile - " + address.getMobile();
-
-                productWiseOrder.setOrderId(order.getId());
-//                productWiseOrder.setCompleteAddress(completeAddress);
-                productWiseOrders.add(productWiseOrder);
-            }
-        }
-
-        return productWiseOrders;
-    }
+//    public List<ProductOrderDetails> getOrderListByUser(String token) {
+//        User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
+//        List<Order> orders = this.orderRepo.findOrderByUser(user);
+//        List<ProductOrderDetails> productWiseOrders = new ArrayList<>();
+//
+//        for (Order order : orders) {
+//            List<OrderDetails> productsDeliveryList = orderDetailsRepository.findProductDeliveryByOrder(order);
+//            for (OrderDetails productDelivery : productsDeliveryList) {
+//                ProductOrderDetails productWiseOrder = new ProductOrderDetails();
+//                SimpleDateFormat parser = new SimpleDateFormat("dd-MM-yyyy");
+//                try {
+//                    SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy hh:mm");
+////                    String deliveryDate = formatter.format(productDelivery.getDeliveryDate());
+//                    String orderDate = formatter.format(productDelivery.getOrder().getOrderDate());
+////                    productWiseOrder.setDeliveryDate(deliveryDate);
+//                    productWiseOrder.setOrderDate(orderDate);
+//                } catch (Exception e) { // won't happen here
+//                    System.err.println("Invalid date");
+//                }
+//                productWiseOrder.setProductDeliveryId(productDelivery.getId());
+//                productWiseOrder.setImage(imageService.getAllImageByProduct(productDelivery.getProduct()));
+//                productWiseOrder.setProductId(productDelivery.getProduct().getId());
+//                productWiseOrder.setProductName(productDelivery.getProduct().getName());
+//                productWiseOrder.setOrderStatus(productDelivery.getOrderStatus());
+////                productWiseOrder.setPrice(productDelivery.getOrderedTotalCount() * productDelivery.getProduct().getSellingPrice());
+//                productWiseOrder.setDeliveryAgentDetails("Rajeev Kumar, Mobile - 9878979798");
+////                productWiseOrder.setTotalProductCount(productDelivery.getOrderedTotalCount());
+////                Address address = productDelivery.getAddress();
+////                String completeAddress = address.getLandmark() + ", " + address.getAddressOne() + ", " + address.getArea() + ", " + address.getCity() + "-".concat(address.getPincode())
+////                        + ", Mobile - " + address.getMobile();
+//
+//                productWiseOrder.setOrderId(order.getId());
+////                productWiseOrder.setCompleteAddress(completeAddress);
+//                productWiseOrders.add(productWiseOrder);
+//            }
+//        }
+//
+//        return productWiseOrders;
+//    }
 
     public Boolean cancelOrder(Long id, User user) {
         try {
@@ -303,13 +310,13 @@ public class OrderService {
 
         Order order = orderRepo.getById(id);
         List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder(order);
-        productDeliveries.stream().forEach(p -> p.setOrderStatus(OrderStatus.PACKING));
+        productDeliveries.stream().forEach(p -> p.setOrderStatus(OrderStatus.ACCEPTED));
         orderDetailsRepository.saveAll(productDeliveries);
-        order.setOrderStatus(OrderStatus.PACKING);
+        order.setOrderStatus(OrderStatus.ACCEPTED);
         order.setOrderDeliveredAt(new Date());
         order.setModifiedDate(new Date());
         orderRepo.save(order);
-        sendOrderUpdateNotification(OrderStatus.PACKING,"Order accepted",null,order.getUser().getToken());
+        sendOrderUpdateNotification(OrderStatus.ACCEPTED,"Order accepted",null,order.getUser().getToken());
         WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
         webSocketMessageModel.setName(String.valueOf(id));
         webSocketMessageSender.notifyUpdateOrderToUser(order.getUser().getPhone(), "/topic/order/update/", webSocketMessageModel);
@@ -386,12 +393,10 @@ public class OrderService {
             List<OrderRS> orderDetailsModelList = new ArrayList<>();
             for (Order order : orders) {
                 OrderRS orderDetailsModel = new OrderRS();
-
                 orderDetailsModel.setUser(order.getUser());
                 orderDetailsModel.setOrderDate(order.getOrderDate());
                 orderDetailsModel.setOrderStatus(order.getOrderStatus());
                 Address address = null;
-//                Address address = addressRepo.findAddressByUserAndIsDefault(order.getUser(), true);
                 orderDetailsModel.setAddressModel(convertIntoAddressModel(address));
                 List<ProductOrderDetails> deliveryProductList = new ArrayList<>();
                 Double totalCost = 0.00;

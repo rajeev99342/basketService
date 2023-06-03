@@ -11,6 +11,7 @@ import com.service.repos.*;
 import com.service.utilites.ImageUtility;
 import com.service.utilites.Utility;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -33,6 +34,11 @@ import javax.imageio.ImageIO;
 @Service
 public class ProductService {
 
+    @Value(value = "${melaa.product.image-path}")
+     String imagePath;
+
+    @Value(value = "${melaa.category.id}")
+     Long categoryID;
     @Autowired
     Utility utility;
     @Autowired
@@ -136,6 +142,7 @@ public class ProductService {
         if (quantityModelList != null && quantityModelList.size() > 0) {
             List<Quantity> quantities = quantityModelList.stream().map(q -> new Quantity(q.getId(), product, q.getUnit(), q.getQuantity(), q.getPrice(),q.getInStock(),q.getQuantityInPacket(),q.getQuantityInPacketUnit())).collect(Collectors.toList());
             quantityRepo.saveAll(quantities);
+            System.out.println("Quantity Saved !!!");
         } else {
             throw new Exception("Quantity not found");
         }
@@ -252,11 +259,11 @@ public class ProductService {
     }
 
     public int addRandom() throws Exception {
-        List<MultipartFile> files = displayImage();
-        List<Category> categoryList = categoryRepo.findAll();
-        for(MultipartFile file : files){
-            int pickCat = new Random().nextInt(categoryList.size());
 
+        List<MultipartFile> files = displayImage(imagePath);
+        Category category = categoryRepo.findById(categoryID).get();
+        for(MultipartFile file : files){
+//            int pickCat = new Random().nextInt(categoryList.size());
             int pick = new Random().nextInt(Unit.values().length);
             String unit = String.valueOf(Unit.values()[pick]);
             Faker faker = new Faker();
@@ -267,7 +274,7 @@ public class ProductService {
             product.setUnit(unit);
             product.setIsValid(true);
             product.setProdBrand("LOCAL BRAND");
-            product.setCategory(categoryList.get(pickCat));
+            product.setCategory(category);
             productRepo.save(product);
             List<MultipartFile> multipartFiles = new ArrayList<>();
             multipartFiles.add(file);
@@ -279,6 +286,8 @@ public class ProductService {
             quantityModel.setPrice(234.00);
             quantityModelList.add(quantityModel);
             saveQuantityList(quantityModelList,product);
+            System.out.println("Product saved !!!");
+
         }
         return 0;
     }
@@ -288,8 +297,8 @@ public class ProductService {
         return files.get(pick);
     }
 
-    public static List<MultipartFile> displayImage(){
-        String PATH_TO_YOUR_DIRECTORY = "C:/Users/Dell/Desktop/store/image/drink";
+    public static List<MultipartFile> displayImage(String imagePath){
+        String PATH_TO_YOUR_DIRECTORY = imagePath;
          final File dir = new File(PATH_TO_YOUR_DIRECTORY);
          List<MultipartFile> multipartFiles = new ArrayList<>();
          final String[] EXTENSIONS = new String[]{

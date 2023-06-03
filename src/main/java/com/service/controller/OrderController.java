@@ -41,9 +41,10 @@ public class OrderController {
 
     @CrossOrigin(value = "*")
     @PostMapping("/get-order-by-user")
-    List<OrderRS> getOrder(@RequestBody RequestModel requestModel) {
+    List<OrderRS> getOrder(@RequestBody RequestModel requestModel,@RequestParam(defaultValue = "0") int page,
+                           @RequestParam(defaultValue = "10") int size) {
         try {
-            return orderService.getOrderDetails(requestModel.getToken(), requestModel.getOrderStatusList());
+            return orderService.getOrderDetails(requestModel.getToken(), requestModel.getOrderStatusList(),page,size);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -130,8 +131,8 @@ public class OrderController {
                 return orderService.fetchAllOrderByStatus(token, OrderStatus.PLACED);
             } else if (OrderStatus.ON_THE_WAY.name().equals(status)) {
                 return orderService.fetchAllOrderByStatus(token, OrderStatus.ON_THE_WAY);
-            } else if (OrderStatus.PACKING.name().equals(status)) {
-                return orderService.fetchAllOrderByStatus(token, OrderStatus.PACKING);
+            } else if (OrderStatus.ACCEPTED.name().equals(status)) {
+                return orderService.fetchAllOrderByStatus(token, OrderStatus.ACCEPTED);
             } else if (OrderStatus.DISPATCHED.name().equals(status)) {
                 return orderService.fetchAllOrderByStatus(token, OrderStatus.DISPATCHED);
             } else if (OrderStatus.DELIVERED.name().equals(status)) {

@@ -12,6 +12,11 @@ import java.util.List;
 
 @Repository
 public interface CartDetailsRepo extends JpaRepository<CartDetails,Long> {
+
+    @Query(value = "select * from cart_details as cd inner join product_quantity as pq  on pq.product_id = cd.product_id where pq.in_stock is greater than 0 and cd.cart_id=:cartId",nativeQuery = true)
+    List<CartDetails> findInStockProducts(Long cartId);
+
+
     List<CartDetails> findCartDetailsByCart(Cart cart);
     CartDetails findCartDetailsByProduct(Product product);
 
