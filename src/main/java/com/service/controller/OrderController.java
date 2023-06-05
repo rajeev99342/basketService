@@ -41,10 +41,10 @@ public class OrderController {
 
     @CrossOrigin(value = "*")
     @PostMapping("/get-order-by-user")
-    List<OrderRS> getOrder(@RequestBody RequestModel requestModel,@RequestParam(defaultValue = "0") int page,
+    List<OrderRS> getOrder(@RequestBody RequestModel requestModel,@RequestParam(defaultValue = "0") String olderDays,@RequestParam(defaultValue = "0") int page,
                            @RequestParam(defaultValue = "10") int size) {
         try {
-            return orderService.getOrderDetails(requestModel.getToken(), requestModel.getOrderStatusList(),page,size);
+            return orderService.getOrderDetails(requestModel.getToken(), requestModel.getOrderStatusList(),olderDays,page,size);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -77,9 +77,11 @@ public class OrderController {
 
     @CrossOrigin(value = "*")
     @PostMapping("/update-packing-order")
-    Boolean packingOrder(@RequestBody Long id) {
+    Boolean packingOrder(@RequestParam("time") Integer time , @RequestBody Long id) {
         try {
-            return orderService.packingOrder(id);
+            System.out.println("-------------------");
+            System.out.println(time);
+            return orderService.packingOrder(id,time);
 
         } catch (Exception e) {
             e.printStackTrace();

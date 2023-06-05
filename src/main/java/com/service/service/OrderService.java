@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.text.SimpleDateFormat;
 import java.time.*;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -75,12 +76,15 @@ public class OrderService {
         String sellerToken = null;
         List<ProductOrderDetails> productWiseOrders = new ArrayList<>();
         User user = userRepo.findUserByPhone(orderModel.getUserPhone());
+        Address address = addressRepo.findAddressByUserId(user.getId());
         Order order = new Order();
         order.setOrderDate(new Date(System.currentTimeMillis()));
         LocalDate localDate = LocalDate.now().plusDays(2);
         Date expectedDate = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
         order.setExpectedDeliveryDate(expectedDate);
         order.setUser(user);
+        order.setLatitude(address.getLatitude());
+        order.setLongitude(address.getLongitude());
         order.setModifiedDate(new Date());
         order.setOrderStatus(OrderStatus.PLACED);
         order.setTotalCost(orderModel.getFinalAmount());
@@ -99,7 +103,6 @@ public class OrderService {
                         productDelivery.setItemPrice(cartProduct.getQuantityModel().getPrice()*cartProduct.getSelectedCount());
                         productDelivery.setQuantity(cartProduct.getSelectedCount());
                         sellerToken = getSellerToken(cartProduct.getModel().getSellerId());
-                        Address address = addressRepo.findAddressByUser(user);
                         orderDetailsRepository.save(productDelivery);
                         productWiseOrder.setProductId(cartProduct.getId());
                         productWiseOrder.setOrderStatus(OrderStatus.PLACED);
@@ -141,13 +144,16 @@ public class OrderService {
             unsuccessfulOrderName =  String.join(",", outOfStockProducts);
             sendOrderUpdateNotification(OrderStatus.PLACED,"These items are out of stock : "+unsuccessfulOrderName,null,order.getUser().getToken());
         }
+        String orderDetailMessage = null;
         for (ProductOrderDetails productWiseOrder : successfullyOrdredProduct) {
+            orderDetailMessage = orderDetailMessage == null ? orderDetailMessage + productWiseOrder.getProductName() :  orderDetailMessage + " " + productWiseOrder.getProductName();
+
             CartDetails cartDetails1 = cartDetailsRepo.findCartDetailsByCartAndProduct(cart, productRepo.findById(productWiseOrder.getProductId()).get());
             cartDetailsRepo.delete(cartDetails1);
         }
         log.info("Order placed by user : {} "+order.getUser().getPhone());
 
-        notifyAdmin(order.getUser().getUserName(),"New order arrived");
+        notifyAdmin(order.getUser().getUserName(),"New order arrived "+orderDetailMessage);
         sendOrderUpdateNotification(OrderStatus.PLACED,"Order placed",null,order.getUser().getToken());
         WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
         webSocketMessageModel.setName(String.valueOf(order.getId()));
@@ -184,19 +190,25 @@ public class OrderService {
 
 
     @Transactional
-    public List<OrderRS> getOrderDetails(String token, List<OrderStatus> statusList,int page,int size) {
+    public List<OrderRS> getOrderDetails(String token, List<OrderStatus> statusList,String days,int page,int size) {
         Pageable pageable =
                 PageRequest.of(page, size);
 
-        Pageable paging = PageRequest.of(page, size, Sort.by("modifiedDate").descending());
+        int olderDays = findDays(days);
+        System.out.println("000000000000000000000000000000 days 000000000000000000000000000");
+        System.out.println(olderDays);
 
+        LocalDate currentDate = LocalDate.now().minusDays(olderDays);
+        Date date = Date.from(currentDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        System.out.println(date);
         User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
         List<String> list = statusList.stream().map(status -> status.toString()).collect(Collectors.toList());
-        List<Order> orders = orderRepo.findOrderByUser(user,paging);
+        Address address = addressRepo.findAddressByUserId(user.getId());
+        List<Order> orders = orderRepo.findOrderByDate(user.getId(),date,pageable);
+//        List<Order> orders = orderRepo.findOrderByDate(user.getId());
         List<OrderRS> orderRsList = new ArrayList<>();
 
         for (Order order : orders) {
-
             if (statusList.contains(order.getOrderStatus())) {
                 OrderRS orderRS = new OrderRS();
                 orderRS.setUser(order.getUser());
@@ -205,8 +217,6 @@ public class OrderService {
                 }
                 orderRS.setOrderDate(order.getOrderDate());
                 orderRS.setOrderStatus(order.getOrderStatus());
-                Address address = null;
-//                Address address = addressRepo.findAddressByUserAndIsDefault(order.getUser(), true);
                 orderRS.setAddressModel(convertIntoAddressModel(address));
                 List<ProductOrderDetails> deliveryProductList = new ArrayList<>();
                 Double totalCost = 0.00;
@@ -229,7 +239,6 @@ public class OrderService {
                 orderRS.setLastModifiedDate(order.getModifiedDate());
                 orderRsList.add(orderRS);
             }
-
         }
 
         Collections.sort(orderRsList, new Comparator<OrderRS>() {
@@ -238,6 +247,7 @@ public class OrderService {
                 return o2.getLastModifiedDate().compareTo(o1.getLastModifiedDate());
             }
         });
+
         return orderRsList;
 
     }
@@ -306,13 +316,18 @@ public class OrderService {
         return false;
     }
 
-    public Boolean packingOrder(Long id) {
-
+    public Boolean packingOrder(Long id,Integer hr) {
+        LocalDateTime now = LocalDateTime.now();
+        int hoursToAdd = 5;
+        Date newD = Date.from(new Date().toInstant().plusSeconds(hr*60*60));
+        LocalDateTime futureDateTime = now.plus(hoursToAdd, ChronoUnit.HOURS);
+        Date date = Date.from(futureDateTime.atZone(ZoneId.systemDefault()).toInstant());
         Order order = orderRepo.getById(id);
         List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder(order);
         productDeliveries.stream().forEach(p -> p.setOrderStatus(OrderStatus.ACCEPTED));
         orderDetailsRepository.saveAll(productDeliveries);
         order.setOrderStatus(OrderStatus.ACCEPTED);
+        order.setExpectedDeliveryDate(newD);
         order.setOrderDeliveredAt(new Date());
         order.setModifiedDate(new Date());
         orderRepo.save(order);
@@ -395,6 +410,8 @@ public class OrderService {
                 OrderRS orderDetailsModel = new OrderRS();
                 orderDetailsModel.setUser(order.getUser());
                 orderDetailsModel.setOrderDate(order.getOrderDate());
+                orderDetailsModel.setLatitude(order.getLatitude());
+                orderDetailsModel.setLongitude(order.getLongitude());
                 orderDetailsModel.setOrderStatus(order.getOrderStatus());
                 Address address = null;
                 orderDetailsModel.setAddressModel(convertIntoAddressModel(address));
@@ -548,5 +565,22 @@ public class OrderService {
        return new GlobalResponse("Failed to fetch order details", HttpStatus.INTERNAL_SERVER_ERROR.value());
     }
 
-
+ private int findDays(String val){
+        switch (val){
+            case "today":
+                return 0;
+            case "1 day older":
+                return 1;
+            case "2 day older":
+                return 2;
+            case "3 day older":
+                return 3;
+            case "4 day older":
+                return 4;
+            case "5 day older":
+                return 5;
+            default :
+                return 100;
+        }
+ }
 }

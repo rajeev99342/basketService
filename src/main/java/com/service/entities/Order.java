@@ -56,4 +56,10 @@ public class Order {
 
     @Column(name = "ORDER_DELIVERED_DATE")
     private Date orderDeliveredAt;
+
+    @Column(name = "LATITUDE")
+    private String latitude;
+
+    @Column(name = "LONGITUDE")
+    private String longitude;
 }

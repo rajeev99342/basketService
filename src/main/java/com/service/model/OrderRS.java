@@ -6,6 +6,7 @@ import com.service.constants.enums.PaymentModeEnum;
 import com.service.entities.User;
 import lombok.Data;
 
+import javax.persistence.Column;
 import java.util.Date;
 import java.util.List;
 
@@ -35,4 +36,6 @@ public class OrderRS {
     private Date lastModifiedDate;
     private String refundTxnId;
     private String txnId;
+    private String latitude;
+    private String longitude;
 }

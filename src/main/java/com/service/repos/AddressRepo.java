@@ -8,4 +8,6 @@ public interface AddressRepo extends JpaRepository<Address,Long> {
     Address findAddressByUser(User user);
 //    Address findAddressByUserAndIsDefault(User user,Boolean isDefault);
 
+    Address findAddressByUserId(Long userID);
+
 }

@@ -2,7 +2,7 @@ package com.service.constants.enums;
 
 public enum PaymentStatus {
     ORDERED,
-    PACKING,
+    ACCEPTED,
     DISPATCHED,
     ON_THE_WAY,
     DELIVERED
