@@ -19,6 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.transaction.Transactional;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -142,12 +143,19 @@ public class UserController {
 
     }
 
-
-
     @CrossOrigin(origins = "*")
     @PostMapping("/location")
     public GlobalResponse updateLocation(@RequestBody AddressModel addressModel, Authentication authentication) {
         return userService.updateLocation(addressModel,authentication);
     }
+
+
+    @CrossOrigin(origins = "*")
+    @GetMapping("/get-delivery-agent")
+    public GlobalResponse getByRole(@RequestParam("role") UserRole role) {
+         return userService.getUserByRole(role);
+    }
+
+
 
 }

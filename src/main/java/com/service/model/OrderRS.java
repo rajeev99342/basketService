@@ -1,5 +1,6 @@
 package com.service.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.service.constants.enums.OrderStatus;
 import com.service.constants.enums.PaymentModeEnum;
@@ -38,4 +39,8 @@ public class OrderRS {
     private String txnId;
     private String latitude;
     private String longitude;
+    private String addressLine;
+
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private transient User deliveryAgent;
 }

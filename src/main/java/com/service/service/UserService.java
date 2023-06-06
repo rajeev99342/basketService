@@ -294,7 +294,24 @@ public class UserService {
         }catch(Exception ex){
             return new GlobalResponse("Failed to update location : "+ex.getMessage(), 401);
         }
+    }
 
-
+    public GlobalResponse getUserByRole(UserRole role) {
+        GlobalResponse response = new GlobalResponse();
+        List<User> users = null;
+        try{
+            List<String> roles = new ArrayList<>();
+            roles.add(UserRole.DELIVERY.name());
+            users = userRepo.findByRolesContains(role);
+            response.setHttpStatusCode(HttpStatus.OK.value());
+            response.setStatus(true);
+            response.setBody(userFunction.CONVERT_INTO_USER_MODEL_LIST.apply(users));
+        }catch (Exception e){
+            log.error("deliver agent fetch failed due to : ",e);
+            response.setStatus(false);
+            response.setMessage(e.getMessage());
+            response.setHttpStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        }
+        return response;
     }
 }

@@ -77,12 +77,9 @@ public class OrderController {
 
     @CrossOrigin(value = "*")
     @PostMapping("/update-packing-order")
-    Boolean packingOrder(@RequestParam("time") Integer time , @RequestBody Long id) {
+    Boolean packingOrder(@RequestParam("time") Integer time ,@RequestParam("agent") String agent , @RequestBody Long id) {
         try {
-            System.out.println("-------------------");
-            System.out.println(time);
-            return orderService.packingOrder(id,time);
-
+            return orderService.packingOrder(id,time,agent);
         } catch (Exception e) {
             e.printStackTrace();
             return null;

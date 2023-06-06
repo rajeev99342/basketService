@@ -85,6 +85,7 @@ public class OrderService {
         order.setUser(user);
         order.setLatitude(address.getLatitude());
         order.setLongitude(address.getLongitude());
+        order.setAddressLine(address.getAddressLine());
         order.setModifiedDate(new Date());
         order.setOrderStatus(OrderStatus.PLACED);
         order.setTotalCost(orderModel.getFinalAmount());
@@ -195,22 +196,16 @@ public class OrderService {
                 PageRequest.of(page, size);
 
         int olderDays = findDays(days);
-        System.out.println("000000000000000000000000000000 days 000000000000000000000000000");
-        System.out.println(olderDays);
-
         LocalDate currentDate = LocalDate.now().minusDays(olderDays);
         Date date = Date.from(currentDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        System.out.println(date);
         User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
-        List<String> list = statusList.stream().map(status -> status.toString()).collect(Collectors.toList());
         Address address = addressRepo.findAddressByUserId(user.getId());
         List<Order> orders = orderRepo.findOrderByDate(user.getId(),date,pageable);
-//        List<Order> orders = orderRepo.findOrderByDate(user.getId());
         List<OrderRS> orderRsList = new ArrayList<>();
-
         for (Order order : orders) {
             if (statusList.contains(order.getOrderStatus())) {
                 OrderRS orderRS = new OrderRS();
+                orderRS.setDeliveryAgent(order.getDeliveryAgent());
                 orderRS.setUser(order.getUser());
                 if(statusList.contains(OrderStatus.DELIVERED)){
                     orderRS.setIsNew(false);
@@ -219,7 +214,6 @@ public class OrderService {
                 orderRS.setOrderStatus(order.getOrderStatus());
                 orderRS.setAddressModel(convertIntoAddressModel(address));
                 List<ProductOrderDetails> deliveryProductList = new ArrayList<>();
-                Double totalCost = 0.00;
                 List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder(order);
                 for (OrderDetails productDelivery : productDeliveries) {
                     ProductOrderDetails deliveryProductDetails = new ProductOrderDetails();
@@ -316,18 +310,19 @@ public class OrderService {
         return false;
     }
 
-    public Boolean packingOrder(Long id,Integer hr) {
-        LocalDateTime now = LocalDateTime.now();
-        int hoursToAdd = 5;
-        Date newD = Date.from(new Date().toInstant().plusSeconds(hr*60*60));
-        LocalDateTime futureDateTime = now.plus(hoursToAdd, ChronoUnit.HOURS);
-        Date date = Date.from(futureDateTime.atZone(ZoneId.systemDefault()).toInstant());
+    public Boolean packingOrder(Long id,Integer hr,String agentPhone) {
         Order order = orderRepo.getById(id);
+        if(hr != 100){
+            Date   newD = Date.from(new Date().toInstant().plusSeconds(hr*60*60));
+            order.setExpectedDeliveryDate(newD);
+            order.setDeliveryAgent(userRepo.findUserByPhone(agentPhone));
+            order.setOrderStatus(OrderStatus.ACCEPTED);
+        }else{
+            order.setOrderStatus(OrderStatus.CANCELED);
+        }
         List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder(order);
         productDeliveries.stream().forEach(p -> p.setOrderStatus(OrderStatus.ACCEPTED));
         orderDetailsRepository.saveAll(productDeliveries);
-        order.setOrderStatus(OrderStatus.ACCEPTED);
-        order.setExpectedDeliveryDate(newD);
         order.setOrderDeliveredAt(new Date());
         order.setModifiedDate(new Date());
         orderRepo.save(order);
@@ -412,6 +407,7 @@ public class OrderService {
                 orderDetailsModel.setOrderDate(order.getOrderDate());
                 orderDetailsModel.setLatitude(order.getLatitude());
                 orderDetailsModel.setLongitude(order.getLongitude());
+                orderDetailsModel.setAddressLine(order.getAddressLine());
                 orderDetailsModel.setOrderStatus(order.getOrderStatus());
                 Address address = null;
                 orderDetailsModel.setAddressModel(convertIntoAddressModel(address));

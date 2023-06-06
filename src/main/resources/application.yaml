@@ -1,0 +1,52 @@
+server:
+  address: 0.0.0.0
+  port: 1080
+
+
+spring:
+  datasource:
+    initialization-mode: always
+    password: root
+    url: jdbc:mysql://localhost:3306/store?createDatabaseIfNotExist=true
+    username: root
+  jpa:
+    defer-datasource-initialization: true
+    sql:
+      init:
+        mode: always
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL5Dialect
+  main:
+    banner-mode: 'off'
+
+
+
+fcm:
+  service-account-file: src/main/resources/baba-basket-645b9-firebase-adminsdk-zyteh-7b351169bd.json
+hibernate:
+  hbm2ddl:
+    auto: update
+jwt:
+  secret: javainuse
+management:
+  endpoint:
+    loggers:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: loggers
+melaa:
+  category:
+    id: 1
+  product:
+    image-path: C:/Users/Dell/Desktop/store/image/drink
+
+
+
+
+properties:
+  deliveryHr: 1,2,3,4,5,6

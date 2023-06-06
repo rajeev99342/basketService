@@ -57,9 +57,18 @@ public class Order {
     @Column(name = "ORDER_DELIVERED_DATE")
     private Date orderDeliveredAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "DELIVERY_AGENT_ID",referencedColumnName = "USER_ID")
+    private User deliveryAgent;
+
     @Column(name = "LATITUDE")
     private String latitude;
 
     @Column(name = "LONGITUDE")
     private String longitude;
+
+    @Column(name = "ADDRESS")
+    private String addressLine;
+
+
 }

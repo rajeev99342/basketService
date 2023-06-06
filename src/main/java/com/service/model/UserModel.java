@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.Column;
 import java.util.List;
 
 @Data
@@ -13,12 +14,12 @@ import java.util.List;
 public class UserModel {
     private Long id;
     private String name;
-    private String userType;
     private String phone;
-    private String password;
     private String jwt;
     private AddressModel address;
     private List<String> roles;
     private UserRole loggedInAs;
-    private LocationCord locationCord;
+    private String token;
+    private String lat;
+    private String lon;
 }

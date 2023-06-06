@@ -39,14 +39,28 @@ public class UserFunction {
             userModel.setName(user.getUserName());
             userModel.setPhone(user.getPhone());
             userModel.setJwt(token);
+            userModel.setToken(user.getToken());
+            userModel.setLat(user.getLat());
+            userModel.setLon(user.getLon());
             List<String> roles = user.getRoles().stream().map(role->role.name()).collect(Collectors.toList());
 //            User roleUser = userRepo.findUserByPhone(userModel.getPhone());
             userModel.setRoles(roles);
             userModel.setLoggedInAs(user.getLoggedInAs());
-            userModel.setLocationCord(new LocationCord(user.getLat(),user.getLon()));
             return userModel;
         }
         return null;
 
     };
+
+    public Function<List<User>, List<UserModel>> CONVERT_INTO_USER_MODEL_LIST = userList -> {
+        List<UserModel> userModelList = new ArrayList<>();
+        if(userList != null && userList.size() > 0){
+          userModelList = userList.stream().map(user->{
+            return CONVERT_INTO_USER_MODEL.apply(user);
+          }).collect(Collectors.toList());
+        }
+
+        return userModelList;
+    };
+
 }
