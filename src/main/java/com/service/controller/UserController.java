@@ -156,6 +156,12 @@ public class UserController {
          return userService.getUserByRole(role);
     }
 
+    @CrossOrigin(origins = "*")
+    @PutMapping("/updateRole")
+    public GlobalResponse updateRole(@RequestParam("role") String role,@RequestParam("phone") String phone) {
+        return userService.updateRole(role,phone);
+    }
+
 
 
 }

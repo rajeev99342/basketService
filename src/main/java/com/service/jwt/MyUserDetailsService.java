@@ -34,6 +34,5 @@ public class MyUserDetailsService implements UserDetailsService {
 
         return new org.springframework.security.core.userdetails.User(user.getPhone(),
                 user.getPassword(), authorities);
-
     }
 }

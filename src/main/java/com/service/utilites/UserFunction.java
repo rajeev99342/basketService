@@ -38,6 +38,7 @@ public class UserFunction {
             UserModel userModel = new UserModel();
             userModel.setName(user.getUserName());
             userModel.setPhone(user.getPhone());
+            userModel.setId(user.getId());
             userModel.setJwt(token);
             userModel.setToken(user.getToken());
             userModel.setLat(user.getLat());
