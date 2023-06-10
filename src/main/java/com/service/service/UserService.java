@@ -347,7 +347,6 @@ public class UserService {
             }
             response.setBody(orderSummaries);
         } catch (Exception e) {
-            e.printStackTrace();
             log.error("Unable to fetch user summary", e);
             response.setStatus(false);
             response.setMessage(e.getMessage());
