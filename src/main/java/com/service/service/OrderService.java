@@ -193,7 +193,7 @@ public class OrderService {
     @Transactional
     public List<OrderRS> getOrderDetails(String token, List<OrderStatus> statusList,String days,int page,int size) {
         Pageable pageable =
-                PageRequest.of(page, size);
+                PageRequest.of(page, size,Sort.by("modified_date").descending());
 
         int olderDays = findDays(days);
         LocalDate currentDate = LocalDate.now().minusDays(olderDays);
