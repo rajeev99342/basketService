@@ -295,6 +295,7 @@ public class UserService {
             address.setCompleteAddress(addressModel.getCompleteAddress());
             address.setLatitude(addressModel.getLatitude());
             address.setLongitude(addressModel.getLongitude());
+            address.setLandmark(addressModel.getLandmark());
             address.setUser(user);
             addressRepo.save(address);
             return new GlobalResponse("Location updated", 200, true, addressModel);

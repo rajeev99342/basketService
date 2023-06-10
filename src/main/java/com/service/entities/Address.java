@@ -28,6 +28,8 @@ public class Address {
     @Column(name = "ADDRESS_LINE")
     private String addressLine;
 
+    @Column(name = "LANDMARK")
+    private String landmark;
 
     @Column(name = "LATITUDE")
     private String latitude;

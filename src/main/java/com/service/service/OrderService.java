@@ -330,7 +330,6 @@ public class OrderService {
         WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
         webSocketMessageModel.setName(String.valueOf(id));
         webSocketMessageSender.notifyUpdateOrderToUser(order.getUser().getPhone(), "/topic/order/update/", webSocketMessageModel);
-
         return true;
     }
 

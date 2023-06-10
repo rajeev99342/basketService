@@ -23,6 +23,7 @@ public class UserFunction {
             model.setUserPhone(address.getUser().getPhone());
             model.setLatitude(address.getLatitude());
             model.setLongitude(address.getLongitude());
+            model.setLandmark(address.getLandmark());
             model.setCompleteAddress(address.getCompleteAddress());
             model.setAddressLine(address.getAddressLine());
             return model;

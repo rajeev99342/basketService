@@ -12,4 +12,6 @@ public class AddressModel {
     private String addressLine;
     private String latitude;
     private String longitude;
+    private String landmark;
+
 }
