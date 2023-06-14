@@ -70,16 +70,9 @@ public class ProductController {
 
     @CrossOrigin(origins = "*")
     @GetMapping("/fetch-all-product")
-    public List<DisplayProductModel> fetchAllProduct(@RequestParam(defaultValue = "0") int page,
-                                                     @RequestParam(defaultValue = "10") int size) {
-        List<DisplayProductModel> list = new ArrayList<>();
-        try {
-            list = productService.fetchAllProducts(page,size);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
+    public GlobalResponse fetchAllProduct(@RequestParam(defaultValue = "0") int page,
+                                          @RequestParam(defaultValue = "10") int size) {
+        return productService.fetchAllProducts(page,size);
     }
     @CrossOrigin(origins = "*")
     @GetMapping("/product-count")
@@ -90,36 +83,23 @@ public class ProductController {
 
     @CrossOrigin(origins = "*")
     @GetMapping("/fetch-all-product-by-category")
-    public List<DisplayProductModel> fetchAllProduct(@RequestParam("catId") Long catId,@RequestParam(defaultValue = "0") int page,
+    public GlobalResponse fetchAllProduct(@RequestParam("catId") Long catId,@RequestParam(defaultValue = "0") int page,
                                                      @RequestParam(defaultValue = "10") int size) {
 
-        List<DisplayProductModel> list = new ArrayList<>();
-        try {
-            list = productService.getProductsByCatId(catId,page,size);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            return productService.getProductsByCatId(catId,page,size);
 
-        return list;
     }
 
 
     @CrossOrigin(origins = "*")
     @GetMapping("/get-product-details")
-    public DisplayProductModel getProductDetails(@RequestParam("id") Long id) {
-        DisplayProductModel productModel = null;
-        try {
-            productModel = productService.getProductDetails(id);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return productModel;
+    public GlobalResponse getProductDetails(@RequestParam("id") Long id) {
+            return productService.getProductDetails(id);
     }
 
     @CrossOrigin(origins = "*")
     @GetMapping("/search-product")
-    public List<DisplayProductModel> search(@RequestParam(required = false) String searchTerm,
+    public GlobalResponse search(@RequestParam(required = false) String searchTerm,
                                             @RequestParam(defaultValue = "0") int page,
                                             @RequestParam(defaultValue = "10") int size) {
         return productService.searchProduct(searchTerm, page, size);

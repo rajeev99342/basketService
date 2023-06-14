@@ -4,6 +4,8 @@ import com.service.constants.values.IpAddress;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.PropertySource;
@@ -19,6 +21,7 @@ import java.util.List;
 @ComponentScan(basePackages = {"com.service.*"})
 @EnableJpaRepositories
 @PropertySource("classpath:application.yaml")
+@EnableDiscoveryClient
 public class ServiceApplication {
 
 	@Autowired

@@ -1,6 +1,7 @@
 package com.service.model;
 
 import lombok.Data;
+import org.springframework.http.HttpStatus;
 
 @Data
 public class GlobalResponse {
@@ -21,6 +22,15 @@ public class GlobalResponse {
         this.httpStatusCode = httpStatus;
         this.status = false;
         this.body = null;
+    }
+
+    public static GlobalResponse getSuccess(Object body){
+        return new GlobalResponse("success", HttpStatus.OK.value(), true, body);
+    }
+    public static GlobalResponse getFailure(String message){
+        String messages = "Failed due to %s";
+        String.format(messages, message);
+        return new GlobalResponse(messages, HttpStatus.INTERNAL_SERVER_ERROR.value(), Boolean.FALSE, null);
     }
 
     public Object getBody(){

@@ -191,59 +191,63 @@ public class OrderService {
 
 
     @Transactional
-    public List<OrderRS> getOrderDetails(String token, List<OrderStatus> statusList,String days,int page,int size) {
-        Pageable pageable =
-                PageRequest.of(page, size,Sort.by("modified_date").descending());
+    public GlobalResponse getOrderDetails(String token, List<OrderStatus> statusList,String days,int page,int size) {
+        try{
+            Pageable pageable =
+                    PageRequest.of(page, size,Sort.by("modified_date").descending());
 
-        int olderDays = findDays(days);
-        LocalDate currentDate = LocalDate.now().minusDays(olderDays);
-        Date date = Date.from(currentDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
-        Address address = addressRepo.findAddressByUserId(user.getId());
-        List<Order> orders = orderRepo.findOrderByDate(user.getId(),date,pageable);
-        List<OrderRS> orderRsList = new ArrayList<>();
-        for (Order order : orders) {
-            if (statusList.contains(order.getOrderStatus())) {
-                OrderRS orderRS = new OrderRS();
-                orderRS.setDeliveryAgent(order.getDeliveryAgent());
-                orderRS.setUser(order.getUser());
-                if(statusList.contains(OrderStatus.DELIVERED)){
-                    orderRS.setIsNew(false);
+            int olderDays = findDays(days);
+            LocalDate currentDate = LocalDate.now().minusDays(olderDays);
+            Date date = Date.from(currentDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
+            Address address = addressRepo.findAddressByUserId(user.getId());
+            List<Order> orders = orderRepo.findOrderByDate(user.getId(),date,pageable);
+            List<OrderRS> orderRsList = new ArrayList<>();
+            for (Order order : orders) {
+                if (statusList.contains(order.getOrderStatus())) {
+                    OrderRS orderRS = new OrderRS();
+                    orderRS.setDeliveryAgent(order.getDeliveryAgent());
+                    orderRS.setUser(order.getUser());
+                    if(statusList.contains(OrderStatus.DELIVERED)){
+                        orderRS.setIsNew(false);
+                    }
+                    orderRS.setOrderDate(order.getOrderDate());
+                    orderRS.setOrderStatus(order.getOrderStatus());
+                    orderRS.setAddressModel(convertIntoAddressModel(address));
+                    List<ProductOrderDetails> deliveryProductList = new ArrayList<>();
+                    List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder(order);
+                    for (OrderDetails productDelivery : productDeliveries) {
+                        ProductOrderDetails deliveryProductDetails = new ProductOrderDetails();
+                        deliveryProductDetails.setDeliveryAgentDetails("Rajeev");
+                        deliveryProductDetails.setProductId(productDelivery.getProduct().getId());
+                        deliveryProductDetails.setProductName(productDelivery.getProduct().getName());
+                        deliveryProductDetails.setOrderStatus(productDelivery.getOrderStatus());
+                        deliveryProductDetails.setPrice(productDelivery.getItemPrice());
+                        deliveryProductDetails.setImage(imageService.getAllImageByProduct(productDelivery.getProduct()));
+                        deliveryProductList.add(deliveryProductDetails);
+                    }
+                    orderRS.setExpectedDeliveryDate(order.getExpectedDeliveryDate());
+                    orderRS.setOrderId(order.getId());
+                    orderRS.setDeliveryProducts(deliveryProductList);
+                    orderRS.setTotalCost(order.getTotalCost());
+                    orderRS.setDeliveredAt(order.getOrderDeliveredAt());
+                    orderRS.setLastModifiedDate(order.getModifiedDate());
+                    orderRsList.add(orderRS);
                 }
-                orderRS.setOrderDate(order.getOrderDate());
-                orderRS.setOrderStatus(order.getOrderStatus());
-                orderRS.setAddressModel(convertIntoAddressModel(address));
-                List<ProductOrderDetails> deliveryProductList = new ArrayList<>();
-                List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder(order);
-                for (OrderDetails productDelivery : productDeliveries) {
-                    ProductOrderDetails deliveryProductDetails = new ProductOrderDetails();
-                    deliveryProductDetails.setDeliveryAgentDetails("Rajeev");
-                    deliveryProductDetails.setProductId(productDelivery.getProduct().getId());
-                    deliveryProductDetails.setProductName(productDelivery.getProduct().getName());
-                    deliveryProductDetails.setOrderStatus(productDelivery.getOrderStatus());
-                    deliveryProductDetails.setPrice(productDelivery.getItemPrice());
-                    deliveryProductDetails.setImage(imageService.getAllImageByProduct(productDelivery.getProduct()));
-                    deliveryProductList.add(deliveryProductDetails);
-                }
-                orderRS.setExpectedDeliveryDate(order.getExpectedDeliveryDate());
-                orderRS.setOrderId(order.getId());
-                orderRS.setDeliveryProducts(deliveryProductList);
-                orderRS.setTotalCost(order.getTotalCost());
-                orderRS.setDeliveredAt(order.getOrderDeliveredAt());
-                orderRS.setLastModifiedDate(order.getModifiedDate());
-                orderRsList.add(orderRS);
             }
+
+            Collections.sort(orderRsList, new Comparator<OrderRS>() {
+                @Override
+                public int compare(OrderRS o1, OrderRS o2) {
+                    return o2.getLastModifiedDate().compareTo(o1.getLastModifiedDate());
+                }
+            });
+
+            return GlobalResponse.getSuccess(orderRsList);
+        }catch (Exception e){
+            log.error("Failed due to {}",e.getMessage());
+            return GlobalResponse.getFailure(e.getMessage());
         }
-
-        Collections.sort(orderRsList, new Comparator<OrderRS>() {
-            @Override
-            public int compare(OrderRS o1, OrderRS o2) {
-                return o2.getLastModifiedDate().compareTo(o1.getLastModifiedDate());
-            }
-        });
-
-        return orderRsList;
-
     }
 
 

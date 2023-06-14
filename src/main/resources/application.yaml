@@ -1,10 +1,12 @@
 server:
-  address: 192.168.0.103
-#  address: 0.0.0.0
-  port: 1080
+#  address: 192.168.0.103
+  port: 0
+
 
 
 spring:
+  application:
+    name: melaa
   datasource:
     initialization-mode: always
     password: root
@@ -23,6 +25,12 @@ spring:
   main:
     banner-mode: 'off'
 
+eureka:
+  instance:
+    instance-id: ${spring.application.name}:${random.uuid}
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
 
 
 fcm:

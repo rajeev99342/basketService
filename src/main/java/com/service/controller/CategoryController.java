@@ -68,26 +68,20 @@ public class CategoryController {
 
     @CrossOrigin(origins = "*")
     @GetMapping("/fetch-all-category")
-    public List<CategoryDisplayModel> test() {
+    public GlobalResponse test() {
         return categoryService.getAllCategory();
     }
 
     @CrossOrigin(origins = "*")
     @GetMapping("/fetch-all-category-name")
-    public List<CategoryModel> fetchAllCategoryName() {
+    public GlobalResponse fetchAllCategoryName() {
         return categoryService.fetchAllCategoryName();
     }
 
     @CrossOrigin(origins = "*")
     @GetMapping("/get-category")
-    public CategoryDisplayModel getCategoryById(@NotNull @RequestParam("id") Long id) {
-        try {
+    public GlobalResponse getCategoryById(@NotNull @RequestParam("id") Long id) {
             return categoryService.getCategoryById(id);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
     }
 
 

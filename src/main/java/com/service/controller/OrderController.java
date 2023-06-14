@@ -14,8 +14,8 @@ import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
-@CrossOrigin(value = "*")
 @RestController
+@CrossOrigin(value = "*")
 public class OrderController {
 
 
@@ -40,15 +40,12 @@ public class OrderController {
 
 
     @CrossOrigin(value = "*")
-    @PostMapping("/get-order-by-user")
-    List<OrderRS> getOrder(@RequestBody RequestModel requestModel,@RequestParam(defaultValue = "0") String olderDays,@RequestParam(defaultValue = "0") int page,
+    @GetMapping("/get-order-by-user")
+    GlobalResponse getOrder(@RequestParam("status") List<OrderStatus> status,@RequestParam("days") String days,@RequestParam("token") String token,@RequestParam(defaultValue = "0") int page,
                            @RequestParam(defaultValue = "10") int size) {
-        try {
-            return orderService.getOrderDetails(requestModel.getToken(), requestModel.getOrderStatusList(),olderDays,page,size);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+
+            return orderService.getOrderDetails(token, status,days,page,size);
+
     }
 
 

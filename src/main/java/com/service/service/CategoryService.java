@@ -11,6 +11,7 @@ import com.service.repos.CategoryRepo;
 import com.service.repos.ImageDetailsRepository;
 import com.service.repos.ImageRepository;
 import com.service.utilites.ImageUtility;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Slf4j
 public class CategoryService {
     @Autowired
     CategoryRepo categoryRepo;
@@ -74,47 +76,65 @@ public class CategoryService {
         return  response;
     }
 
-    public List<CategoryModel> fetchAllCategoryName(){
-        List<Category> categories = categoryRepo.findAll(Sort.by("catName"));
-        List<CategoryModel> list = new ArrayList<>();
-        for(Category category : categories){
-            CategoryModel categoryModel = new CategoryModel();
-            categoryModel.setCategoryName(category.getCatName());
-            categoryModel.setCategoryType(category.getCatType());
-            categoryModel.setId(category.getId());
-            list.add(categoryModel);
+    public GlobalResponse fetchAllCategoryName(){
+        try{
+            List<Category> categories = categoryRepo.findAll(Sort.by("catName"));
+            List<CategoryModel> list = new ArrayList<>();
+            for(Category category : categories){
+                CategoryModel categoryModel = new CategoryModel();
+                categoryModel.setCategoryName(category.getCatName());
+                categoryModel.setCategoryType(category.getCatType());
+                categoryModel.setId(category.getId());
+                list.add(categoryModel);
+            }
+            return GlobalResponse.getSuccess(list);
+        }catch (Exception e){
+            log.error("Failed to fetch category name due to : {}",e.getMessage());
+            return GlobalResponse.getFailure(e.getMessage());
         }
-        return list;
+
     }
 
-    public List<CategoryDisplayModel> getAllCategory(){
-        List<Category> categories = categoryRepo.findCategoryByIsValid(true);
-        List<CategoryDisplayModel> categoryDisplayModelList = new ArrayList();
-        for(Category category : categories){
-            CategoryDisplayModel categoryDisplayModel = new CategoryDisplayModel();
+    public GlobalResponse getAllCategory(){
+        try{
+            List<Category> categories = categoryRepo.findCategoryByIsValid(true);
+            List<CategoryDisplayModel> categoryDisplayModelList = new ArrayList();
+            for(Category category : categories){
+                CategoryDisplayModel categoryDisplayModel = new CategoryDisplayModel();
+                Image image = imageRepository.findImageByCategoryId(category.getId());
+                categoryDisplayModel.setCategoryName(category.getCatName());
+                categoryDisplayModel.setCategoryType(category.getCatType());
+                GlobalResponse response =  imageService.getImage(image.getImageDetails().getId());
+                categoryDisplayModel.setBase64(response.getBody());
+                categoryDisplayModel.setId(category.getId());
+                categoryDisplayModelList.add(categoryDisplayModel);
+            }
+
+            return GlobalResponse.getSuccess(categoryDisplayModelList);
+        }catch (Exception e){
+            log.error("Failed to fetch category due to {} ",e.getMessage());
+        }
+
+        return null;
+    }
+
+    public GlobalResponse getCategoryById(Long id) {
+        try{
+            Category category = categoryRepo.getById(id);
             Image image = imageRepository.findImageByCategoryId(category.getId());
-            categoryDisplayModel.setCategoryName(category.getCatName());
-            categoryDisplayModel.setCategoryType(category.getCatType());
-            GlobalResponse response =  imageService.getImage(image.getImageDetails().getId());
-            categoryDisplayModel.setBase64(response.getBody());
-            categoryDisplayModel.setId(category.getId());
-            categoryDisplayModelList.add(categoryDisplayModel);
+            CategoryDisplayModel displayModel = new CategoryDisplayModel();
+            displayModel.setCategoryType(category.getCatType());
+            displayModel.setCategoryName(category.getCatName());
+            displayModel.setId(category.getId());
+            GlobalResponse res = imageService.getImage(image.getId());
+            if(res != null){
+                displayModel.setBase64(res.getBody());
+            }
+            return GlobalResponse.getSuccess(displayModel);
+        }catch (Exception e){
+            log.error("Failed due to : {}",e.getMessage());
+            return GlobalResponse.getFailure(e.getMessage());
         }
 
-        return categoryDisplayModelList;
-    }
-
-    public CategoryDisplayModel getCategoryById(Long id) {
-        Category category = categoryRepo.getById(id);
-        Image image = imageRepository.findImageByCategoryId(category.getId());
-        CategoryDisplayModel displayModel = new CategoryDisplayModel();
-        displayModel.setCategoryType(category.getCatType());
-        displayModel.setCategoryName(category.getCatName());
-        displayModel.setId(category.getId());
-        GlobalResponse res = imageService.getImage(image.getId());
-        if(res != null){
-            displayModel.setBase64(res.getBody());
-        }
-        return displayModel;
     }
 }

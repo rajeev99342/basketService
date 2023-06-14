@@ -10,6 +10,7 @@ import com.service.model.*;
 import com.service.repos.*;
 import com.service.utilites.ImageUtility;
 import com.service.utilites.Utility;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
@@ -32,6 +33,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 @Service
+@Slf4j
 public class ProductService {
 
     @Value(value = "${melaa.product.image-path}")
@@ -149,32 +151,43 @@ public class ProductService {
     }
 
 
-    public List<DisplayProductModel> fetchAllProducts(Integer page,Integer size) {
-        List<DisplayProductModel> productModels = new ArrayList<>();
+    public GlobalResponse fetchAllProducts(Integer page,Integer size) {
+        GlobalResponse globalResponse = new GlobalResponse();
+        try{
+            List<DisplayProductModel> productModels = new ArrayList<>();
+            Pageable paging = PageRequest.of(page, size,Sort.by("updatedAt").descending());
+            List<Product> products = productRepo.findProductByIsValid(true,paging);
+            for (Product product : products) {
+                DisplayProductModel displayProductModel = new DisplayProductModel();
+                displayProductModel.setModel(getProductModelByProduct(product));
+                displayProductModel.setImages(imageService.getAllImageByProduct(product));
+                displayProductModel.setQuantityModelList(getQuantityModelFromEntity(quantityRepo.findAllByProduct(product)));
+                displayProductModel.setId(product.getId());
+                productModels.add(displayProductModel);
 
-        Pageable paging = PageRequest.of(page, size,Sort.by("updatedAt").descending());
+            }
+            return GlobalResponse.getSuccess(productModels);
+        }catch (Exception e){
+            log.error("Failed to fetch product list due to {} ",e.getMessage());
+        }
+        return null;
 
-        List<Product> products = productRepo.findProductByIsValid(true,paging);
-        for (Product product : products) {
+    }
+
+    public GlobalResponse getProductDetails(Long id) {
+        try{
+            Product product = productRepo.findById(id).get();
             DisplayProductModel displayProductModel = new DisplayProductModel();
             displayProductModel.setModel(getProductModelByProduct(product));
             displayProductModel.setImages(imageService.getAllImageByProduct(product));
             displayProductModel.setQuantityModelList(getQuantityModelFromEntity(quantityRepo.findAllByProduct(product)));
             displayProductModel.setId(product.getId());
-            productModels.add(displayProductModel);
-
+            return GlobalResponse.getSuccess(displayProductModel);
+        }catch (Exception e){
+            log.error("Failed to fetch product due to {}",e.getMessage());
+            return GlobalResponse.getFailure(e.getMessage());
         }
-        return productModels;
-    }
 
-    public DisplayProductModel getProductDetails(Long id) {
-        Product product = productRepo.findById(id).get();
-        DisplayProductModel displayProductModel = new DisplayProductModel();
-        displayProductModel.setModel(getProductModelByProduct(product));
-        displayProductModel.setImages(imageService.getAllImageByProduct(product));
-        displayProductModel.setQuantityModelList(getQuantityModelFromEntity(quantityRepo.findAllByProduct(product)));
-        displayProductModel.setId(product.getId());
-        return displayProductModel;
     }
 
     public List<QuantityModel> getQuantityModelFromEntity(List<Quantity> quantities) {
@@ -209,13 +222,19 @@ public class ProductService {
         return categoryModel;
     }
 
-    public List<DisplayProductModel> getProductsByCatId(Long catId,Integer page,Integer size) {
-        Pageable pageable =
-                PageRequest.of(page, size);
+    public GlobalResponse getProductsByCatId(Long catId,Integer page,Integer size) {
+        try{
+            Pageable pageable =
+                    PageRequest.of(page, size);
+            Category category = categoryRepo.findByIdAndIsValid(catId, true);
+            List<Product> products = productRepo.findProductByCategoryAndIsValid(category, true,pageable);
+            List<DisplayProductModel> list =  convertProductIntoDisplayProduct(products);
+            return GlobalResponse.getSuccess(list);
+        }catch (Exception e){
+            log.error("Failed to fetch products by category due to {} ",e.getMessage());
+            return GlobalResponse.getFailure(e.getMessage());
+        }
 
-        Category category = categoryRepo.findByIdAndIsValid(catId, true);
-        List<Product> products = productRepo.findProductByCategoryAndIsValid(category, true,pageable);
-        return convertProductIntoDisplayProduct(products);
     }
 
     private List<DisplayProductModel> convertProductIntoDisplayProduct(List<Product> products) {
@@ -233,25 +252,30 @@ public class ProductService {
         return productModels;
     }
 
-    public List<DisplayProductModel> searchProduct(String searchTerm, int page, int size) {
+    public GlobalResponse searchProduct(String searchTerm, int page, int size) {
 
-        Pageable sortedByPriceDescNameAsc =
-                PageRequest.of(page, size, Sort.by("name").descending());
-        Pageable paging = PageRequest.of(page, size);
-        List<Product> products =  productRepo.findByNameContains(searchTerm,sortedByPriceDescNameAsc);
+        try{
+            Pageable sortedByPriceDescNameAsc =
+                    PageRequest.of(page, size, Sort.by("name").descending());
+            Pageable paging = PageRequest.of(page, size);
+            List<Product> products =  productRepo.findByNameContains(searchTerm,sortedByPriceDescNameAsc);
 //        List<Product> products =  pageableProducts.getContent();
-        List<DisplayProductModel> productModels = new ArrayList<>();
+            List<DisplayProductModel> productModels = new ArrayList<>();
+            for (Product product : products) {
+                DisplayProductModel displayProductModel = new DisplayProductModel();
+                displayProductModel.setModel(getProductModelByProduct(product));
+                displayProductModel.setImages(imageService.getAllImageByProduct(product));
+                displayProductModel.setQuantityModelList(getQuantityModelFromEntity(quantityRepo.findAllByProduct(product)));
+                displayProductModel.setId(product.getId());
+                productModels.add(displayProductModel);
 
-        for (Product product : products) {
-            DisplayProductModel displayProductModel = new DisplayProductModel();
-            displayProductModel.setModel(getProductModelByProduct(product));
-            displayProductModel.setImages(imageService.getAllImageByProduct(product));
-            displayProductModel.setQuantityModelList(getQuantityModelFromEntity(quantityRepo.findAllByProduct(product)));
-            displayProductModel.setId(product.getId());
-            productModels.add(displayProductModel);
-
+            }
+            return GlobalResponse.getSuccess(productModels);
+        }catch (Exception e){
+            log.error("Failed to search product due to : {}",e.getMessage());
+            return GlobalResponse.getFailure(e.getMessage());
         }
-        return productModels;
+
     }
 
     public Long getCount() {

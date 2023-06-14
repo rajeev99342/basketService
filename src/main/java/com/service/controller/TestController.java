@@ -1,16 +1,17 @@
 package com.service.controller;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class TestController {
+    @Value("${server.port}")
+    private String port;
 
-//    @Autowired
-//    TwilioMessageSenderService twillioMessageSenderService;
-//    @CrossOrigin(origins = "*")
-//    @GetMapping("/test")
-//    public String test() {
-//        twillioMessageSenderService.sendMessage(null);
-//       return "Success";
-//    }
+
+    @GetMapping("/test")
+    public void test() {
+        System.out.println(">>>>>>> port  1 "+port);
+    }
 }
