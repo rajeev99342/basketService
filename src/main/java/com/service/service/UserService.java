@@ -91,8 +91,8 @@ public class UserService {
 
             final String token = jwtTokenUtil.generateToken(userDetails);
             UserModel userModel = new UserModel();
-            userModel.setName(getUserByPhone(loginDetails.getMobile()).getUserName());
-            userModel.setAddress(getAddressByUser(loginDetails.getMobile()));
+            userModel.setName(getUserByPhoneLocal(loginDetails.getMobile()).getUserName());
+            userModel.setAddress((AddressModel) getAddressByUser(loginDetails.getMobile()).getBody());
             userModel.setPhone(loginDetails.getMobile());
             userModel.setJwt(token);
             List<String> roles = new ArrayList<>();
@@ -206,9 +206,10 @@ public class UserService {
 
     }
 
-    public AddressModel getAddressByUser(String userPhone) {
+    public GlobalResponse getAddressByUser(String userPhone) {
         User user = userRepo.findUserByPhone(userPhone);
-        return userFunction.CONVERT_INTO_MODEL.apply(addressRepo.findAddressByUser(user));
+        AddressModel model = userFunction.CONVERT_INTO_MODEL.apply(addressRepo.findAddressByUser(user));
+        return GlobalResponse.getSuccess(model);
     }
 
     public UserCredentials isUserPresent(String userPhone) {
@@ -228,18 +229,20 @@ public class UserService {
     }
 
 
-    public User getUserByPhone(String userPhone) {
+    public GlobalResponse getUserByPhone(String userPhone) {
         try {
-            User user = userRepo.findUserByPhone(userPhone);
-            if (null != user) {
-                return user;
-            } else {
-                return null;
-            }
+            User user = getUserByPhoneLocal(userPhone);
+            return GlobalResponse.getSuccess(user);
         } catch (Exception e) {
-            return null;
+            log.error("Failed due to fetch user due to : {}", e.getMessage());
+            return GlobalResponse.getFailure(e.getMessage());
         }
     }
+
+    public User getUserByPhoneLocal(String userPhone) {
+       return  userRepo.findUserByPhone(userPhone);
+    }
+
 
     public GlobalResponse updateUserToken(String token, String jwt) {
         try {
@@ -330,7 +333,7 @@ public class UserService {
         try {
             Pageable paging = PageRequest.of(page, size);
 //            Pageable paging = PageRequest.of(page, size, Sort.by("userName").descending());
-            List<IUserModel> users =  userRepo.findUserSummaryByRole(role,paging);
+            List<IUserModel> users = userRepo.findUserSummaryByRole(role, paging);
             response.setHttpStatusCode(HttpStatus.OK.value());
             response.setStatus(true);
             for (IUserModel user : users) {
@@ -362,14 +365,14 @@ public class UserService {
 
     public GlobalResponse updateRole(String role, String phone) {
         User user = userRepo.findUserByPhone(phone);
-        try{
+        try {
             List<UserRole> roles = user.getRoles();
             roles.add(UserRole.valueOf(role));
             user.setRoles(roles);
             userRepo.save(user);
-            return new GlobalResponse("Role updated", HttpStatus.CREATED.value(),true,null);
-        }catch (Exception e){
-            return new GlobalResponse("user not found", HttpStatus.NOT_FOUND.value(),false,null);
+            return new GlobalResponse("Role updated", HttpStatus.CREATED.value(), true, null);
+        } catch (Exception e) {
+            return new GlobalResponse("user not found", HttpStatus.NOT_FOUND.value(), false, null);
         }
 
     }

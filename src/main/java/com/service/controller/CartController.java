@@ -15,61 +15,54 @@ public class CartController {
 
     @CrossOrigin(origins = "*")
     @PostMapping("/add-to-cart")
-    GlobalResponse addToCart(@RequestBody CartProductMappingModel cartProductMappingModel){
-        try{
+    GlobalResponse addToCart(@RequestBody CartProductMappingModel cartProductMappingModel) {
+        try {
             return cartService.addToCart(cartProductMappingModel);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-            return new GlobalResponse("Failed "+e,500);
+            return new GlobalResponse("Failed " + e, 500);
         }
     }
 
     @CrossOrigin(origins = "*")
-    @PostMapping("/fetch-product-by-cart")
-    List<DisplayCartProduct> getProducts(@RequestParam("token") String token){
-        try{
-            return cartService.getProductByCartDetails(token);
-        }catch (Exception e){
-            e.printStackTrace();
-            return  null;
-        }
+    @GetMapping("/fetch-product-by-cart")
+    GlobalResponse getProducts(@RequestParam("token") String token) {
+        return cartService.getProductByCartDetails(token);
     }
 
     @CrossOrigin(origins = "*")
     @PostMapping("/item-count")
-    GlobalResponse getItemCount(@RequestParam("token") String token){
-        try{
+    GlobalResponse getItemCount(@RequestParam("token") String token) {
+        try {
             return cartService.getItemCount(token);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-            return  null;
+            return null;
         }
     }
 
 
     @CrossOrigin(value = "*")
     @PostMapping("/delete-cart-item")
-    GlobalResponse deleteCartProduct(@RequestBody CartDeleteModel cartDeleteModel){
-        try{
+    GlobalResponse deleteCartProduct(@RequestBody CartDeleteModel cartDeleteModel) {
+        try {
             return cartService.deleteCartItem(cartDeleteModel);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-            return  null;
+            return null;
         }
     }
 
     @CrossOrigin(value = "*")
     @PostMapping("/update-cart-item-count")
-    GlobalResponse updateCartItemCount(@RequestBody CartDetailsRequestModel cartDetailsRequestModel){
-        try{
+    GlobalResponse updateCartItemCount(@RequestBody CartDetailsRequestModel cartDetailsRequestModel) {
+        try {
             return cartService.updateCount(cartDetailsRequestModel);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-            return  null;
+            return null;
         }
     }
-
-
 
 
 }

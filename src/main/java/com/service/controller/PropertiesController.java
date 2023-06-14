@@ -3,6 +3,7 @@ package com.service.controller;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.service.model.AddressModel;
+import com.service.model.GlobalResponse;
 import com.service.model.Properties;
 import com.service.model.PropertiesModel;
 import lombok.extern.slf4j.Slf4j;
@@ -22,10 +23,10 @@ public class PropertiesController {
     Properties properties;
     @CrossOrigin(origins = "*")
     @GetMapping("/fetch")
-    public PropertiesModel getUserAddress() {
+    public GlobalResponse getUserAddress() {
         PropertiesModel model = new PropertiesModel();
         model.setDeliveryHrs(properties.getDeliveryHrs());
-        return model;
+        return GlobalResponse.getSuccess(model);
     }
 
 }

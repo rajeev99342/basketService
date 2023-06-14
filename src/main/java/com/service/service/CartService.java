@@ -4,6 +4,7 @@ import com.service.entities.*;
 import com.service.jwt.JwtTokenUtility;
 import com.service.model.*;
 import com.service.repos.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,7 @@ import java.util.Date;
 import java.util.List;
 
 @Service
+@Slf4j
 public class CartService {
     @Autowired
     ProductRepo productRepo;
@@ -77,9 +79,8 @@ public class CartService {
         return new GlobalResponse("Added into cart", HttpStatus.CREATED.value(), true, count);
     }
 
-    public List<DisplayCartProduct> getProductByCartDetails(String token) {
+    public GlobalResponse getProductByCartDetails(String token) {
         List<DisplayCartProduct> displayCartProducts = new ArrayList<>();
-
         try {
             String phone = jwtTokenUtility.getUsernameFromToken(token);
             Cart cart = cartRepo.findCartByUser(userRepo.findUserByPhone(phone));
@@ -113,10 +114,11 @@ public class CartService {
 
                 displayCartProducts.add(displayCartProduct);
             }
+            return GlobalResponse.getSuccess(displayCartProducts);
         } catch (Exception e) {
-            e.printStackTrace();
+           log.error("Failed due to exception : {}",e.getMessage());
+            return GlobalResponse.getFailure(e.getMessage());
         }
-        return displayCartProducts;
     }
 
     public void createCartByUser(User user) {

@@ -76,7 +76,7 @@ public class ProductController {
     }
     @CrossOrigin(origins = "*")
     @GetMapping("/product-count")
-    public Long count() {
+    public GlobalResponse count() {
         return productService.getCount();
     }
 

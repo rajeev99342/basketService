@@ -48,8 +48,8 @@ public class UserController {
 
     @CrossOrigin(origins = "*")
     @PostMapping("/sign-in-as")
-    public GlobalResponse loginAs(@RequestParam("userPhone") String userPhone, @RequestParam("role") UserRole role,Authentication authentication) {
-        return userService.signInAs(role,userPhone,authentication);
+    public GlobalResponse loginAs(@RequestParam("userPhone") String userPhone, @RequestParam("role") UserRole role, Authentication authentication) {
+        return userService.signInAs(role, userPhone, authentication);
     }
 
 
@@ -62,7 +62,7 @@ public class UserController {
     @CrossOrigin(origins = "*")
     @PostMapping("/reset-password")
     public GlobalResponse resetPassword(@RequestBody UserCredentials userDetails) {
-       return userService.reset(userDetails);
+        return userService.reset(userDetails);
     }
 
 
@@ -75,14 +75,8 @@ public class UserController {
 
     @CrossOrigin(origins = "*")
     @GetMapping("/get-address")
-    public AddressModel getUserAddress(@RequestParam("userPhone") String userPhone) {
-        try {
-            return userService.getAddressByUser(userPhone);
-        } catch (Exception e) {
-            log.error("Failed to get user address due to " + e);
-            return null;
-        }
-
+    public GlobalResponse getUserAddress(@RequestParam("userPhone") String userPhone) {
+        return userService.getAddressByUser(userPhone);
     }
 
 
@@ -108,7 +102,7 @@ public class UserController {
 
     @CrossOrigin(origins = "*")
     @GetMapping("/get-user")
-    public User getUser(@RequestParam("userPhone") String userPhone) {
+    public GlobalResponse getUser(@RequestParam("userPhone") String userPhone) {
         return userService.getUserByPhone(userPhone);
     }
 
@@ -131,11 +125,12 @@ public class UserController {
         }
 
     }
+
     @CrossOrigin(origins = "*")
     @PutMapping("/update-user-name")
     public Status getUserAddress(@RequestParam("username") String username, Authentication authentication) {
         try {
-            return userService.updateUserName(username,authentication);
+            return userService.updateUserName(username, authentication);
         } catch (Exception e) {
             log.error("Failed to get user address due to " + e);
             return null;
@@ -146,22 +141,21 @@ public class UserController {
     @CrossOrigin(origins = "*")
     @PostMapping("/location")
     public GlobalResponse updateLocation(@RequestBody AddressModel addressModel, Authentication authentication) {
-        return userService.updateLocation(addressModel,authentication);
+        return userService.updateLocation(addressModel, authentication);
     }
 
 
     @CrossOrigin(origins = "*")
     @GetMapping("/get-delivery-agent")
     public GlobalResponse getByRole(@RequestParam("role") UserRole role) {
-         return userService.getUserByRole(role);
+        return userService.getUserByRole(role);
     }
 
     @CrossOrigin(origins = "*")
     @PutMapping("/updateRole")
-    public GlobalResponse updateRole(@RequestParam("role") String role,@RequestParam("phone") String phone) {
-        return userService.updateRole(role,phone);
+    public GlobalResponse updateRole(@RequestParam("role") String role, @RequestParam("phone") String phone) {
+        return userService.updateRole(role, phone);
     }
-
 
 
 }

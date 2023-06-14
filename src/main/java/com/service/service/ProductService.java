@@ -278,8 +278,9 @@ public class ProductService {
 
     }
 
-    public Long getCount() {
-        return productRepo.count();
+    public GlobalResponse getCount() {
+        Long count = productRepo.count();
+        return GlobalResponse.getSuccess(count);
     }
 
     public int addRandom() throws Exception {
