@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.transaction.Transactional;
 
+@CrossOrigin(origins = "*")
 @Slf4j
 @RestController
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
@@ -21,7 +22,6 @@ public class PropertiesController {
 
     @Autowired
     Properties properties;
-    @CrossOrigin(origins = "*")
     @GetMapping("/fetch")
     public GlobalResponse getUserAddress() {
         PropertiesModel model = new PropertiesModel();

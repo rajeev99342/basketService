@@ -41,10 +41,10 @@ public class OrderController {
 
     @CrossOrigin(value = "*")
     @GetMapping("/get-order-by-user")
-    GlobalResponse getOrder(@RequestParam("status") List<OrderStatus> status,@RequestParam("days") String days,@RequestParam("token") String token,@RequestParam(defaultValue = "0") int page,
-                           @RequestParam(defaultValue = "10") int size) {
+    GlobalResponse getOrder(@RequestParam("status") List<OrderStatus> status, @RequestParam("days") String days, @RequestParam("token") String token, @RequestParam(defaultValue = "0") int page,
+                            @RequestParam(defaultValue = "10") int size) {
 
-            return orderService.getOrderDetails(token, status,days,page,size);
+        return orderService.getOrderDetails(token, status, days, page, size);
 
     }
 
@@ -73,38 +73,22 @@ public class OrderController {
 
 
     @CrossOrigin(value = "*")
-    @PostMapping("/update-packing-order")
-    Boolean packingOrder(@RequestParam("time") Integer time ,@RequestParam("agent") String agent , @RequestBody Long id) {
-        try {
-            return orderService.packingOrder(id,time,agent);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+    @PutMapping("/update-packing-order") // accept order
+    void packingOrder(@RequestBody UpdateOrderRs updateOrderRs) {
+        orderService.packingOrder(updateOrderRs);
     }
 
 
     @CrossOrigin(value = "*")
-    @PostMapping("/marked-delivered")
-    Boolean markedDelivered(@RequestBody Long id) {
-        try {
-            return orderService.markedDelivered(id);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+    @PutMapping("/marked-delivered")
+    void markedDelivered(@RequestBody UpdateOrderRs updateOrder) {
+             orderService.markedDelivered(updateOrder.getOrderId());
     }
 
     @CrossOrigin(value = "*")
-    @PostMapping("/update-on-the-way-order")
-    Boolean updateOnTheWay(@RequestBody Long id) {
-        try {
-            return orderService.updateOnTheWay(id);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+    @PutMapping("/update-on-the-way-order") // after packing marked on the way
+    void updateOnTheWay(@RequestBody UpdateOrderRs order) {
+         orderService.updateOnTheWay(order.getOrderId());
     }
 
     @CrossOrigin(value = "*")
@@ -114,13 +98,10 @@ public class OrderController {
     }
 
 
-    @CrossOrigin(value = "*")
-    @PostMapping("/get-order-by-status")
+    @GetMapping("/get-order-by-status")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @Transactional
-
-        // for admin
-    List<OrderRS> getOrderAllOrderByStatus(@RequestParam("token") String token, String status) {
+    GlobalResponse getOrderAllOrderByStatus(@RequestParam("token") String token, String status) {
         List<OrderRS> orderWiseProducts = new ArrayList<>();
         try {
             if (OrderStatus.PLACED.name().equals(status)) {
@@ -142,9 +123,8 @@ public class OrderController {
             e.printStackTrace();
             return null;
         }
-        return orderWiseProducts;
+        return null;
     }
-
 
 
     @CrossOrigin(value = "*")
