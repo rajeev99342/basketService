@@ -1,6 +1,7 @@
 package com.service.entities;
 
 import lombok.Data;
+import org.springframework.data.redis.core.RedisHash;
 
 import javax.persistence.*;
 import java.util.Date;

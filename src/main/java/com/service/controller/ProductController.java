@@ -2,11 +2,13 @@ package com.service.controller;
 
 import com.github.javafaker.Faker;
 import com.google.gson.Gson;
+import com.service.entities.Product;
 import com.service.model.DisplayProductModel;
 import com.service.model.GlobalResponse;
 import com.service.model.ProductModel;
 import com.service.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -70,6 +72,7 @@ public class ProductController {
 
     @CrossOrigin(origins = "*")
     @GetMapping("/fetch-all-product")
+//    @Cacheable("products")
     public GlobalResponse fetchAllProduct(@RequestParam(defaultValue = "0") int page,
                                           @RequestParam(defaultValue = "10") int size) {
         return productService.fetchAllProducts(page,size);
@@ -83,6 +86,7 @@ public class ProductController {
 
     @CrossOrigin(origins = "*")
     @GetMapping("/fetch-all-product-by-category")
+    @Cacheable("productsByCatId")
     public GlobalResponse fetchAllProduct(@RequestParam("catId") Long catId,@RequestParam(defaultValue = "0") int page,
                                                      @RequestParam(defaultValue = "10") int size) {
 
@@ -99,6 +103,7 @@ public class ProductController {
 
     @CrossOrigin(origins = "*")
     @GetMapping("/search-product")
+    @Cacheable(value = "productSearchCache", key = "#searchTerm")
     public GlobalResponse search(@RequestParam(required = false) String searchTerm,
                                             @RequestParam(defaultValue = "0") int page,
                                             @RequestParam(defaultValue = "10") int size) {
@@ -109,13 +114,21 @@ public class ProductController {
 
     @CrossOrigin(origins = "*")
     @GetMapping("/random-add-product")
-    public int add() {
+    public int add(@RequestParam("catId") Long catId,@RequestParam("path") String path) {
         try{
-            return productService.addRandom();
+            return productService.addRandom(catId,path);
         }catch (Exception e){
 
         }
         return 0;
     }
+
+
+
+    @GetMapping("/fetchAll")
+    public GlobalResponse fetchAll() {
+        return productService.fetchAll2();
+    }
+
 
 }

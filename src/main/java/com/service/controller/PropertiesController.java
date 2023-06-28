@@ -26,6 +26,8 @@ public class PropertiesController {
     public GlobalResponse getUserAddress() {
         PropertiesModel model = new PropertiesModel();
         model.setDeliveryHrs(properties.getDeliveryHrs());
+        model.setOrderMoreThan(properties.getOrderMoreThan());
+        model.setShippingCharge(properties.getShippingCharge());
         return GlobalResponse.getSuccess(model);
     }
 

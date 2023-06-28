@@ -7,6 +7,7 @@ import com.service.jwt.JwtTokenUtility;
 import com.service.model.*;
 import com.service.service.OrderService;
 import com.service.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +17,7 @@ import java.util.List;
 
 @RestController
 @CrossOrigin(value = "*")
+@Slf4j
 public class OrderController {
 
 
@@ -104,6 +106,7 @@ public class OrderController {
     GlobalResponse getOrderAllOrderByStatus(@RequestParam("token") String token, String status) {
         List<OrderRS> orderWiseProducts = new ArrayList<>();
         try {
+            log.info(">>>> fetch Order By {} Status",status);
             if (OrderStatus.PLACED.name().equals(status)) {
                 return orderService.fetchAllOrderByStatus(token, OrderStatus.PLACED);
             } else if (OrderStatus.ON_THE_WAY.name().equals(status)) {

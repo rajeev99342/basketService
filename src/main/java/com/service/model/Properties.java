@@ -13,4 +13,11 @@ import java.util.List;
 public class Properties {
     @Value("${deliveryHr}")
     private List<Integer> deliveryHrs;
+
+    @Value("${orderMoreThan}")
+    private Double orderMoreThan;
+
+    @Value("${shippingCharge}")
+    private Double shippingCharge;
+
 }

@@ -13,6 +13,9 @@ import com.service.utilites.Utility;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -34,6 +37,7 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 @Service
 @Slf4j
+@CacheConfig(cacheNames = "productCache")
 public class ProductService {
 
     @Value(value = "${melaa.product.image-path}")
@@ -150,23 +154,26 @@ public class ProductService {
         }
     }
 
+//    @Cacheable(value = "product",key = "#page+\"-\"+#size")
+public List<DisplayProductModel> fetchFromDB(int page, int size){
+        List<DisplayProductModel> productModels = new ArrayList<>();
+        Pageable paging = PageRequest.of(page, size,Sort.by("updatedAt").descending());
+        List<Product> products = productRepo.findProductByIsValid(true,paging);
+        for (Product product : products) {
+            DisplayProductModel displayProductModel = new DisplayProductModel();
+            displayProductModel.setModel(getProductModelByProduct(product));
+            displayProductModel.setImages(imageService.getAllImageByProduct(product));
+            displayProductModel.setQuantityModelList(getQuantityModelFromEntity(quantityRepo.findAllByProduct(product)));
+            displayProductModel.setId(product.getId());
+            productModels.add(displayProductModel);
 
+        }
+        return productModels;
+
+    }
     public GlobalResponse fetchAllProducts(Integer page,Integer size) {
-        GlobalResponse globalResponse = new GlobalResponse();
         try{
-            List<DisplayProductModel> productModels = new ArrayList<>();
-            Pageable paging = PageRequest.of(page, size,Sort.by("updatedAt").descending());
-            List<Product> products = productRepo.findProductByIsValid(true,paging);
-            for (Product product : products) {
-                DisplayProductModel displayProductModel = new DisplayProductModel();
-                displayProductModel.setModel(getProductModelByProduct(product));
-                displayProductModel.setImages(imageService.getAllImageByProduct(product));
-                displayProductModel.setQuantityModelList(getQuantityModelFromEntity(quantityRepo.findAllByProduct(product)));
-                displayProductModel.setId(product.getId());
-                productModels.add(displayProductModel);
-
-            }
-            return GlobalResponse.getSuccess(productModels);
+            return GlobalResponse.getSuccess(fetchFromDB(page,size));
         }catch (Exception e){
             log.error("Failed to fetch product list due to {} ",e.getMessage());
         }
@@ -283,7 +290,7 @@ public class ProductService {
         return GlobalResponse.getSuccess(count);
     }
 
-    public int addRandom() throws Exception {
+    public int addRandom(Long categoryID,String imagePath) throws Exception {
 
         List<MultipartFile> files = displayImage(imagePath);
         Category category = categoryRepo.findById(categoryID).get();
@@ -391,6 +398,21 @@ public class ProductService {
             image.setImgType(ImgType.PRODUCT);
             image.setProduct(product);
             imageRepository.save(image);
+        }
+    }
+    @Cacheable("test2")
+    public GlobalResponse fetchAll2(){
+        doLongRunningTask();
+        return GlobalResponse.getFailure("Failed");
+
+    }
+
+
+    private void doLongRunningTask() {
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 

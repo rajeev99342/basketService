@@ -2,18 +2,25 @@ package com.service;
 
 import com.service.constants.values.IpAddress;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +29,10 @@ import java.util.List;
 @EnableJpaRepositories
 @PropertySource("classpath:application.yaml")
 @EnableDiscoveryClient
-public class ServiceApplication {
+public class ServiceApplication  implements CommandLineRunner {
+
+	@Value("${spring.datasource.url}")
+	private  String mysql;
 
 	@Autowired
 	IpAddress address;
@@ -56,5 +66,9 @@ public class ServiceApplication {
 	}
 
 
+	@Override
+	public void run(String... args) throws Exception {
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> "+mysql);
 
+	}
 }

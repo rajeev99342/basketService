@@ -1,20 +1,40 @@
-version: "3.7"
-
+version: '3.8'
 services:
-  db:
-    image: mysql:5.7
+  redis:
+    container_name: redis
+    image: redis:latest
     restart: always
-    volumes:
-      - todo-mysql-data:/var/lib/mysql
-    environment:
-      MYSQL_PASSWORD: 'root'
-      MYSQL_USER: 'root'
-      MYSQL_DATABASE: 'store'
-      MYSQL_ROOT_PASSWORD: 'root'
     ports:
-      - '3306:3306'
-    expose:
-      - '3306'
+      - "6380:6379"
+    networks:
+      - melaa
+
+  backend:
+    container_name: backend
+    build: .
+#    image: backend:latest
+
+    ports:
+      - "8081:8081"
+    environment:
+      - spring.datasource.url=jdbc:mysql://db.cwdsaavl8v7o.ap-south-1.rds.amazonaws.com:3306/store?createDatabaseIfNotExist=true
+      - spring.datasource.password=root
+      - spring.datasource.username=root
+#      SPRING_PROFILES_ACTIVE: prod
+    networks:
+      - melaa
+
+  service-registry:
+    container_name: registry
+    image: registry:latest
+    ports:
+      - "8761:8761"
+    networks:
+      - melaa
+
+networks:
+  melaa:
+    driver: bridge
 
 volumes:
-      todo-mysql-data:
+  mysql-data:
