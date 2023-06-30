@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3'
 services:
   redis:
     container_name: redis
@@ -11,16 +11,18 @@ services:
 
   backend:
     container_name: backend
-    build: .
-#    image: backend:latest
+#    build: .
+    image: app:latest
 
     ports:
-      - "8081:8081"
+      - "8080:8080"
+    expose:
+      - 8080
     environment:
-      - spring.datasource.url=jdbc:mysql://db.cwdsaavl8v7o.ap-south-1.rds.amazonaws.com:3306/store?createDatabaseIfNotExist=true
-      - spring.datasource.password=root
-      - spring.datasource.username=root
-#      SPRING_PROFILES_ACTIVE: prod
+#      - spring.datasource.url=jdbc:mysql://localhost:3306/store2?createDatabaseIfNotExist=true
+#      - spring.datasource.password=root
+#      - spring.datasource.username=root
+      SPRING_PROFILES_ACTIVE: prod
     networks:
       - melaa
 
@@ -28,13 +30,26 @@ services:
     container_name: registry
     image: registry:latest
     ports:
-      - "8761:8761"
+      - "8762:8761"
+    expose:
+      - 8762
     networks:
       - melaa
+
+#  lb:
+#    container_name: lb
+#    image: lb:latest
+#    ports:
+#      - "9001:9000"
+#    expose:
+#      - 9000
+#    networks:
+#      - melaa
+
+
+volumes:
+  mysql-data:
 
 networks:
   melaa:
     driver: bridge
-
-volumes:
-  mysql-data:

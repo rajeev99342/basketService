@@ -11,7 +11,8 @@ public class TestController {
 
 
     @GetMapping("/test")
-    public void test() {
+    public String test() {
         System.out.println(">>>>>>> port  1 "+port);
+        return "UP";
     }
 }

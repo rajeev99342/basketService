@@ -68,7 +68,7 @@ public class ServiceApplication  implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> "+mysql);
-
+		System.out.println("++++++++++++++++++++++++++++++ Melaa Grocery Store +++++++++++++++++++++++++++++++++++");
+		System.out.println(mysql);
 	}
 }

@@ -1,0 +1,49 @@
+server:
+  port: 0
+spring:
+  application:
+    name: melaa
+  datasource:
+    password: YIqfJBkVtz6QP0tgI4Fq
+    url: jdbc:mysql://db.cwdsaavl8v7o.ap-south-1.rds.amazonaws.com:3306/store?createDatabaseIfNotExist=true
+    username: admin
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL5Dialect
+management:
+  endpoint:
+    loggers:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: loggers
+  main:
+    banner-mode: 'off'
+
+
+
+fcm:
+  service-account-file: baba-basket-645b9-firebase-adminsdk-zyteh-7b351169bd.json
+hibernate:
+  hbm2ddl:
+    auto: update
+jwt:
+  secret: javainuse
+
+eureka:
+  instance:
+    instance-id: ${spring.application.name}:${random.uuid}
+  client:
+    serviceUrl:
+      defaultZone: http://registry:8761/eureka/
+
+melaa:
+  category:
+    id: 1
+  deliveryHr: 1,2,3,4,5,6,24,48,100
+  product:
+    image-path: C:/Users/Dell/Desktop/store/image/drink
