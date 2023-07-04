@@ -23,7 +23,7 @@ public class ProductController {
     ProductService productService;
 
     @CrossOrigin(origins = "*")
-    @PostMapping("/add-product")
+    @PostMapping("/upload/add-product")
     public GlobalResponse saveProduct(@RequestParam("product") String product, @RequestParam("document") List<MultipartFile> images) {
         GlobalResponse globalResponse = new GlobalResponse();
         try {
