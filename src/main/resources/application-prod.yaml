@@ -37,12 +37,12 @@ hibernate:
 jwt:
   secret: javainuse
 
-#eureka:
-#  instance:
-#    instance-id: ${spring.application.name}:${random.uuid}
-#  client:
-#    serviceUrl:
-#      defaultZone: http://registry:8761/eureka/
+eureka:
+  instance:
+    instance-id: ${spring.application.name}:${random.uuid}
+  client:
+    serviceUrl:
+      defaultZone: http://registry:8761/eureka/
 
 melaa:
   master: 7759856927
