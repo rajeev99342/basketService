@@ -1,6 +1,6 @@
 package com.service.controller;
 import com.service.model.GlobalResponse;
-import com.service.service.ImageService;
+import com.service.service.image.ImageServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,7 +13,7 @@ public class ImageController {
 
 
     @Autowired
-    private ImageService imageService;
+    private ImageServiceImpl imageService;
 
 
     @PostMapping("/upload-image")
@@ -29,7 +29,7 @@ public class ImageController {
     @GetMapping("/get-uploaded-image")
     public GlobalResponse getImage(@RequestParam(name = "id") Long id) {
         try {
-            return this.imageService.getImage(id);
+            return imageService.getImage(id);
         }catch (Exception e){
             e.printStackTrace();
         }

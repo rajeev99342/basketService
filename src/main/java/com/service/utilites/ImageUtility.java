@@ -21,7 +21,7 @@ public class ImageUtility {
 
 
     public String getImageName(String type , String name){
-        return Long.toBinaryString(System.currentTimeMillis());
+        return System.currentTimeMillis() + "-" + type + "-" + name;
     }
 
     public void deleteCategoryImage(CategoryModel model){

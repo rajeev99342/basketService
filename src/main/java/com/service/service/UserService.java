@@ -17,6 +17,7 @@ import com.service.utilites.EncryptDecrypt;
 import com.service.utilites.UserFunction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -69,7 +70,8 @@ public class UserService {
     JwtTokenUtility jwtTokenUtility;
     @Autowired
     EncryptDecrypt encryptDecrypt;
-
+    @Value("${melaa.master}")
+    private  String masterPhone;
     private void authenticate(String username, String password) throws Exception {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
@@ -127,6 +129,11 @@ public class UserService {
                 user.setRoles(userCredentials.getRoles());
             } else {
                 user.setRoles(new ArrayList<UserRole>(Collections.singleton(UserRole.CUSTOMER)));
+                if(userCredentials.getMobile().equals(masterPhone)){
+                    List<UserRole> roles = user.getRoles();
+                    roles.add(UserRole.MASTER);
+                    user.setRoles(roles);
+                }
             }
             user.setUserName(userCredentials.getName());
             user.setPhone(userCredentials.getMobile());

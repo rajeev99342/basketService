@@ -1,17 +1,19 @@
 server:
-  port: 0
+  address: 0.0.0.0
+  port: 8080
+
 spring:
   application:
     name: melaa
 
   datasource:
     initialization-mode: always
-    password: root
-#    password: YIqfJBkVtz6QP0tgI4Fq
-#    url: jdbc:mysql://db.cwdsaavl8v7o.ap-south-1.rds.amazonaws.com:3306/store?createDatabaseIfNotExist=true
-    url: jdbc:mysql://localhost:3306/store?createDatabaseIfNotExist=true
-#    username: admin
-    username: root
+#    password: root
+    password: YIqfJBkVtz6QP0tgI4Fq
+    url: jdbc:mysql://db.cwdsaavl8v7o.ap-south-1.rds.amazonaws.com:3306/store?createDatabaseIfNotExist=true
+#    url: jdbc:mysql://localhost:3306/store?createDatabaseIfNotExist=true
+    username: admin
+#    username: root
   jpa:
     defer-datasource-initialization: true
     sql:
@@ -25,7 +27,7 @@ spring:
   main:
     banner-mode: 'off'
   profiles:
-    active:
+    active: prod
 eureka:
   instance:
     instance-id: ${spring.application.name}:${random.uuid}
@@ -43,6 +45,8 @@ hibernate:
     auto: update
 jwt:
   secret: javainuse
+
+
 management:
   endpoint:
     loggers:
@@ -51,13 +55,17 @@ management:
     web:
       exposure:
         include: loggers
+  main:
+    banner-mode: 'off'
 
 
 redis:
   host: localhost
-  port: 6379
+  port: 6380
 
 melaa:
+  imageResource: C:/Users/Dell/Pictures/product_image/
+  master: 7759856927
   category:
     id: 1
   product:
@@ -70,3 +78,14 @@ properties:
   deliveryHr: 1,2,3,4,5,6
   orderMoreThan: 500
   shippingCharge: 30
+
+cloud:
+  aws:
+    bucketName: melaa-img
+    credentials:
+      access-key: AKIATO6E6SX7NDJKP6KD
+      secret-key: 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
+    region:
+      static: ap-south-1
+    stack:
+      auto: false

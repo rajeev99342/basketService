@@ -7,6 +7,7 @@ import com.service.entities.*;
 import com.service.jwt.JwtTokenUtility;
 import com.service.model.*;
 import com.service.repos.*;
+import com.service.service.image.ImageServiceImpl;
 import com.service.utilites.Payment;
 import com.service.websocket.WebSocketMessageSender;
 import lombok.extern.slf4j.Slf4j;
@@ -20,9 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.text.SimpleDateFormat;
 import java.time.*;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -64,7 +63,7 @@ public class OrderService {
     OrderDetailsRepository orderDetailsRepository;
 
     @Autowired
-    ImageService imageService;
+    ImageServiceImpl imageService;
 
     @Autowired
     JwtTokenUtility jwtTokenUtility;

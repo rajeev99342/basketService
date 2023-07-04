@@ -28,7 +28,7 @@ import java.util.List;
 @ComponentScan(basePackages = {"com.service.*"})
 @EnableJpaRepositories
 @PropertySource("classpath:application.yaml")
-@EnableDiscoveryClient
+//@EnableDiscoveryClient
 public class ServiceApplication  implements CommandLineRunner {
 
 	@Value("${spring.datasource.url}")

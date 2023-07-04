@@ -10,6 +10,7 @@ import com.service.model.GlobalResponse;
 import com.service.repos.CategoryRepo;
 import com.service.repos.ImageDetailsRepository;
 import com.service.repos.ImageRepository;
+import com.service.service.image.ImageServiceImpl;
 import com.service.utilites.ImageUtility;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,7 @@ public class CategoryService {
     @Autowired
     CategoryRepo categoryRepo;
     @Autowired
-    ImageService imageService;
+    ImageServiceImpl imageService;
     @Autowired
     ImageDetailsRepository imageDetailsRepository;
     @Autowired

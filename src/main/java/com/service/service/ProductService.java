@@ -8,6 +8,7 @@ import com.service.entities.*;
 import com.service.jwt.JwtTokenUtility;
 import com.service.model.*;
 import com.service.repos.*;
+import com.service.service.image.ImageServiceImpl;
 import com.service.utilites.ImageUtility;
 import com.service.utilites.Utility;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -54,7 +54,7 @@ public class ProductService {
     @Autowired
     ProductRepo productRepo;
     @Autowired
-    ImageService imageService;
+    ImageServiceImpl imageService;
 
     @Autowired
     ImageRepository imageRepository;
@@ -98,7 +98,6 @@ public class ProductService {
         Product product = null;
         GlobalResponse response = null;
         try {
-
             if (null != model.getId()) {
                 product = productRepo.findById(model.getId()).get();
             }

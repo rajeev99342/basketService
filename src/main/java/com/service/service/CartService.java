@@ -4,6 +4,7 @@ import com.service.entities.*;
 import com.service.jwt.JwtTokenUtility;
 import com.service.model.*;
 import com.service.repos.*;
+import com.service.service.image.ImageServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -37,7 +38,7 @@ public class CartService {
     ProductService productService;
 
     @Autowired
-    ImageService imageService;
+    ImageServiceImpl imageService;
     @Autowired
     InstockRepo instockRepo;
     @Autowired
