@@ -1,5 +1,15 @@
 version: '3'
 services:
+  service-registry:
+    container_name: registry
+    image: registry:latest
+    ports:
+      - "8761:8761"
+    expose:
+      - 8761
+    networks:
+      - melaa
+
   redis:
     container_name: redis
     image: redis:latest
@@ -27,15 +37,7 @@ services:
     networks:
       - melaa
 
-  service-registry:
-    container_name: registry
-    image: registry:latest
-    ports:
-      - "8761:8761"
-    expose:
-      - 8762
-    networks:
-      - melaa
+
 
   lb:
     container_name: lb
@@ -43,7 +45,7 @@ services:
     ports:
       - "9000:9000"
     expose:
-      - 9001
+      - 9000
     depends_on:
       - backend
     networks:

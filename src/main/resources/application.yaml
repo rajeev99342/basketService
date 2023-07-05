@@ -1,6 +1,6 @@
 server:
   address: 0.0.0.0
-  port: 8080
+  port: 0
 
 spring:
   application:
@@ -8,12 +8,12 @@ spring:
 
   datasource:
     initialization-mode: always
-#    password: root
+    #    password: root
     password: YIqfJBkVtz6QP0tgI4Fq
     url: jdbc:mysql://db.cwdsaavl8v7o.ap-south-1.rds.amazonaws.com:3306/store?createDatabaseIfNotExist=true
-#    url: jdbc:mysql://localhost:3306/store?createDatabaseIfNotExist=true
+    #    url: jdbc:mysql://localhost:3306/store?createDatabaseIfNotExist=true
     username: admin
-#    username: root
+  #    username: root
   jpa:
     defer-datasource-initialization: true
     sql:
@@ -61,7 +61,7 @@ management:
 
 redis:
   host: localhost
-  port: 6380
+  port: 6379
 
 melaa:
   imageResource: C:/Users/Dell/Pictures/product_image/

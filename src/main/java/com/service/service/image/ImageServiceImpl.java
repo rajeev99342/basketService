@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import java.io.File;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -52,9 +52,6 @@ public class ImageServiceImpl implements ImageHandler {
         GlobalResponse globalResponse = null;
         try {
             ImageDetails imageDetails = imageDetailsRepository.findImageDetailsById(id);
-//            File file = new File(imageDetails.getPath());
-//            InputStream in = new FileInputStream(file);
-//            Object byteArray = IOUtils.toByteArray(in);
             StorageService storage = imageFactory.getStorageType(env);
             return storage.getImage(id);
 //            globalResponse = new GlobalResponse("fetched successfully", HttpStatus.OK.value(), true, byteArray);
