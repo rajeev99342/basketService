@@ -1,9 +1,6 @@
 package com.service.controller;
 
-import com.github.javafaker.Faker;
 import com.google.gson.Gson;
-import com.service.entities.Product;
-import com.service.model.DisplayProductModel;
 import com.service.model.GlobalResponse;
 import com.service.model.ProductModel;
 import com.service.service.ProductService;
@@ -12,7 +9,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @CrossOrigin(origins = "*")
