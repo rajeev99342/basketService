@@ -15,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @Slf4j
 @CrossOrigin(origins = "*")
 @RestController
@@ -28,18 +30,17 @@ public class CategoryController {
 
 
     @CrossOrigin(origins = "*")
-    @PostMapping("/upload/add-category")
+    @PostMapping("/add-category")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-    public GlobalResponse saveCategory(@RequestParam("file") MultipartFile file,@RequestParam("category") String category) {
+    public GlobalResponse saveCategory(@RequestParam("files") List<MultipartFile> files, @RequestParam("category") String category) {
         GlobalResponse globalResponse = new GlobalResponse();
         try {
             String categoryString = category;
             Gson gson = new Gson();
             CategoryModel categoryModel = gson.fromJson(categoryString, CategoryModel.class);
             String imageReference = imageUtility.getImageName("category", categoryModel.getCategoryName());
-            GlobalResponse imageResponse = imageService.saveImage(file, imageReference);
+            GlobalResponse imageResponse = imageService.saveImage(files.get(0), imageReference);
             if (imageResponse.getHttpStatusCode() == HttpStatus.OK.value()) {
-
                 globalResponse = categoryService.addCategory(categoryModel, (ImageDetails) imageResponse.getBody());
             }
         } catch (Exception e) {

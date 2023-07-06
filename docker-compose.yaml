@@ -1,6 +1,6 @@
 version: '3'
 services:
-  service-registry:
+  registry:
     container_name: registry
     image: registry:latest
     ports:
@@ -23,7 +23,7 @@ services:
 #    build: .
     image: backend:latest
     depends_on:
-      - service-registry
+      - registry
 
     deploy:
       replicas: 3

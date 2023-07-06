@@ -23,14 +23,14 @@ public class ProductController {
     ProductService productService;
 
     @CrossOrigin(origins = "*")
-    @PostMapping("/upload/add-product")
-    public GlobalResponse saveProduct(@RequestParam("product") String product, @RequestParam("document") List<MultipartFile> images) {
+    @PostMapping("/add-product")
+    public GlobalResponse saveProduct(@RequestParam("product") String product, @RequestParam("files") List<MultipartFile> files) {
         GlobalResponse globalResponse = new GlobalResponse();
         try {
             String productString = product;
             Gson gson = new Gson();
             ProductModel productModel = gson.fromJson(productString, ProductModel.class);
-            return productService.addProduct(productModel, images);
+            return productService.addProduct(productModel, files);
         } catch (Exception e) {
             e.printStackTrace();
             globalResponse.setMessage("Failed");
