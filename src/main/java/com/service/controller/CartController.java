@@ -2,6 +2,7 @@ package com.service.controller;
 
 import com.service.model.*;
 import com.service.service.CartService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,6 +10,7 @@ import java.util.List;
 
 @CrossOrigin(origins = "*")
 @RestController
+@Slf4j
 public class CartController {
     @Autowired
     CartService cartService;
@@ -19,7 +21,7 @@ public class CartController {
         try {
             return cartService.addToCart(cartProductMappingModel);
         } catch (Exception e) {
-            e.printStackTrace();
+
             return new GlobalResponse("Failed " + e, 500);
         }
     }
@@ -36,7 +38,7 @@ public class CartController {
         try {
             return cartService.getItemCount(token);
         } catch (Exception e) {
-            e.printStackTrace();
+           log.error("Failed to get count toke : {}",token);
             return null;
         }
     }
@@ -48,7 +50,7 @@ public class CartController {
         try {
             return cartService.deleteCartItem(cartDeleteModel);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(">>> Failed to delete cart item Ex : {}", e.getLocalizedMessage());
             return null;
         }
     }
@@ -59,7 +61,7 @@ public class CartController {
         try {
             return cartService.updateCount(cartDetailsRequestModel);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(">>> Failed to update cart count Ex : {}", e.getLocalizedMessage());
             return null;
         }
     }

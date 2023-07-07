@@ -46,6 +46,8 @@ eureka:
       defaultZone: http://registry:8761/eureka/
 
 melaa:
+  storage:
+    type: s3
   master: 7759856927
   imageResource: /root/image/
   category:

@@ -283,7 +283,7 @@ public class UserService {
 
     }
 
-    public GlobalResponse signInAs(UserRole role, String phone, Authentication authentication) {
+    public GlobalResponse signInAs(UserRole role, String phone) {
         User user = userRepo.findUserByPhone(phone);
         user.setLoggedInAs(role);
         userRepo.save(user);

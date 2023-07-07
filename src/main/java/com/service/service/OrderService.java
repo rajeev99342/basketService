@@ -307,7 +307,7 @@ public class OrderService {
             webSocketMessageSender.notifyUpdateOrderToUser(order.getUser().getPhone(), "/topic/order/update/", webSocketMessageModel);
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+           log.error(">>> Failed to canceled order EX : {} | {} | Order ID : {}",e.getLocalizedMessage(),user.getPhone(),id);
         }
 
         return false;
@@ -344,7 +344,7 @@ public class OrderService {
        try{
            firebasePushNotificationService.sendPushMessage(prepareNotificationData(status,message,image,token));
        }catch ( Exception e){
-            e.printStackTrace();
+            log.error(">>> Failed to send notification EX : {}",e.getLocalizedMessage());
        }
 
 
@@ -486,7 +486,6 @@ public class OrderService {
             Instant start = order.getOrderDate().toInstant();
             Instant end = Instant.now();
             Duration timeElapsed = Duration.between(start, end);
-            System.out.println("Time taken: " + timeElapsed.toMillis() + " milliseconds");
             Integer durationInHr = Math.toIntExact(timeElapsed.toMillis() / (1000 * 60 * 60));
             if (durationInHr > 18) {
                 log.error("Order can not be return because its {} hr old ", durationInHr);
@@ -502,7 +501,6 @@ public class OrderService {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
             log.error("Failed return order by user {} due to {}", order.getUser().getPhone(),e.getMessage());
             return new GlobalResponse("Failed to initiate return : " + e.getMessage(), HttpStatus.CONFLICT.value());
         }

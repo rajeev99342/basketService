@@ -6,6 +6,7 @@ import com.service.entities.Product;
 import com.service.model.CategoryModel;
 import com.service.repos.ImageDetailsRepository;
 import com.service.repos.ImageRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,7 @@ import java.io.File;
 import java.util.List;
 
 @Component
+@Slf4j
 public class ImageUtility {
     @Autowired
     ImageDetailsRepository imageDetailsRepository;
@@ -21,6 +23,7 @@ public class ImageUtility {
 
 
     public String getImageName(String type , String name){
+        name = name.replaceAll("\\s", "-").replaceAll("\\|","-").replaceAll("---","-");
         return System.currentTimeMillis() + "-" + type + "-" + name;
     }
 
@@ -32,9 +35,9 @@ public class ImageUtility {
         imageRepository.delete(imageRepository.findImageByCategoryId(model.getId()));
         ImageDetails imageDetails1 = imageDetailsRepository.findImageDetailsById(img.getImageDetails().getId());
         if(null != imageDetails1){
-            System.out.println("Details does not deleted");
+            log.error("Details does not deleted");
         }else{
-            System.out.println("Details deleted");
+            log.info("Details deleted");
         }
     }
 
@@ -48,9 +51,9 @@ public class ImageUtility {
             imageRepository.delete(img);
             ImageDetails imageDetails1 = imageDetailsRepository.findImageDetailsById(img.getImageDetails().getId());
             if(null != imageDetails1){
-                System.out.println("Details does not deleted");
+                log.error("Details does not deleted");
             }else{
-                System.out.println("Details deleted");
+                log.info("Details deleted");
             }
         }
 

@@ -27,9 +27,6 @@ import java.util.List;
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Transactional
 public class UserController {
-
-
-
     @Autowired
     TwilioMessageSenderService twilioMessageSenderService;
     @Autowired
@@ -51,8 +48,8 @@ public class UserController {
 
     @CrossOrigin(origins = "*")
     @PostMapping("/sign-in-as")
-    public GlobalResponse loginAs(@RequestParam("userPhone") String userPhone, @RequestParam("role") UserRole role, Authentication authentication) {
-        return userService.signInAs(role, userPhone, authentication);
+    public GlobalResponse loginAs(@RequestBody UserCredentials loginDetails) {
+        return userService.signInAs(loginDetails.getRoles().get(0), loginDetails.getMobile());
     }
 
 

@@ -12,7 +12,7 @@ public class ImageFactory {
     S3storageService s3storageService;
 
     public  StorageService getStorageType(String env){
-            if(env.equals("prod")){
+            if(env.equals("s3")){
                 return s3storageService;
             }
             return localStorageService;

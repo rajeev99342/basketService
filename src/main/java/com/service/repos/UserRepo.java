@@ -30,6 +30,6 @@ public interface UserRepo extends JpaRepository<User,Long> {
     @Query(value = "SELECT u.USER_NAME as name, GROUP_CONCAT(r.roles) as roles, a.ADDRESS_LINE as address, u.lat as lat, u.lon as lon, u.phone as phone FROM User u JOIN User_roles r ON u.USER_ID = r.User_USER_ID JOIN Address a ON u.USER_ID = a.USER_ID GROUP BY u.USER_NAME, a.ADDRESS_LINE,u.lat, u.lon, u.phone",nativeQuery = true)
     List<IUserModel> findUserSummary(Pageable pageable);
 
-    @Query(value = "SELECT u.USER_NAME as name, GROUP_CONCAT(r.roles) as roles, a.ADDRESS_LINE as address, u.lat as lat, u.lon as lon, u.phone as phone FROM User u JOIN User_roles r ON u.USER_ID = r.User_USER_ID JOIN Address a ON u.USER_ID = a.USER_ID where r.roles = :role GROUP BY u.USER_NAME, a.ADDRESS_LINE,u.lat, u.lon, u.phone",nativeQuery = true)
+    @Query(value = "SELECT u.user_name as name, a.address_line as address, u.lat as lat, u.lon as lon, u.phone as phone FROM user u INNER JOIN user_roles r ON u.user_id = r.user_user_id INNER JOIN address a ON u.user_id = a.user_id where r.roles = :role",nativeQuery = true)
     List<IUserModel> findUserSummaryByRole(@Param("role") String role,Pageable pageable);
 }

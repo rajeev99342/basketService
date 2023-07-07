@@ -26,8 +26,8 @@ public class ImageServiceImpl implements ImageHandler {
 
     @Autowired
     ImageFactory imageFactory;
-    @Value("${spring.profiles.active}")
-    private String env;
+    @Value("${melaa.storage.type}")
+    private String type;
 
 
     @Autowired
@@ -52,11 +52,11 @@ public class ImageServiceImpl implements ImageHandler {
         GlobalResponse globalResponse = null;
         try {
             ImageDetails imageDetails = imageDetailsRepository.findImageDetailsById(id);
-            StorageService storage = imageFactory.getStorageType(env);
+            StorageService storage = imageFactory.getStorageType(type);
             return storage.getImage(id);
 //            globalResponse = new GlobalResponse("fetched successfully", HttpStatus.OK.value(), true, byteArray);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to fetch the image due to EX : {}",e.getLocalizedMessage());
             globalResponse = new GlobalResponse("unable to fetch image", HttpStatus.INTERNAL_SERVER_ERROR.value());
         }
 
@@ -65,7 +65,7 @@ public class ImageServiceImpl implements ImageHandler {
 
     @Override
     public GlobalResponse saveImage(MultipartFile photo, String imageReference) throws IOException {
-        StorageService storage = imageFactory.getStorageType(env);
+        StorageService storage = imageFactory.getStorageType(type);
         GlobalResponse res = storage.uploadFile(photo, imageReference);
         ImageDetails imageDetails = saveImageDetails((Path) res.getBody(), photo, imageReference);
         GlobalResponse successfully_created = null;

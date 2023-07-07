@@ -82,7 +82,7 @@ public class ProductController {
 
     @CrossOrigin(origins = "*")
     @GetMapping("/fetch-all-product-by-category")
-    @Cacheable("productsByCatId")
+//    @Cacheable("productsByCatId")
     public GlobalResponse fetchAllProduct(@RequestParam("catId") Long catId,@RequestParam(defaultValue = "0") int page,
                                                      @RequestParam(defaultValue = "10") int size) {
 
@@ -99,7 +99,7 @@ public class ProductController {
 
     @CrossOrigin(origins = "*")
     @GetMapping("/search-product")
-    @Cacheable(value = "productSearchCache", key = "#searchTerm")
+//    @Cacheable(value = "productSearchCache", key = "#searchTerm")
     public GlobalResponse search(@RequestParam(required = false) String searchTerm,
                                             @RequestParam(defaultValue = "0") int page,
                                             @RequestParam(defaultValue = "10") int size) {

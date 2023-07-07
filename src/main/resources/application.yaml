@@ -27,7 +27,7 @@ spring:
   main:
     banner-mode: 'off'
   profiles:
-    active: prod
+    active:
 eureka:
   instance:
     instance-id: ${spring.application.name}:${random.uuid}
@@ -64,6 +64,9 @@ redis:
   port: 6379
 
 melaa:
+  storage:
+    type: s3
+#    type: file
   imageResource: C:/Users/Dell/Pictures/product_image/
   master: 7759856927
   category:

@@ -33,9 +33,10 @@ public class OrderController {
     @PostMapping("/place-order")
     GlobalResponse placeOrder(@RequestBody OrderModel orderModel) {
         try {
+            log.info("+++ Order placed by : {}",orderModel.getUserPhone());
             return orderService.placeOrder(orderModel);
         } catch (Exception e) {
-            e.printStackTrace();
+           log.error(">>> Failed to place order Ex : {}",e.getLocalizedMessage());
             return null;
         }
     }

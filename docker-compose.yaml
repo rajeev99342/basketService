@@ -2,7 +2,7 @@ version: '3'
 services:
   registry:
     container_name: registry
-    image: registry:latest
+    image: waralgorithmspace2/registry:latest
     ports:
       - "8761:8761"
     expose:
@@ -21,7 +21,7 @@ services:
 
   backend:
 #    build: .
-    image: backend:latest
+    image: waralgorithmspace2/backend:latest
     depends_on:
       - registry
 
@@ -41,12 +41,13 @@ services:
 
   lb:
     container_name: lb
-    image: lb:latest
+    image: waralgorithmspace2/lb:latest
     ports:
       - "9000:9000"
     expose:
       - 9000
     depends_on:
+      - registry
       - backend
     networks:
       - melaa
