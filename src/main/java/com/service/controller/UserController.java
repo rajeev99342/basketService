@@ -6,10 +6,7 @@ import com.service.constants.enums.UserRole;
 import com.service.entities.User;
 import com.service.jwt.JwtTokenUtility;
 import com.service.jwt.MyUserDetailsService;
-import com.service.model.AddressModel;
-import com.service.model.GlobalResponse;
-import com.service.model.LocationCord;
-import com.service.model.UserCredentials;
+import com.service.model.*;
 import com.service.service.TwilioMessageSenderService;
 import com.service.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -109,8 +106,8 @@ public class UserController {
 
     @CrossOrigin(origins = "*")
     @PostMapping("/update-user-token")
-    public GlobalResponse updateUserToken(@RequestParam("token") String token, @RequestParam("jwt") String jwt) {
-        return userService.updateUserToken(token, jwt);
+    public GlobalResponse updateUserToken(@RequestBody FirebaseTokenRQ firebaseTokenRQ) {
+        return userService.updateUserToken(firebaseTokenRQ.getFirebaseToken(), firebaseTokenRQ.getJwtToken());
     }
 
 
