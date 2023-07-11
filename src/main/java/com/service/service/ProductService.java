@@ -219,6 +219,20 @@ public List<DisplayProductModel> fetchFromDB(int page, int size){
         return productModel;
     }
 
+    public ProductModel getProductModelByProductV2(Product product) {
+        ProductModel productModel = new ProductModel();
+        productModel.setDiscount(product.getDiscount());
+        productModel.setBrand(product.getProdBrand());
+        productModel.setUnit(product.getUnit());
+        productModel.setSellingPrice(product.getSellingPrice());
+        productModel.setDesc(product.getDescription());
+        productModel.setId(product.getId());
+        productModel.setName(product.getName());
+        productModel.setQuantity(product.getQuantity());
+        return productModel;
+    }
+
+
     private CategoryModel getCategoryModel(Category category) {
         CategoryModel categoryModel = new CategoryModel();
         categoryModel.setCategoryType(category.getCatType());
@@ -243,12 +257,26 @@ public List<DisplayProductModel> fetchFromDB(int page, int size){
 
     }
 
-    private List<DisplayProductModel> convertProductIntoDisplayProduct(List<Product> products) {
+    public List<DisplayProductModel> convertProductIntoDisplayProduct(List<Product> products) {
         List<DisplayProductModel> productModels = new ArrayList<>();
-
         for (Product product : products) {
             DisplayProductModel displayProductModel = new DisplayProductModel();
             displayProductModel.setModel(getProductModelByProduct(product));
+            displayProductModel.setImages(imageService.getAllImageByProduct(product));
+            displayProductModel.setQuantityModelList(getQuantityModelFromEntity(quantityRepo.findAllByProduct(product)));
+            displayProductModel.setId(product.getId());
+            productModels.add(displayProductModel);
+
+        }
+        return productModels;
+    }
+
+    @Transactional
+    public List<DisplayProductModel> convertProductIntoDisplayProductV2(List<Product> products) {
+        List<DisplayProductModel> productModels = new ArrayList<>();
+        for (Product product : products) {
+            DisplayProductModel displayProductModel = new DisplayProductModel();
+            displayProductModel.setModel(getProductModelByProductV2(product));
             displayProductModel.setImages(imageService.getAllImageByProduct(product));
             displayProductModel.setQuantityModelList(getQuantityModelFromEntity(quantityRepo.findAllByProduct(product)));
             displayProductModel.setId(product.getId());

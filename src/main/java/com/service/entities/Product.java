@@ -9,17 +9,21 @@ import java.util.List;
 
 @Data
 @Entity
-@Table(name = "PRODUCT")
+@Table(name = "product",indexes = {
+        @Index(name = "ID", columnList = "ID ASC"),
+        @Index(name = "CAT_ID", columnList = "CAT_ID ASC")
+
+})
 public class Product{
     @Id
     @Column(name = "ID")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "NAME")
+    @Column(name = "NAME",columnDefinition = "TEXT")
     private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "CAT_ID",referencedColumnName = "CAT_ID")
     private Category category;
 

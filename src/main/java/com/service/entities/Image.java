@@ -15,11 +15,11 @@ public class Image {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "PRODUCT_ID",referencedColumnName = "ID")
     private Product product;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "CAT_ID",referencedColumnName = "CAT_ID")
     private Category category;
 
@@ -32,7 +32,7 @@ public class Image {
     @JoinColumn(name = "USER_ID",referencedColumnName = "USER_ID")
     private User user;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JoinColumn(name = "IMAGE_DETAILS_ID",referencedColumnName = "IMAGE_DETAILS_ID")
     private ImageDetails imageDetails;
 

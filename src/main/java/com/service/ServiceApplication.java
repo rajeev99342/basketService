@@ -1,6 +1,7 @@
 package com.service;
 
 import com.service.constants.values.IpAddress;
+import com.service.service.homepage.HomePageHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -27,6 +28,9 @@ public class ServiceApplication  implements CommandLineRunner {
 
 	@Value("${spring.datasource.url}")
 	private  String mysql;
+
+	@Autowired
+	HomePageHandler homePageHandler;
 
 	@Autowired
 	IpAddress address;
@@ -62,6 +66,7 @@ public class ServiceApplication  implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
+		homePageHandler.putHomePageData();
 		System.out.println("++++++++++++++++++++++++++++++ Melaa Grocery Store +++++++++++++++++++++++++++++++++++");
 		System.out.println(mysql);
 	}
