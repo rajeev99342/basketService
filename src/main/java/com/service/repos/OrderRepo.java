@@ -17,6 +17,10 @@ public interface OrderRepo extends JpaRepository<Order,Long> {
 //        List<Order> findOrderByUserAndStatus(@Param("user") User user,@Param("orderStatus") List<String> orderStatus);
         List<Order> findOrderByUser(User user, Pageable pageable);
 
+        @Query(value = "select * from `order` as o inner join `user` as u on u.USER_ID=o.USER_ID where u.USER_ID= :user_id",nativeQuery = true)
+        List<Order> findOrderByUser(@Param("user_id") Long user_id, Pageable pageable);
+
+
         @Query(value = "select * from `order` as o inner join `user` as u on u.USER_ID=o.USER_ID where u.USER_ID= :user_id and o.ORDER_DATE >= :order_date",nativeQuery = true)
         List<Order> findOrderByDate(@Param("user_id") Long user_id,@Param("order_date") Date order_date, Pageable pageable);
 
@@ -24,7 +28,7 @@ public interface OrderRepo extends JpaRepository<Order,Long> {
 //        List<Order> findOrderByDate(@Param("user_id") Long user_id);
 //
 
-        List<Order> findOrderByOrderStatus(OrderStatus status);
+        List<Order> findOrderByOrderStatus(OrderStatus status,Pageable pageable);
 
         List<Order> findOrderByOrderStatusAndUser(OrderStatus status,User user);
 

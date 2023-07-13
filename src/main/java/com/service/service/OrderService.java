@@ -200,7 +200,8 @@ public class OrderService {
             Date date = Date.from(currentDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
             User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
             Address address = addressRepo.findAddressByUserId(user.getId());
-            List<Order> orders = orderRepo.findOrderByDate(user.getId(),date,pageable);
+            List<Order> orders = orderRepo.findOrderByUser(user.getId(),pageable);
+//            List<Order> orders = orderRepo.findOrderByDate(user.getId(),date,pageable);
             List<OrderRS> orderRsList = new ArrayList<>();
             for (Order order : orders) {
                 if (statusList.contains(order.getOrderStatus())) {
@@ -214,7 +215,7 @@ public class OrderService {
                     orderRS.setOrderStatus(order.getOrderStatus());
                     orderRS.setAddressModel(convertIntoAddressModel(address));
                     List<ProductOrderDetails> deliveryProductList = new ArrayList<>();
-                    List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder(order);
+                    List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder_Id(order.getId());
                     for (OrderDetails productDelivery : productDeliveries) {
                         ProductOrderDetails deliveryProductDetails = new ProductOrderDetails();
                         deliveryProductDetails.setDeliveryAgentDetails("Rajeev");
@@ -222,6 +223,7 @@ public class OrderService {
                         deliveryProductDetails.setProductName(productDelivery.getProduct().getName());
                         deliveryProductDetails.setOrderStatus(productDelivery.getOrderStatus());
                         deliveryProductDetails.setPrice(productDelivery.getItemPrice());
+                        deliveryProductDetails.setTotalProductCount(productDelivery.getQuantity());
                         deliveryProductDetails.setImage(imageService.getAllImageByProduct(productDelivery.getProduct()));
                         deliveryProductList.add(deliveryProductDetails);
                     }
@@ -400,12 +402,12 @@ public class OrderService {
 
     // for admin
     @Transactional
-    public GlobalResponse fetchAllOrderByStatus(String token, OrderStatus status) {
+    public GlobalResponse fetchAllOrderByStatus(String token, OrderStatus status,Pageable pageable) {
         try{
             User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
             List<UserRole> roles = user.getRoles();
             if (roles.contains(ADMIN)) {
-                List<Order> orders = orderRepo.findOrderByOrderStatus(status);
+                List<Order> orders = orderRepo.findOrderByOrderStatus(status,pageable);
                 List<OrderRS> orderDetailsModelList = new ArrayList<>();
                 for (Order order : orders) {
                     OrderRS orderDetailsModel = new OrderRS();

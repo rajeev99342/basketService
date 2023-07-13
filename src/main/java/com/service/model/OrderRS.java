@@ -40,6 +40,7 @@ public class OrderRS {
     private String latitude;
     private String longitude;
     private String addressLine;
+    private Integer quantity;
 
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private transient User deliveryAgent;

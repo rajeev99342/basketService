@@ -9,6 +9,9 @@ import com.service.service.OrderService;
 import com.service.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 import javax.transaction.Transactional;
@@ -104,22 +107,26 @@ public class OrderController {
     @GetMapping("/get-order-by-status")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @Transactional
-    GlobalResponse getOrderAllOrderByStatus(@RequestParam("token") String token, String status) {
+    GlobalResponse getOrderAllOrderByStatus(@RequestParam("token") String token, String status, @RequestParam(defaultValue = "0") int page,
+                                            @RequestParam(defaultValue = "10") int size) {
         List<OrderRS> orderWiseProducts = new ArrayList<>();
         try {
+            Pageable pageable =
+                    PageRequest.of(page, size);
+
             log.info(">>>> fetch Order By {} Status",status);
             if (OrderStatus.PLACED.name().equals(status)) {
-                return orderService.fetchAllOrderByStatus(token, OrderStatus.PLACED);
+                return orderService.fetchAllOrderByStatus(token, OrderStatus.PLACED,pageable);
             } else if (OrderStatus.ON_THE_WAY.name().equals(status)) {
-                return orderService.fetchAllOrderByStatus(token, OrderStatus.ON_THE_WAY);
+                return orderService.fetchAllOrderByStatus(token, OrderStatus.ON_THE_WAY,pageable);
             } else if (OrderStatus.ACCEPTED.name().equals(status)) {
-                return orderService.fetchAllOrderByStatus(token, OrderStatus.ACCEPTED);
+                return orderService.fetchAllOrderByStatus(token, OrderStatus.ACCEPTED,pageable);
             } else if (OrderStatus.DISPATCHED.name().equals(status)) {
-                return orderService.fetchAllOrderByStatus(token, OrderStatus.DISPATCHED);
+                return orderService.fetchAllOrderByStatus(token, OrderStatus.DISPATCHED,pageable);
             } else if (OrderStatus.DELIVERED.name().equals(status)) {
-                return orderService.fetchAllOrderByStatus(token, OrderStatus.DELIVERED);
+                return orderService.fetchAllOrderByStatus(token, OrderStatus.DELIVERED,pageable);
             } else if (OrderStatus.RETURN_INITIATED.name().equals(status)) {
-                return orderService.fetchAllOrderByStatus(token, OrderStatus.RETURN_INITIATED);
+                return orderService.fetchAllOrderByStatus(token, OrderStatus.RETURN_INITIATED,pageable);
             } else {
                 System.out.println("No order");
             }

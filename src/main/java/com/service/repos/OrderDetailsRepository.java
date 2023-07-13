@@ -9,6 +9,7 @@ import java.util.List;
 
 public interface OrderDetailsRepository extends JpaRepository<OrderDetails,Long> {
     List<OrderDetails> findProductDeliveryByOrder(Order order);
+    List<OrderDetails> findProductDeliveryByOrder_Id(Long id);
     List<OrderDetails> findProductDeliveryByOrderAndOrderStatus(Order order, OrderStatus status);
 
 }
