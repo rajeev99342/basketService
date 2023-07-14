@@ -71,24 +71,27 @@ public class OrderService {
     @Autowired
     QuantityRepo quantityRepo;
 
-    public GlobalResponse placeOrder(OrderModel orderModel) {
-        String sellerToken = null;
+
+    @Transactional
+    public GlobalResponse placeOrder(OrderModel orderModel) throws Exception {
+        List<String> successfullyDeliveredItemsId = new ArrayList<>();
         List<ProductOrderDetails> productWiseOrders = new ArrayList<>();
         User user = userRepo.findUserByPhone(orderModel.getUserPhone());
         Address address = addressRepo.findAddressByUserId(user.getId());
         Order order = new Order();
-        order.setOrderDate(new Date(System.currentTimeMillis()));
         LocalDate localDate = LocalDate.now().plusDays(2);
         Date expectedDate = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
         order.setExpectedDeliveryDate(expectedDate);
         order.setUser(user);
         order.setLatitude(address.getLatitude());
         order.setLongitude(address.getLongitude());
+        order.setOrderDate(new Date());
         order.setAddressLine(address.getAddressLine());
         order.setModifiedDate(new Date());
         order.setOrderStatus(OrderStatus.PLACED);
         order.setTotalCost(orderModel.getFinalAmount());
         orderRepo.save(order);
+        successfullyDeliveredItemsId = orderModel.getCartProducts().stream().map(p->p.getCartDetailsId().toString()).collect(Collectors.toList());
         List<String> outOfStockProducts = new ArrayList<>();
         for (DisplayCartProduct cartProduct : orderModel.getCartProducts()) {
             ProductOrderDetails productWiseOrder = new ProductOrderDetails();
@@ -100,9 +103,8 @@ public class OrderService {
                         productDelivery.setOrderStatus(OrderStatus.PLACED);
                         productDelivery.setProduct(productRepo.findById(cartProduct.getId()).get());
                         productDelivery.setOrder(order);
-                        productDelivery.setItemPrice(cartProduct.getQuantityModel().getPrice()*cartProduct.getSelectedCount());
+                        productDelivery.setItemPrice(cartProduct.getQuantityModel().getPrice());
                         productDelivery.setQuantity(cartProduct.getSelectedCount());
-                        sellerToken = getSellerToken(cartProduct.getModel().getSellerId());
                         orderDetailsRepository.save(productDelivery);
                         productWiseOrder.setProductId(cartProduct.getId());
                         productWiseOrder.setOrderStatus(OrderStatus.PLACED);
@@ -117,14 +119,13 @@ public class OrderService {
                     outOfStockProducts.add(cartProduct.getModel().getName());
                     productWiseOrder.setTotalProductCount(cartProduct.getSelectedCount());
                     productWiseOrder.setOrderStatus(OrderStatus.CANCELED_DUE_TO_OUT_OF_STOCK);
-                    return new GlobalResponse(OrderStatus.CANCELED_DUE_TO_OUT_OF_STOCK.name(),HttpStatus.NOT_FOUND.value(),false,cartProduct);
                 }
 
             } catch (Exception e) {
                 LOG.error("Unable to process order by user "+order.getUser().getPhone(),e);
                 productWiseOrder.setProductId(cartProduct.getId());
                 productWiseOrder.setOrderStatus(OrderStatus.FAILED_DUE_TO_TECHNICAL_ISSUE);
-                return new GlobalResponse(OrderStatus.FAILED_DUE_TO_TECHNICAL_ISSUE.name(),HttpStatus.INTERNAL_SERVER_ERROR.value());
+                throw new Exception(OrderStatus.FAILED_DUE_TO_TECHNICAL_ISSUE.name());
             }
 
             productWiseOrders.add(productWiseOrder);
@@ -134,25 +135,24 @@ public class OrderService {
         // delete from the cart
         Cart cart = cartRepo.findCartByUser(userRepo.findUserByPhone(orderModel.getUserPhone()));
         List<CartDetails> cartDetails = cartDetailsRepo.findCartDetailsByCart(cart);
-        List<ProductOrderDetails> successfullyOrdredProduct = productWiseOrders.stream().
+        List<ProductOrderDetails> successfullyOrderedProduct = productWiseOrders.stream().
                 filter(productWiseOrder -> productWiseOrder.getOrderStatus().equals(OrderStatus.PLACED)).collect(Collectors.toList());
         String unsuccessfulOrderName = null ;
-        if(successfullyOrdredProduct.size() == 0){
-//            orderRepo.delete(order);
-            return new GlobalResponse("ORDERED PRODUCTS ARE OUT OF STOCKS", HttpStatus.FORBIDDEN.value());
+        if(successfullyOrderedProduct.size() == 0){
+            log.error(">>>>>>>>> unable to order by User : {} => due to [ OUT OF STOCK ] ",user.getPhone());
+            throw new Exception("ORDERED PRODUCTS ARE OUT OF STOCKS");
         }else if(outOfStockProducts.size() > 0){
+            log.info(">>>>>>>>> Some products [ OUT OF STOCK ] | User ==> {}",user.getPhone());
             unsuccessfulOrderName =  String.join(",", outOfStockProducts);
             sendOrderUpdateNotification(OrderStatus.PLACED,"These items are out of stock : "+unsuccessfulOrderName,null,order.getUser().getToken());
         }
         String orderDetailMessage = null;
-        for (ProductOrderDetails productWiseOrder : successfullyOrdredProduct) {
+        for (ProductOrderDetails productWiseOrder : successfullyOrderedProduct) {
+            String cartDetailsIDs = String.join(",", successfullyDeliveredItemsId);
             orderDetailMessage = orderDetailMessage == null ? orderDetailMessage + productWiseOrder.getProductName() :  orderDetailMessage + " " + productWiseOrder.getProductName();
-
-            CartDetails cartDetails1 = cartDetailsRepo.findCartDetailsByCartAndProduct(cart, productRepo.findById(productWiseOrder.getProductId()).get());
-            cartDetailsRepo.delete(cartDetails1);
+            cartDetailsRepo.deleteCartDetailsByIDs(cartDetailsIDs);
         }
         log.info("Order placed by user : {} "+order.getUser().getPhone());
-
         notifyAdmin(order.getUser().getUserName(),"New order arrived "+orderDetailMessage);
         sendOrderUpdateNotification(OrderStatus.PLACED,"Order placed",null,order.getUser().getToken());
         WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();

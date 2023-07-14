@@ -34,14 +34,8 @@ public class OrderController {
 
     @CrossOrigin(value = "*")
     @PostMapping("/place-order")
-    GlobalResponse placeOrder(@RequestBody OrderModel orderModel) {
-        try {
-            log.info("+++ Order placed by : {}",orderModel.getUserPhone());
+    GlobalResponse placeOrder(@RequestBody OrderModel orderModel) throws Exception {
             return orderService.placeOrder(orderModel);
-        } catch (Exception e) {
-           log.error(">>> Failed to place order Ex : {}",e.getLocalizedMessage());
-            return null;
-        }
     }
 
 

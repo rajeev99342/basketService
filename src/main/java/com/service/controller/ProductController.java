@@ -37,7 +37,7 @@ public class ProductController {
 
 
     @CrossOrigin(origins = "*")
-    @PostMapping("/delete-product-quantity")
+    @DeleteMapping("/delete-product-quantity")
     public GlobalResponse deleteProductQuantity(@RequestParam("id") Long id, @RequestParam("token") String token) {
         GlobalResponse globalResponse = new GlobalResponse();
         try {
