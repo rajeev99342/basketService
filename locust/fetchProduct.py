@@ -1,4 +1,5 @@
 from locust import HttpUser, TaskSet, task, between
+import json  # Import the json module
 
 class UserBehavior(TaskSet):
     def on_start(self):
