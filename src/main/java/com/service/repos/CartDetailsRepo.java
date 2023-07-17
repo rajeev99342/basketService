@@ -38,7 +38,8 @@ public interface CartDetailsRepo extends JpaRepository<CartDetails, Long> {
 
     @Modifying
     @Query(
-            value = "DELETE FROM cart_details cart WHERE cart.id in (:cartDetailsIDs)",
+            value = "DELETE FROM cart_details cd WHERE cd.id in (:ids)",
             nativeQuery = true)
-    void deleteCartDetailsByIDs(String cartDetailsIDs);
+    void deleteCartDetailsByIDs(List<Long> ids);
+
 }

@@ -112,7 +112,7 @@ public class ProductController {
     @GetMapping("/random-add-product")
     public int add(@RequestParam("catId") Long catId,@RequestParam("path") String path) {
         try{
-            return productService.addRandom(catId,path);
+//            return productService.addRandom(catId,path);
         }catch (Exception e){
 
         }
@@ -125,6 +125,15 @@ public class ProductController {
     public GlobalResponse fetchAll() {
         return productService.fetchAll2();
     }
+
+
+    @CrossOrigin(origins = "*")
+    @PostMapping("/testData")
+    public GlobalResponse saveTestData(@RequestParam("id") Long id, @RequestParam("files") List<MultipartFile> files) throws Exception {
+        GlobalResponse globalResponse = new GlobalResponse();
+        return productService.saveTestData(id, files);
+    }
+
 
 
 }

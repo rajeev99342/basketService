@@ -37,6 +37,7 @@ WORKDIR /app
 COPY --from=builder /app/target/service-0.0.1-SNAPSHOT.jar .
 
 COPY src/main/resources/baba-basket-645b9-firebase-adminsdk-zyteh-7b351169bd.json .
+COPY src/main/resources/prometheus.yml .
 # Expose the port on which your Spring Boot app listens
 EXPOSE 8080
 

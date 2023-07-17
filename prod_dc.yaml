@@ -20,19 +20,18 @@ services:
       - melaa
 
   backend:
-#    build: .
+    #    build: .
     image: waralgorithmspace2/backend:latest
     depends_on:
       - registry
-    ports:
-      - "8081-8083:8080"
     deploy:
-      mode: replicated
       replicas: 3
+    expose:
+      - 8080
     environment:
-#      - spring.datasource.url=jdbc:mysql://localhost:3306/store2?createDatabaseIfNotExist=true
-#      - spring.datasource.password=root
-#      - spring.datasource.username=root
+      #      - spring.datasource.url=jdbc:mysql://localhost:3306/store2?createDatabaseIfNotExist=true
+      #      - spring.datasource.password=root
+      #      - spring.datasource.username=root
       SPRING_PROFILES_ACTIVE: prod
     networks:
       - melaa

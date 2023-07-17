@@ -10,9 +10,8 @@ public class TestController {
     private String port;
 
 
-    @GetMapping("/test")
+    @GetMapping("/health")
     public String test() {
-        System.out.println(">>>>>>> port  1 "+port);
         return "UP";
     }
 }

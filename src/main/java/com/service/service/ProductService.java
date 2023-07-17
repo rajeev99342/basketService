@@ -317,9 +317,8 @@ public List<DisplayProductModel> fetchFromDB(int page, int size){
         return GlobalResponse.getSuccess(count);
     }
 
-    public int addRandom(Long categoryID,String imagePath) throws Exception {
+    public int addRandom(Long categoryID,List<MultipartFile> files) throws Exception {
 
-        List<MultipartFile> files = displayImage(imagePath);
         Category category = categoryRepo.findById(categoryID).get();
         for(MultipartFile file : files){
 //            int pickCat = new Random().nextInt(categoryList.size());
@@ -443,4 +442,7 @@ public List<DisplayProductModel> fetchFromDB(int page, int size){
         }
     }
 
+    public GlobalResponse saveTestData(Long id, List<MultipartFile> files) throws Exception {
+       return GlobalResponse.getSuccess(addRandom( id,files));
+    }
 }

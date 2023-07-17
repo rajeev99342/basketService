@@ -1,6 +1,6 @@
 server:
   address: 0.0.0.0
-  port: 0
+  port: 8080
 
 spring:
   application:
@@ -51,10 +51,17 @@ management:
   endpoint:
     loggers:
       enabled: true
+    health:
+      show-details: always
   endpoints:
     web:
       exposure:
-        include: loggers
+        include: '*'
+
+  metrics:
+    export:
+      prometheus:
+        enabled: true
   main:
     banner-mode: 'off'
 
