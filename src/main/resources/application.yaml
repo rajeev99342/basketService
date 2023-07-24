@@ -8,12 +8,12 @@ spring:
 
   datasource:
     initialization-mode: always
-    #    password: root
-    password: YIqfJBkVtz6QP0tgI4Fq
-    url: jdbc:mysql://db.cwdsaavl8v7o.ap-south-1.rds.amazonaws.com:3306/store?createDatabaseIfNotExist=true
-    #    url: jdbc:mysql://localhost:3306/store?createDatabaseIfNotExist=true
-    username: admin
-  #    username: root
+    username: root
+#    password: YIqfJBkVtz6QP0tgI4Fq
+#    url: jdbc:mysql://db.cwdsaavl8v7o.ap-south-1.rds.amazonaws.com:3306/store?createDatabaseIfNotExist=true
+    url: jdbc:mysql://localhost:3306/store?createDatabaseIfNotExist=true
+#    username: admin
+    password: root
   jpa:
     defer-datasource-initialization: true
     sql:
@@ -28,12 +28,12 @@ spring:
     banner-mode: 'off'
   profiles:
     active:
-eureka:
-  instance:
-    instance-id: ${spring.application.name}:${random.uuid}
-  client:
-    serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
+#eureka:
+#  instance:
+#    instance-id: ${spring.application.name}:${random.uuid}
+#  client:
+#    serviceUrl:
+#      defaultZone: http://localhost:8761/eureka/
 
 
 fcm:
@@ -72,9 +72,9 @@ redis:
 
 melaa:
   storage:
-    type: s3
-#    type: file
-  imageResource: C:/Users/Dell/Pictures/product_image/
+#    type: s3
+    type: file
+  storagePath: C:/Users/Dell/Pictures/product_image/
   master: 7759856927
   category:
     id: 1

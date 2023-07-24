@@ -23,7 +23,7 @@ import java.util.List;
 @ComponentScan(basePackages = {"com.service.*"})
 @EnableJpaRepositories
 @PropertySource("classpath:application.yaml")
-@EnableDiscoveryClient
+//@EnableDiscoveryClient
 public class ServiceApplication  implements CommandLineRunner {
 
 	@Value("${spring.datasource.url}")
@@ -66,8 +66,8 @@ public class ServiceApplication  implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		homePageHandler.putHomePageData();
+//		homePageHandler.putHomePageData();
 		System.out.println("++++++++++++++++++++++++++++++ Melaa Grocery Store +++++++++++++++++++++++++++++++++++");
-		System.out.println(mysql);
+//		System.out.println(mysql);
 	}
 }

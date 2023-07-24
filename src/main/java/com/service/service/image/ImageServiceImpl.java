@@ -21,7 +21,7 @@ import java.util.List;
 @Slf4j
 @Service
 public class ImageServiceImpl implements ImageHandler {
-    @Value("${melaa.imageResource}")
+    @Value("${melaa.storagePath}")
     private String RESOURCE_PATH;
 
     @Autowired
@@ -42,7 +42,7 @@ public class ImageServiceImpl implements ImageHandler {
             ImageDetails imageDetails = new ImageDetails();
             imageDetails.setImageName(imageReference);
             imageDetails.setType(image.getContentType());
-            imageDetails.setPath(newFile.toAbsolutePath()
+            imageDetails.setPath(RESOURCE_PATH+imageReference
                     .toString());
             return imageDetailsRepository.save(imageDetails);
     }

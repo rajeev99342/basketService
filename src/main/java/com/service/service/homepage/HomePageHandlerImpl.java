@@ -19,6 +19,7 @@ import com.service.service.ProductService;
 import com.service.service.image.ImageServiceImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -79,8 +80,21 @@ public class HomePageHandlerImpl implements HomePageHandler {
     }
 
     @Override
-    public Map<String, List<DisplayProductModel>> getHomePageData() {
-        return StaticMapConfig.HOME_PAGE_CATEGORY_PRODUCTS;
+    public Map<String, List<DisplayProductModel>> getHomePageData(int pageIndex, int pageSize) {
+        Map<String,List<DisplayProductModel>> productMap = new HashMap<>();
+        Pageable pageable =
+                PageRequest.of(pageIndex, pageSize,Sort.by("catName").ascending());
+
+        Pageable pageableForProduct =
+                PageRequest.of(pageIndex, 10);
+
+       List<Category> categories = categoryRepo.findAll(pageable).getContent();
+       for(Category category : categories){
+           List<Product> products = productRepo.findProductByCategory_IdAndIsValid(category.getId(),true,pageableForProduct);
+           List<DisplayProductModel> displayProducts = productService.convertProductIntoDisplayProduct(products);
+           productMap.put(category.getCatName(),displayProducts);
+       }
+       return productMap;
     }
 
     @Override

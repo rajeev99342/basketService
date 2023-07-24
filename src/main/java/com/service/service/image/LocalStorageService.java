@@ -26,7 +26,7 @@ import java.nio.file.Paths;
 public class LocalStorageService implements StorageService {
     @Value("${cloud.aws.credentials.secret-key}")
     private String RESOURCE_PATH2;
-    @Value("${melaa.imageResource}")
+    @Value("${melaa.storagePath}")
     private String RESOURCE_PATH;
 
 

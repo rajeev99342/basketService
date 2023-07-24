@@ -109,7 +109,6 @@ public class ProductService {
                 imageUtility.deleteProductImages(product);
             }
             product.setUpdatedAt(new Date(System.currentTimeMillis()));
-            product.setPricePerUnit(model.getPriceForGivenUnit());
             product.setProdBrand(model.getBrand());
             product.setDescription(model.getDesc());
             product.setName(model.getName());
@@ -208,7 +207,6 @@ public List<DisplayProductModel> fetchFromDB(int page, int size){
         productModel.setUnit(product.getUnit());
         productModel.setSellingPrice(product.getSellingPrice());
         productModel.setDesc(product.getDescription());
-        productModel.setPriceForGivenUnit(product.getPricePerUnit());
         productModel.setId(product.getId());
         Stock stock = instockRepo.findStockByProduct(product);
         if (null != stock) {
@@ -320,6 +318,8 @@ public List<DisplayProductModel> fetchFromDB(int page, int size){
     public int addRandom(Long categoryID,List<MultipartFile> files) throws Exception {
 
         Category category = categoryRepo.findById(categoryID).get();
+        log.info("===========================================================");
+        log.info("============>> {} =>"+category.getCatName());
         for(MultipartFile file : files){
 //            int pickCat = new Random().nextInt(categoryList.size());
             int pick = new Random().nextInt(Unit.values().length);
@@ -333,6 +333,8 @@ public List<DisplayProductModel> fetchFromDB(int page, int size){
             product.setIsValid(true);
             product.setProdBrand("LOCAL BRAND");
             product.setCategory(category);
+            log.info("JUST BEFORE SAVE ============>> {} =>"+category.getCatName());
+
             productRepo.save(product);
             List<MultipartFile> multipartFiles = new ArrayList<>();
             multipartFiles.add(file);

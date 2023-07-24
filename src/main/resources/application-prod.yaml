@@ -5,9 +5,13 @@ spring:
   application:
     name: melaa
   datasource:
-    password: YIqfJBkVtz6QP0tgI4Fq
-    url: jdbc:mysql://db.cwdsaavl8v7o.ap-south-1.rds.amazonaws.com:3306/store?createDatabaseIfNotExist=true
-    username: admin
+    initialization-mode: always
+    username: user
+    #    password: YIqfJBkVtz6QP0tgI4Fq
+    #    url: jdbc:mysql://db.cwdsaavl8v7o.ap-south-1.rds.amazonaws.com:3306/store?createDatabaseIfNotExist=true
+    url: jdbc:mysql://154.49.243.177:3306/store?createDatabaseIfNotExist=true
+    #    username: admin
+    password: P@ssW0rd
   jpa:
     hibernate:
       ddl-auto: update
@@ -47,9 +51,11 @@ eureka:
 
 melaa:
   storage:
-    type: s3
+#    type: s3
+    type: file
   master: 7759856927
-  imageResource: /root/image/
+  storagePath: /app/image/
+  getImagePath: /app/image/
   category:
     id: 1
   deliveryHr: 1,2,3,4,5,6,24,48,100

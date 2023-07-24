@@ -18,6 +18,11 @@ public interface ProductRepo extends PagingAndSortingRepository<Product,Long> {
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     List<Product> findProductByCategory_IdAndIsValid(Long catId,Boolean isValid,Pageable pageable);
 
+
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    List<Product> findProductByCategory_IdAndIsValid(Long catId,Boolean isValid);
+
+
     @Query(value = "SELECT * FROM PRODUCT WHERE MATCH(NAME, DESCRIPTION, BRAND) "+ "AGAINST (?1)", nativeQuery = true)
     public Page<Product> search(String keyword, Pageable pageable);
 

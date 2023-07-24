@@ -8,7 +8,7 @@ import java.util.Map;
 
 public interface HomePageHandler {
     void putHomePageData();
-    Map<String, List<DisplayProductModel>> getHomePageData();
+    Map<String, List<DisplayProductModel>> getHomePageData(int pageIndex, int pageSize);
 
     HomePageModel getHomeDate();
 }

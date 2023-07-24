@@ -27,8 +27,6 @@ public class Product{
     @JoinColumn(name = "CAT_ID",referencedColumnName = "CAT_ID")
     private Category category;
 
-    @Column(name = "PRICE_PER_UNIT")
-    private Double pricePerUnit;
 
     @Column(name = "UNIT")
     private String unit;

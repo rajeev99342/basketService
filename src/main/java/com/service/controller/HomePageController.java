@@ -19,9 +19,11 @@ public class HomePageController {
     @CrossOrigin(origins = "*")
     @GetMapping("/getHomePage")
     public GlobalResponse getCompleteOrder(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
         StaticMapConfig staticMapConfig = new StaticMapConfig();
-        return GlobalResponse.getSuccess(homePageHandler.getHomeDate());
+        return GlobalResponse.getSuccess(homePageHandler.getHomePageData(page,size));
     }
 
 }

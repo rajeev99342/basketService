@@ -34,10 +34,10 @@ services:
 #      - spring.datasource.password=root
 #      - spring.datasource.username=root
       SPRING_PROFILES_ACTIVE: prod
+    volumes:
+      - mysql-data:/app/image
     networks:
       - melaa
-
-
 
   lb:
     container_name: lb
