@@ -70,6 +70,16 @@ public class CategoryController {
         return categoryService.getAllCategory();
     }
 
+
+    @CrossOrigin(origins = "*")
+    @GetMapping("/getCategoryByPage")
+    public GlobalResponse getCategoryByPage(@RequestParam(defaultValue = "0") int page,
+                                            @RequestParam(defaultValue = "10") int size) {
+        return categoryService.getAllCategoryByPage(page,size);
+    }
+
+
+
     @CrossOrigin(origins = "*")
     @GetMapping("/fetch-all-category-name")
     public GlobalResponse fetchAllCategoryName() {

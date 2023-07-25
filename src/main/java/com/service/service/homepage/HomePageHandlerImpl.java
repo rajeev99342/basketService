@@ -92,6 +92,7 @@ public class HomePageHandlerImpl implements HomePageHandler {
        for(Category category : categories){
            List<Product> products = productRepo.findProductByCategory_IdAndIsValid(category.getId(),true,pageableForProduct);
            List<DisplayProductModel> displayProducts = productService.convertProductIntoDisplayProduct(products);
+           displayProducts.add(null);
            productMap.put(category.getCatName(),displayProducts);
        }
        return productMap;

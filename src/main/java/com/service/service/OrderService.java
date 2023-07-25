@@ -1,6 +1,7 @@
 package com.service.service;
 
 import com.service.constants.enums.OrderStatus;
+import com.service.constants.enums.PaymentModeEnum;
 import com.service.constants.enums.UserRole;
 import com.service.constants.values.Constants;
 import com.service.entities.*;
@@ -90,6 +91,7 @@ public class OrderService {
         order.setAddressLine(address.getAddressLine());
         order.setModifiedDate(new Date());
         order.setOrderStatus(OrderStatus.PLACED);
+        order.setPaymentMode(PaymentModeEnum.CASE_ON_DELIVERY);
         order.setTotalCost(orderModel.getFinalAmount());
         List<Long> itemIds = new ArrayList<>();
         Integer totalSuccessfulPlacedOrder = 0;
@@ -434,32 +436,39 @@ public class OrderService {
     public GlobalResponse returnRequest(Long id, User user) {
         Order order = null;
         try {
+            String message = null;
             order = orderRepo.getById(id);
             Instant start = order.getOrderDate().toInstant();
             Instant end = Instant.now();
             Duration timeElapsed = Duration.between(start, end);
             Integer durationInHr = Math.toIntExact(timeElapsed.toMillis() / (1000 * 60 * 60));
-            if (durationInHr > 18) {
+            if (durationInHr > 2) {
                 log.error("Order can not be return because its {} hr old ", durationInHr);
                 return new GlobalResponse("This order is too old", HttpStatus.CONFLICT.value());
             } else {
-                List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder(order);
-                order.setOrderStatus(OrderStatus.RETURN_INITIATED);
                 order.setModifiedDate(new Date());
-                orderDetailsRepository.saveAll(productDeliveries);
+                if(order.getPaymentMode().equals(PaymentModeEnum.CASE_ON_DELIVERY)){
+                    order.setOrderStatus(OrderStatus.CANCELED);
+                    message = OrderStatus.CANCELED.name();
+                }else{
+                    order.setOrderStatus(OrderStatus.RETURN_INITIATED);
+                    message = OrderStatus.RETURN_INITIATED.name();
+                }
+//                orderDetailsRepository.saveAll(productDeliveries);
                 orderRepo.save(order);
             }
-
+            notifyAdmin(order.getUser().getUserName(), "Return order request");
+            WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
+            webSocketMessageModel.setName(String.valueOf(id));
+//        webSocketMessageSender.notifyUpdateOrderToUser(order.getUser().getPhone(), "/topic/order/update/", webSocketMessageModel);
+            return new GlobalResponse(message, HttpStatus.OK.value());
         } catch (Exception e) {
+            e.printStackTrace();
             log.error("Failed return order by user {} due to {}", order.getUser().getPhone(), e.getMessage());
             return new GlobalResponse("Failed to initiate return : " + e.getMessage(), HttpStatus.CONFLICT.value());
         }
 
-        notifyAdmin(order.getUser().getUserName(), "Return order request");
-        WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
-        webSocketMessageModel.setName(String.valueOf(id));
-        webSocketMessageSender.notifyUpdateOrderToUser(order.getUser().getPhone(), "/topic/order/update/", webSocketMessageModel);
-        return new GlobalResponse("Refund initiated", HttpStatus.CONFLICT.value());
+
     }
 
     public GlobalResponse doRefund(RefundOrder refundOrder) {

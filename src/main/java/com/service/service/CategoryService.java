@@ -14,6 +14,9 @@ import com.service.service.image.ImageServiceImpl;
 import com.service.utilites.ImageUtility;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -99,24 +102,29 @@ public class CategoryService {
     public GlobalResponse getAllCategory(){
         try{
             List<Category> categories = categoryRepo.findCategoryByIsValid(true);
-            List<CategoryDisplayModel> categoryDisplayModelList = new ArrayList();
-            for(Category category : categories){
-                CategoryDisplayModel categoryDisplayModel = new CategoryDisplayModel();
-                Image image = imageRepository.findImageByCategoryId(category.getId());
-                categoryDisplayModel.setCategoryName(category.getCatName());
-                categoryDisplayModel.setCategoryType(category.getCatType());
-                GlobalResponse response =  imageService.getImage(image.getImageDetails().getId());
-                categoryDisplayModel.setBase64(response.getBody());
-                categoryDisplayModel.setId(category.getId());
-                categoryDisplayModelList.add(categoryDisplayModel);
-            }
 
-            return GlobalResponse.getSuccess(categoryDisplayModelList);
+
+            return GlobalResponse.getSuccess(getCategoryModel(categories));
         }catch (Exception e){
             log.error("Failed to fetch category due to {} ",e.getMessage());
         }
 
         return null;
+    }
+
+    public  List<CategoryDisplayModel>  getCategoryModel(List<Category> categories){
+        List<CategoryDisplayModel> categoryDisplayModelList = new ArrayList();
+        for(Category category : categories){
+            CategoryDisplayModel categoryDisplayModel = new CategoryDisplayModel();
+            Image image = imageRepository.findImageByCategoryId(category.getId());
+            categoryDisplayModel.setCategoryName(category.getCatName());
+            categoryDisplayModel.setCategoryType(category.getCatType());
+            GlobalResponse response =  imageService.getImage(image.getImageDetails().getId());
+            categoryDisplayModel.setBase64(response.getBody());
+            categoryDisplayModel.setId(category.getId());
+            categoryDisplayModelList.add(categoryDisplayModel);
+        }
+        return categoryDisplayModelList;
     }
 
     public GlobalResponse getCategoryById(Long id) {
@@ -137,5 +145,16 @@ public class CategoryService {
             return GlobalResponse.getFailure(e.getMessage());
         }
 
+    }
+
+    public GlobalResponse getAllCategoryByPage(int page, int size) {
+        Pageable pageable =
+                PageRequest.of(page, size, Sort.by("updatedAt").descending());
+
+        Page<Category> categories = categoryRepo.findAll(pageable);
+        if(categories.getContent() != null){
+            return GlobalResponse.getSuccess(getCategoryModel(categories.getContent()));
+        }
+        return GlobalResponse.getFailure("Failed to fetch data");
     }
 }
