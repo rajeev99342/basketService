@@ -75,7 +75,6 @@ public class OrderService {
 
     @Transactional
     public GlobalResponse placeOrder(OrderModel orderModel) throws Exception {
-        List<String> successfullyDeliveredItemsId = new ArrayList<>();
         Integer toBeOrder = orderModel.getCartProducts().size();
         List<ProductOrderDetails> productWiseOrders = new ArrayList<>();
         User user = userRepo.findUserByPhone(orderModel.getUserPhone());
@@ -156,8 +155,6 @@ public class OrderService {
             log.error(">>>>>>>>> all products are [ OUT OF STOCK ] ", user.getPhone());
         }
         String orderDetailMessage = null;
-//        String cartDetailsIDs = String.join(",", itemIds);
-//        cartDetailsRepo.deleteAllByIdInBatch(itemIds.stream().map(id -> Long.getLong(id)).collect(Collectors.toList()));
         cartDetailsRepo.deleteCartDetailsByIDs(itemIds);
         log.info("Order placed by user : {} " + order.getUser().getPhone());
         notifyAdmin(order.getUser().getUserName(), "New order arrived " + orderDetailMessage);
@@ -274,7 +271,7 @@ public class OrderService {
         return false;
     }
 
-    public void packingOrder(UpdateOrderRs updateOrderRs) {
+    public GlobalResponse packingOrder(UpdateOrderRs updateOrderRs) {
         try {
             Order order = orderRepo.getById(updateOrderRs.getOrderId());
             if (updateOrderRs.getTime() != 100) {
@@ -294,9 +291,12 @@ public class OrderService {
             WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
             webSocketMessageModel.setName(String.valueOf(updateOrderRs.getOrderId()));
             webSocketMessageSender.notifyUpdateOrderToUser(order.getUser().getPhone(), "/topic/order/update/", webSocketMessageModel);
+            return GlobalResponse.getSuccess(true);
         } catch (Exception e) {
             log.error("Failed to update order due to {}", e.getMessage());
         }
+
+        return GlobalResponse.getFailure("Failed");
 
     }
 
@@ -320,7 +320,7 @@ public class OrderService {
         return data;
     }
 
-    public Boolean markedDelivered(Long id) {
+    public GlobalResponse markedDelivered(Long id) {
         Order order = orderRepo.getById(id);
         List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder(order);
         orderDetailsRepository.saveAll(productDeliveries);
@@ -332,11 +332,10 @@ public class OrderService {
         WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
         webSocketMessageModel.setName(String.valueOf(id));
         webSocketMessageSender.notifyUpdateOrderToUser(order.getUser().getPhone(), "/topic/order/update/", webSocketMessageModel);
-
-        return true;
+        return GlobalResponse.getSuccess(true);
     }
 
-    public void updateOnTheWay(Long id) {
+    public GlobalResponse updateOnTheWay(Long id) {
         Order order = orderRepo.getById(id);
         List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder(order);
         orderDetailsRepository.saveAll(productDeliveries);
@@ -348,6 +347,8 @@ public class OrderService {
         String name = "ON_THE_WAY-" + id;
         webSocketMessageModel.setName(String.valueOf(id));
         webSocketMessageSender.notifyUpdateOrderToUser(order.getUser().getPhone(), "/topic/order/update/", webSocketMessageModel);
+        return GlobalResponse.getSuccess(true);
+
     }
 
     public void updateProductInventory(Product product, Integer restoreCount) {
@@ -378,7 +379,7 @@ public class OrderService {
                     orderDetailsModel.setAddressModel(convertIntoAddressModel(address));
                     List<ProductOrderDetails> deliveryProductList = new ArrayList<>();
                     Double totalCost = 0.00;
-                    List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrderAndOrderStatus(order, status);
+                    List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder(order);
                     for (OrderDetails productDelivery : productDeliveries) {
                         ProductOrderDetails deliveryProductDetails = new ProductOrderDetails();
                         deliveryProductDetails.setTotalProductCount(productDelivery.getQuantity());
@@ -412,7 +413,6 @@ public class OrderService {
             log.error("Failed to fetch order due to {} ", e.getMessage());
             return GlobalResponse.getFailure(e.getMessage());
         }
-
     }
 
     private AddressModel convertIntoAddressModel(Address address) {
@@ -544,4 +544,61 @@ public class OrderService {
                 return 100;
         }
     }
+
+    public GlobalResponse fetchAllOrderByStatus(String token, List<OrderStatus> statuses, Pageable pageable) {
+        try {
+            User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
+            List<UserRole> roles = user.getRoles();
+            if (roles.contains(ADMIN)) {
+                List<Order> orders = orderRepo.findOrderByOrderStatusIn(statuses, pageable);
+                List<OrderRS> orderDetailsModelList = new ArrayList<>();
+                for (Order order : orders) {
+                    OrderRS orderDetailsModel = new OrderRS();
+                    orderDetailsModel.setUser(order.getUser());
+                    orderDetailsModel.setOrderDate(order.getOrderDate());
+                    orderDetailsModel.setLatitude(order.getLatitude());
+                    orderDetailsModel.setLongitude(order.getLongitude());
+                    orderDetailsModel.setAddressLine(order.getAddressLine());
+                    orderDetailsModel.setOrderStatus(order.getOrderStatus());
+                    Address address = null;
+                    orderDetailsModel.setAddressModel(convertIntoAddressModel(address));
+                    List<ProductOrderDetails> deliveryProductList = new ArrayList<>();
+                    Double totalCost = 0.00;
+                    List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder(order);
+                    for (OrderDetails productDelivery : productDeliveries) {
+                        ProductOrderDetails deliveryProductDetails = new ProductOrderDetails();
+                        deliveryProductDetails.setTotalProductCount(productDelivery.getQuantity());
+                        deliveryProductDetails.setProductId(productDelivery.getProduct().getId());
+                        deliveryProductDetails.setProductName(productDelivery.getProduct().getName());
+                        deliveryProductDetails.setPrice(productDelivery.getItemPrice());
+                        deliveryProductDetails.setImage(imageService.getAllImageByProduct(productDelivery.getProduct()));
+                        deliveryProductDetails.setPrice(productDelivery.getItemPrice());
+                        deliveryProductList.add(deliveryProductDetails);
+                    }
+                    orderDetailsModel.setExpectedDeliveryDate(order.getExpectedDeliveryDate());
+                    orderDetailsModel.setOrderId(order.getId());
+                    orderDetailsModel.setLastModifiedDate(order.getModifiedDate());
+                    orderDetailsModel.setDeliveryProducts(deliveryProductList);
+                    orderDetailsModel.setTotalCost(order.getTotalCost());
+                    orderDetailsModelList.add(orderDetailsModel);
+                }
+
+//                Collections.sort(orderDetailsModelList, new Comparator<OrderRS>() {
+//                    @Override
+//                    public int compare(OrderRS o1, OrderRS o2) {
+//                        return o2.getLastModifiedDate().compareTo(o1.getLastModifiedDate());
+//                    }
+//                });
+
+                return GlobalResponse.getSuccess(orderDetailsModelList);
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            log.error("Failed to fetch order due to {} ", e.getMessage());
+            return GlobalResponse.getFailure(e.getMessage());
+        }
+    }
+
+
 }

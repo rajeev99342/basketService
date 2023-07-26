@@ -77,6 +77,7 @@ public class CartService {
         cartDetails.setUpdatedAt(new Date(System.currentTimeMillis()));
         cartDetailsRepo.save(cartDetails);
         long count = cartDetailsRepo.getCountOfProductByCart(cart.getId());
+        log.info("PRODUCT ADDED INTO CART BY USER : {}",cart.getUser().getPhone());
         return new GlobalResponse("Added into cart", HttpStatus.CREATED.value(), true, count);
     }
 

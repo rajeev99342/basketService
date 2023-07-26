@@ -1,9 +1,10 @@
 from locust import HttpUser, TaskSet, task, between
 import json
 
-base_url = "http://localhost:8080"
+base_url = "http://154.49.243.177:9000"
 
-token = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI3NzU5ODU2OTI3IiwiZXhwIjoxNjkyMjE4Njc1LCJpYXQiOjE2ODk2MjY2NzV9.tASy6Q3dtWdIY2_38P36CGEtFLAPo03HBs4tFZVdGkzcOipY7YgDuekkzKPrLURnhQeZrmqD4ry_tDqsFaL9bQ"
+token = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI3OTAzNTkxNjYyIiwiZXhwIjoxNjkyOTc4NzYxLCJpYXQiOjE2OTAzODY3NjF9.i-7wbxMl9ZtetTDK0mp-50TJruZo1o6KIuMgQvUyy6QrJP6sA5v7xQ-urrgedSaWRR5svSLuNUydgNKbUSBcxg"
+userPhone = '7903591662'
 class UserBehavior(TaskSet):
 
 
@@ -22,7 +23,7 @@ class UserBehavior(TaskSet):
         for data in rq_array:
             response = self.client.post(url, headers=headers, json=data,verify=False)
             if response.status_code == 200:
-                print("API call successful!")
+                print("ADD SUCCESSFULL")
             else:
                 print("API call failed. Status code:", response.status_code)
 
@@ -33,91 +34,91 @@ class UserBehavior(TaskSet):
         data = [
             {
                 "productId": 1,
-                "userPhone": "7759856927",
+                "userPhone": {userPhone},
                 "selectedProductCount": 1,
                 "quantityId": 1
             },
             {
                 "productId": 2,
-                "userPhone": "7759856927",
+                "userPhone": {userPhone},
                 "selectedProductCount": 1,
                 "quantityId": 2
             },
             {
                 "productId": 3,
-                "userPhone": "7759856927",
+                "userPhone": {userPhone},
                 "selectedProductCount": 1,
                 "quantityId": 3
             },
             {
                 "productId": 5,
-                "userPhone": "7759856927",
+                "userPhone": {userPhone},
                 "selectedProductCount": 1,
                 "quantityId": 5
             },
             {
                 "productId": 6,
-                "userPhone": "7759856927",
+                "userPhone": {userPhone},
                 "selectedProductCount": 1,
                 "quantityId": 17
             },
             {
                 "productId": 7,
-                "userPhone": "7759856927",
+                "userPhone": {userPhone},
                 "selectedProductCount": 1,
                 "quantityId": 7
             },
             {
                 "productId": 8,
-                "userPhone": "7759856927",
+                "userPhone": {userPhone},
                 "selectedProductCount": 1,
                 "quantityId": 8
             },
             {
                 "productId": 9,
-                "userPhone": "7759856927",
+                "userPhone": {userPhone},
                 "selectedProductCount": 1,
                 "quantityId": 9
             },
             {
                 "productId": 10,
-                "userPhone": "7759856927",
+                "userPhone": {userPhone},
                 "selectedProductCount": 1,
                 "quantityId": 10
             },
             {
                 "productId": 11,
-                "userPhone": "7759856927",
+                "userPhone": {userPhone},
                 "selectedProductCount": 1,
                 "quantityId": 11
             },
             {
                 "productId": 12,
-                "userPhone": "7759856927",
+                "userPhone": {userPhone},
                 "selectedProductCount": 1,
                 "quantityId": 12
             },
             {
                 "productId": 13,
-                "userPhone": "7759856927",
+                "userPhone": {userPhone},
                 "selectedProductCount": 1,
                 "quantityId": 13
             },
             {
                 "productId": 14,
-                "userPhone": "7759856927",
+                "userPhone": {userPhone},
                 "selectedProductCount": 1,
                 "quantityId": 14
             },
             {
                 "productId": 15,
-                "userPhone": "7759856927",
+                "userPhone": {userPhone},
                 "selectedProductCount": 1,
                 "quantityId": 15
             },
             {
                 "productId": 4,
-                "userPhone": "7759856927",
+                "userPhone": {userPhone},
                 "selectedProductCount": 1,
                 "quantityId": 4
             }
@@ -142,7 +143,8 @@ class UserBehavior(TaskSet):
 
         response = self.client.get(url, headers=headers,params=params,verify=False)
         if response.status_code == 200:
-            print("==========>>> API call successful!")
+            print("##################>> API call successful!")
+            print(response.content)
             res_data = json.loads(response.content)
             place_order_data = res_data['body']
             print(place_order_data)

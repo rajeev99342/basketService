@@ -36,4 +36,5 @@ public interface OrderRepo extends JpaRepository<Order,Long> {
         @Query(value = "select count(*) as count, sum(o.TOTAL_COST) as amount from `order` as o inner join `user` as u on u.USER_ID=o.USER_ID where u.PHONE= :phone and o.STATUS = :status",nativeQuery = true)
         ICountAmount findCountOfOrderByStatusAndUser(@Param("phone") String phone, @Param("status") String status);
 
+        List<Order> findOrderByOrderStatusIn(List<OrderStatus> statuses, Pageable pageable);
 }

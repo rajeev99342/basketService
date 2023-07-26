@@ -9,7 +9,7 @@ class UserBehavior(TaskSet):
         headers = {
             'Accept': 'application/json, text/plain, */*',
             'Accept-Language': 'en-US,en;q=0.9',
-            'Authorization': 'Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI3NzU5ODU2OTI3IiwiZXhwIjoxNjkxNDE3ODYyLCJpYXQiOjE2ODg4MjU4NjJ9.m4o7HH_61WV3rtVvebRA3o9oQWV_QDmsOXp4cwaKw_fw_tDVflJtADsZ_klLb0XgLd22nlwKokTZ6S6eQXpjZQ',
+            'Authorization': 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI3OTAzNTkxNjYyIiwiZXhwIjoxNjkyOTc4NzYxLCJpYXQiOjE2OTAzODY3NjF9.i-7wbxMl9ZtetTDK0mp-50TJruZo1o6KIuMgQvUyy6QrJP6sA5v7xQ-urrgedSaWRR5svSLuNUydgNKbUSBcxg',
             'Connection': 'keep-alive',
             'DNT': '1',
             'Origin': 'http://localhost:8100',

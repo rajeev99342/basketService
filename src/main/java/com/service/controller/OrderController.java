@@ -35,7 +35,7 @@ public class OrderController {
     @CrossOrigin(value = "*")
     @PostMapping("/place-order")
     GlobalResponse placeOrder(@RequestBody OrderModel orderModel) throws Exception {
-            return orderService.placeOrder(orderModel);
+        return orderService.placeOrder(orderModel);
     }
 
 
@@ -72,22 +72,24 @@ public class OrderController {
 
 
     @CrossOrigin(value = "*")
-    @PutMapping("/update-packing-order") // accept order
-    void packingOrder(@RequestBody UpdateOrderRs updateOrderRs) {
-        orderService.packingOrder(updateOrderRs);
+    @PutMapping("/update-packing-order")
+        // accept order
+    GlobalResponse packingOrder(@RequestBody UpdateOrderRs updateOrderRs) {
+      return  orderService.packingOrder(updateOrderRs);
     }
 
 
     @CrossOrigin(value = "*")
     @PutMapping("/marked-delivered")
-    void markedDelivered(@RequestBody UpdateOrderRs updateOrder) {
-             orderService.markedDelivered(updateOrder.getOrderId());
+    GlobalResponse markedDelivered(@RequestBody UpdateOrderRs updateOrder) {
+       return  orderService.markedDelivered(updateOrder.getOrderId());
     }
 
     @CrossOrigin(value = "*")
-    @PutMapping("/update-on-the-way-order") // after packing marked on the way
-    void updateOnTheWay(@RequestBody UpdateOrderRs order) {
-         orderService.updateOnTheWay(order.getOrderId());
+    @PutMapping("/update-on-the-way-order")
+        // after packing marked on the way
+    GlobalResponse updateOnTheWay(@RequestBody UpdateOrderRs order) {
+       return orderService.updateOnTheWay(order.getOrderId());
     }
 
     @CrossOrigin(value = "*")
@@ -105,21 +107,23 @@ public class OrderController {
         List<OrderRS> orderWiseProducts = new ArrayList<>();
         try {
             Pageable pageable =
-                    PageRequest.of(page, size);
+                    PageRequest.of(page, size,Sort.by("orderDate").descending());
 
-            log.info(">>>> fetch Order By {} Status",status);
+            log.info(">>>> fetch Order By {} Status", status);
             if (OrderStatus.PLACED.name().equals(status)) {
-                return orderService.fetchAllOrderByStatus(token, OrderStatus.PLACED,pageable);
+                return orderService.fetchAllOrderByStatus(token, OrderStatus.PLACED, pageable);
             } else if (OrderStatus.ON_THE_WAY.name().equals(status)) {
-                return orderService.fetchAllOrderByStatus(token, OrderStatus.ON_THE_WAY,pageable);
+                return orderService.fetchAllOrderByStatus(token, OrderStatus.ON_THE_WAY, pageable);
             } else if (OrderStatus.ACCEPTED.name().equals(status)) {
-                return orderService.fetchAllOrderByStatus(token, OrderStatus.ACCEPTED,pageable);
+                return orderService.fetchAllOrderByStatus(token, OrderStatus.ACCEPTED, pageable);
             } else if (OrderStatus.DISPATCHED.name().equals(status)) {
-                return orderService.fetchAllOrderByStatus(token, OrderStatus.DISPATCHED,pageable);
+                return orderService.fetchAllOrderByStatus(token, OrderStatus.DISPATCHED, pageable);
             } else if (OrderStatus.DELIVERED.name().equals(status)) {
-                return orderService.fetchAllOrderByStatus(token, OrderStatus.DELIVERED,pageable);
+                return orderService.fetchAllOrderByStatus(token, OrderStatus.DELIVERED, pageable);
             } else if (OrderStatus.RETURN_INITIATED.name().equals(status)) {
-                return orderService.fetchAllOrderByStatus(token, OrderStatus.RETURN_INITIATED,pageable);
+                return orderService.fetchAllOrderByStatus(token, OrderStatus.RETURN_INITIATED, pageable);
+            } else if (OrderStatus.CANCELED.name().equals(status)) {
+                return orderService.fetchAllOrderByStatus(token, OrderStatus.CANCELED, pageable);
             } else {
                 System.out.println("No order");
             }
@@ -130,6 +134,22 @@ public class OrderController {
         return null;
     }
 
+
+    @GetMapping("/getByStatuses")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @Transactional
+    GlobalResponse getOrderAllOrderByStatuses(@RequestParam("token") String token, @RequestParam("status") List<OrderStatus> statuses, @RequestParam(defaultValue = "0") int page,
+                                              @RequestParam(defaultValue = "10") int size) {
+        List<OrderRS> orderWiseProducts = new ArrayList<>();
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            log.info(">>>> fetch Order By {} Status", statuses);
+            return orderService.fetchAllOrderByStatus(token, statuses, pageable);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
     @CrossOrigin(value = "*")
     @GetMapping("/order-details-by-id")
