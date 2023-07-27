@@ -1,6 +1,7 @@
 package com.service.constants.enums;
 
 public enum OrderStatus {
+    SEND_TO_SHOP,
     PLACED,
     ACCEPTED,
     DISPATCHED,

@@ -601,4 +601,35 @@ public class OrderService {
     }
 
 
+    public GlobalResponse sendToShop(UpdateOrderRs updateOrderRs) {
+        try {
+            Order order = orderRepo.getById(updateOrderRs.getOrderId());
+            if (updateOrderRs.getTime() != 100) {
+                order.setDeliveryAgent(userRepo.findUserByPhone(updateOrderRs.getAgent()));
+                order.setOrderStatus(OrderStatus.SEND_TO_SHOP);
+            } else {
+                order.setOrderStatus(OrderStatus.CANCELED);
+            }
+            User user = userRepo.findUserByPhone(updateOrderRs.getAgent());
+            List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder(order);
+            orderDetailsRepository.saveAll(productDeliveries);
+            order.setOrderDeliveredAt(new Date());
+            order.setModifiedDate(new Date());
+            orderRepo.save(order);
+            Map<String, String> data = new HashMap<>();
+            data.put("order_status", "New order receive");
+            data.put("title", "MELAA | Grocery App");
+            data.put("token", user.getToken());
+            firebasePushNotificationService.sendPushMessage(data );
+//            WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
+//            webSocketMessageModel.setName(String.valueOf(updateOrderRs.getOrderId()));
+//            webSocketMessageSender.notifyUpdateOrderToUser(order.getUser().getPhone(), "/topic/order/update/", webSocketMessageModel);
+            return GlobalResponse.getSuccess(true);
+        } catch (Exception e) {
+            log.error("Failed to update order due to {}", e.getMessage());
+        }
+
+        return GlobalResponse.getFailure("Failed");
+
+    }
 }

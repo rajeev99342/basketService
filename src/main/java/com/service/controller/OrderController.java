@@ -43,9 +43,7 @@ public class OrderController {
     @GetMapping("/get-order-by-user")
     GlobalResponse getOrder(@RequestParam("status") List<OrderStatus> status, @RequestParam("days") String days, @RequestParam("token") String token, @RequestParam(defaultValue = "0") int page,
                             @RequestParam(defaultValue = "10") int size) {
-
         return orderService.getOrderDetails(token, status, days, page, size);
-
     }
 
 
@@ -75,7 +73,13 @@ public class OrderController {
     @PutMapping("/update-packing-order")
         // accept order
     GlobalResponse packingOrder(@RequestBody UpdateOrderRs updateOrderRs) {
-      return  orderService.packingOrder(updateOrderRs);
+        if(updateOrderRs.getStatus().equals(OrderStatus.PLACED)){
+            return  orderService.packingOrder(updateOrderRs);
+        }else if(updateOrderRs.getStatus().equals(OrderStatus.SEND_TO_SHOP)){
+            return  orderService.sendToShop(updateOrderRs);
+        }
+
+        return null;
     }
 
 

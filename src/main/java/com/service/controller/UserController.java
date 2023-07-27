@@ -149,7 +149,7 @@ public class UserController {
     }
 
     @CrossOrigin(origins = "*")
-    @PutMapping("/updateRole")
+    @GetMapping("/updateRole")
     public GlobalResponse updateRole(@RequestParam("role") String role, @RequestParam("phone") String phone) {
         return userService.updateRole(role, phone);
     }
