@@ -38,7 +38,7 @@ public class CartController {
         try {
             return cartService.getItemCount(token);
         } catch (Exception e) {
-           log.error("Failed to get count toke : {}",token);
+           log.error("----------->> Failed to get count toke : {}",token);
             return null;
         }
     }
@@ -50,7 +50,7 @@ public class CartController {
         try {
             return cartService.deleteCartItem(cartDeleteModel);
         } catch (Exception e) {
-            log.error(">>> Failed to delete cart item Ex : {}", e.getLocalizedMessage());
+            log.error("----------->> >>> Failed to delete cart item Ex : {}", e.getLocalizedMessage());
             return null;
         }
     }
@@ -61,7 +61,7 @@ public class CartController {
         try {
             return cartService.updateCount(cartDetailsRequestModel);
         } catch (Exception e) {
-            log.error(">>> Failed to update cart count Ex : {}", e.getLocalizedMessage());
+            log.error("----------->> >>> Failed to update cart count Ex : {}", e.getLocalizedMessage());
             return null;
         }
     }

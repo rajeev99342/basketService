@@ -2,6 +2,7 @@ package com.service.controller;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.service.constants.enums.OrderStatus;
+import com.service.entities.Order;
 import com.service.entities.User;
 import com.service.jwt.JwtTokenUtility;
 import com.service.model.*;
@@ -41,9 +42,9 @@ public class OrderController {
 
     @CrossOrigin(value = "*")
     @GetMapping("/get-order-by-user")
-    GlobalResponse getOrder(@RequestParam("status") List<OrderStatus> status, @RequestParam("days") String days, @RequestParam("token") String token, @RequestParam(defaultValue = "0") int page,
+    GlobalResponse getOrder(@RequestParam("token") String token, @RequestParam(defaultValue = "0") int page,
                             @RequestParam(defaultValue = "10") int size) {
-        return orderService.getOrderDetails(token, status, days, page, size);
+        return orderService.getOrderDetails(token, page, size);
     }
 
 
@@ -70,30 +71,20 @@ public class OrderController {
 
 
     @CrossOrigin(value = "*")
-    @PutMapping("/update-packing-order")
-        // accept order
+    @PutMapping("/updateOrderStatus")
     GlobalResponse packingOrder(@RequestBody UpdateOrderRs updateOrderRs) {
-        if(updateOrderRs.getStatus().equals(OrderStatus.PLACED)){
-            return  orderService.packingOrder(updateOrderRs);
-        }else if(updateOrderRs.getStatus().equals(OrderStatus.SEND_TO_SHOP)){
-            return  orderService.sendToShop(updateOrderRs);
+        if (updateOrderRs.getStatus().equals(OrderStatus.PLACED)) {
+            return orderService.packingOrder(updateOrderRs);
+        } else if (updateOrderRs.getStatus().equals(OrderStatus.SEND_TO_SELLER)) {
+            return orderService.sendToShop(updateOrderRs);
+        } else if (updateOrderRs.getStatus().equals(OrderStatus.CONFIRMED_FROM_SELLER) || updateOrderRs.getStatus().equals(OrderStatus.NOT_AVAILABLE)) {
+            return orderService.updateOrderBySeller(updateOrderRs);
+        } else if (updateOrderRs.getStatus().equals(OrderStatus.ON_THE_WAY)) {
+            return orderService.updateOrderBySeller(updateOrderRs);
+        }else if (updateOrderRs.getStatus().equals(OrderStatus.ACCEPTED)) {
+            return orderService.assignToDelivery(updateOrderRs);
         }
-
         return null;
-    }
-
-
-    @CrossOrigin(value = "*")
-    @PutMapping("/marked-delivered")
-    GlobalResponse markedDelivered(@RequestBody UpdateOrderRs updateOrder) {
-       return  orderService.markedDelivered(updateOrder.getOrderId());
-    }
-
-    @CrossOrigin(value = "*")
-    @PutMapping("/update-on-the-way-order")
-        // after packing marked on the way
-    GlobalResponse updateOnTheWay(@RequestBody UpdateOrderRs order) {
-       return orderService.updateOnTheWay(order.getOrderId());
     }
 
     @CrossOrigin(value = "*")
@@ -111,9 +102,9 @@ public class OrderController {
         List<OrderRS> orderWiseProducts = new ArrayList<>();
         try {
             Pageable pageable =
-                    PageRequest.of(page, size,Sort.by("orderDate").descending());
+                    PageRequest.of(page, size, Sort.by("orderDate").descending());
 
-            log.info(">>>> fetch Order By {} Status", status);
+            log.info(">>>>>>>>>>>>>> >>>> fetch Order By {} Status", status);
             if (OrderStatus.PLACED.name().equals(status)) {
                 return orderService.fetchAllOrderByStatus(token, OrderStatus.PLACED, pageable);
             } else if (OrderStatus.ON_THE_WAY.name().equals(status)) {
@@ -147,13 +138,47 @@ public class OrderController {
         List<OrderRS> orderWiseProducts = new ArrayList<>();
         try {
             Pageable pageable = PageRequest.of(page, size);
-            log.info(">>>> fetch Order By {} Status", statuses);
+            log.info(">>>>>>>>>>>>>>  fetch Order By {} Status", statuses);
             return orderService.fetchAllOrderByStatus(token, statuses, pageable);
+        } catch (Exception e) {
+            log.error("Failed to fetch order list by status due to : {} ", e.getLocalizedMessage());
+            return null;
+        }
+    }
+
+    @GetMapping("/getOrderForSeller")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @Transactional
+    GlobalResponse getAllOrderFromShops(@RequestParam("status") OrderStatus status, @RequestParam("sellerPhone") String sellerPhone, @RequestParam(defaultValue = "0") int page,
+                                        @RequestParam(defaultValue = "10") int size) {
+        List<OrderRS> orderWiseProducts = new ArrayList<>();
+        try {
+            Pageable pageable = PageRequest.of(page, size, Sort.by("modified_date").descending());
+            log.info(">>>>>>>>>>>>>> >>>> fetch Order from shops");
+            return orderService.getAllOrderFromShops(status, sellerPhone, pageable);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
     }
+
+
+    @GetMapping("/getOrderFromShopsForAdmin")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @Transactional
+    GlobalResponse getAllOrderFromShops(@RequestParam("status") OrderStatus status, @RequestParam(defaultValue = "0") int page,
+                                        @RequestParam(defaultValue = "10") int size) {
+        List<OrderRS> orderWiseProducts = new ArrayList<>();
+        try {
+            Pageable pageable = PageRequest.of(page, size, Sort.by("modified_date").descending());
+            log.info(">>>>>>>>>>>>>> >>>> fetch Order from shops");
+            return orderService.getAllOrderFromShopsForAdmin(status, pageable);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 
     @CrossOrigin(value = "*")
     @GetMapping("/order-details-by-id")
@@ -164,6 +189,14 @@ public class OrderController {
             e.printStackTrace();
             return null;
         }
+    }
+
+    @CrossOrigin(value = "*")
+    @GetMapping("/getOrderForDelivery")
+    GlobalResponse getOrderDetailsToBeDeliver(@RequestParam("status") OrderStatus status, @RequestParam("deliveryPhone") String deliveryPhone
+            , @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        List<Order> orders = orderService.getOrderListToDeliver(status, deliveryPhone, page, size);
+        return GlobalResponse.getSuccess(orders);
     }
 
 

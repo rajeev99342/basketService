@@ -35,9 +35,9 @@ public class ImageUtility {
         imageRepository.delete(imageRepository.findImageByCategoryId(model.getId()));
         ImageDetails imageDetails1 = imageDetailsRepository.findImageDetailsById(img.getImageDetails().getId());
         if(null != imageDetails1){
-            log.error("Details does not deleted");
+            log.error("----------->> Details does not deleted");
         }else{
-            log.info("Details deleted");
+            log.info(">>>>>>>>>>>>>> Details deleted");
         }
     }
 
@@ -51,9 +51,9 @@ public class ImageUtility {
             imageRepository.delete(img);
             ImageDetails imageDetails1 = imageDetailsRepository.findImageDetailsById(img.getImageDetails().getId());
             if(null != imageDetails1){
-                log.error("Details does not deleted");
+                log.error("----------->> Details does not deleted");
             }else{
-                log.info("Details deleted");
+                log.info(">>>>>>>>>>>>>> Details deleted");
             }
         }
 

@@ -7,9 +7,11 @@ import com.service.constants.values.Constants;
 import com.service.entities.*;
 import com.service.jwt.JwtTokenUtility;
 import com.service.model.*;
+import com.service.model.seller.SellerDetailModel;
 import com.service.repos.*;
 import com.service.service.image.ImageServiceImpl;
 import com.service.utilites.Payment;
+import com.service.utilites.SellerModelConvertor;
 import com.service.websocket.WebSocketMessageSender;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -31,6 +33,13 @@ import static com.service.constants.enums.UserRole.ADMIN;
 @Service
 @Slf4j
 public class OrderService {
+
+    @Autowired
+    SellerModelConvertor sellerModelConvertor;
+    @Autowired
+    SellerDetailsRepo sellerDetailsRepo;
+    @Autowired
+    OrderSellerRepo orderSellerRepo;
 
     @Autowired
     WebSocketMessageSender webSocketMessageSender;
@@ -145,18 +154,18 @@ public class OrderService {
         }
         String unsuccessfulOrderName = null;
         if (totalSuccessfulPlacedOrder == 0) {
-            log.error(">>>>>>>>> unable to order by User : {} => due to [ OUT OF STOCK ] ", user.getPhone());
+            log.error("----------->> >>>>>>>>> unable to order by User : {} => due to [ OUT OF STOCK ] ", user.getPhone());
             throw new Exception("ORDERED PRODUCTS ARE OUT OF STOCKS");
         } else if (toBeOrder > totalSuccessfulPlacedOrder) {
-            log.info(">>>>>>>>> Some products [ OUT OF STOCK ] | User ==> {}", user.getPhone());
+            log.info(">>>>>>>>>>>>>> >>>>>>>>> Some products [ OUT OF STOCK ] | User ==> {}", user.getPhone());
             unsuccessfulOrderName = String.join(",", outOfStockProducts);
             sendOrderUpdateNotification(OrderStatus.PLACED, "These items are out of stock : " + unsuccessfulOrderName, null, order.getUser().getToken());
         } else {
-            log.error(">>>>>>>>> all products are [ OUT OF STOCK ] ", user.getPhone());
+            log.error("----------->> >>>>>>>>> all products are [ OUT OF STOCK ] ", user.getPhone());
         }
         String orderDetailMessage = null;
         cartDetailsRepo.deleteCartDetailsByIDs(itemIds);
-        log.info("Order placed by user : {} " + order.getUser().getPhone());
+        log.info(">>>>>>>>>>>>>> Order placed by user : {} " + order.getUser().getPhone());
         notifyAdmin(order.getUser().getUserName(), "New order arrived " + orderDetailMessage);
         sendOrderUpdateNotification(OrderStatus.PLACED, "Order placed", null, order.getUser().getToken());
         WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
@@ -193,57 +202,42 @@ public class OrderService {
 
 
     @Transactional
-    public GlobalResponse getOrderDetails(String token, List<OrderStatus> statusList, String days, int page, int size) {
+    public GlobalResponse getOrderDetails(String token, int page, int size) {
         try {
-            Pageable pageable =
-                    PageRequest.of(page, size, Sort.by("order_date").descending());
-
-            int olderDays = findDays(days);
+            Pageable pageable = PageRequest.of(page, size, Sort.by("order_date").descending());
             User user = userRepo.findUserByPhone(jwtTokenUtility.getUsernameFromToken(token));
             Address address = addressRepo.findAddressByUserId(user.getId());
             List<Order> orders = orderRepo.findOrderByUser(user.getId(), pageable);
             List<OrderRS> orderRsList = new ArrayList<>();
             for (Order order : orders) {
-                if (statusList.contains(order.getOrderStatus())) {
-                    OrderRS orderRS = new OrderRS();
-                    orderRS.setDeliveryAgent(order.getDeliveryAgent());
-                    if (statusList.contains(OrderStatus.DELIVERED)) {
-                        orderRS.setIsNew(false);
-                    }
-                    orderRS.setOrderDate(order.getOrderDate());
-                    orderRS.setOrderStatus(order.getOrderStatus());
-                    orderRS.setAddressModel(convertIntoAddressModel(address));
-                    List<ProductOrderDetails> deliveryProductList = new ArrayList<>();
-                    List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder_Id(order.getId());
-                    for (OrderDetails productDelivery : productDeliveries) {
-                        ProductOrderDetails deliveryProductDetails = new ProductOrderDetails();
-                        deliveryProductDetails.setProductId(productDelivery.getProduct().getId());
-                        deliveryProductDetails.setProductName(productDelivery.getProduct().getName());
-                        deliveryProductDetails.setPrice(productDelivery.getItemPrice());
-                        deliveryProductDetails.setTotalProductCount(productDelivery.getQuantity());
-                        deliveryProductDetails.setImage(imageService.getAllImageByProduct(productDelivery.getProduct()));
-                        deliveryProductList.add(deliveryProductDetails);
-                    }
-                    orderRS.setExpectedDeliveryDate(order.getExpectedDeliveryDate());
-                    orderRS.setOrderId(order.getId());
-                    orderRS.setDeliveryProducts(deliveryProductList);
-                    orderRS.setTotalCost(order.getTotalCost());
-                    orderRS.setDeliveredAt(order.getOrderDeliveredAt());
-                    orderRS.setLastModifiedDate(order.getModifiedDate());
-                    orderRsList.add(orderRS);
+                OrderRS orderRS = new OrderRS();
+                orderRS.setDeliveryAgent(order.getDeliveryAgent());
+                orderRS.setOrderDate(order.getOrderDate());
+                orderRS.setOrderStatus(order.getOrderStatus());
+                orderRS.setAddressModel(convertIntoAddressModel(address));
+                List<ProductOrderDetails> deliveryProductList = new ArrayList<>();
+                List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder_Id(order.getId());
+                for (OrderDetails productDelivery : productDeliveries) {
+                    ProductOrderDetails deliveryProductDetails = new ProductOrderDetails();
+                    deliveryProductDetails.setProductId(productDelivery.getProduct().getId());
+                    deliveryProductDetails.setProductName(productDelivery.getProduct().getName());
+                    deliveryProductDetails.setPrice(productDelivery.getItemPrice());
+                    deliveryProductDetails.setTotalProductCount(productDelivery.getQuantity());
+                    deliveryProductDetails.setImage(imageService.getAllImageByProduct(productDelivery.getProduct()));
+                    deliveryProductList.add(deliveryProductDetails);
                 }
+                orderRS.setExpectedDeliveryDate(order.getExpectedDeliveryDate());
+                orderRS.setOrderId(order.getId());
+                orderRS.setDeliveryProducts(deliveryProductList);
+                orderRS.setTotalCost(order.getTotalCost());
+                orderRS.setDeliveredAt(order.getOrderDeliveredAt());
+                orderRS.setLastModifiedDate(order.getModifiedDate());
+                orderRsList.add(orderRS);
+
             }
-
-            Collections.sort(orderRsList, new Comparator<OrderRS>() {
-                @Override
-                public int compare(OrderRS o1, OrderRS o2) {
-                    return o2.getLastModifiedDate().compareTo(o1.getLastModifiedDate());
-                }
-            });
-
             return GlobalResponse.getSuccess(orderRsList);
         } catch (Exception e) {
-            log.error("Failed due to {}", e.getMessage());
+            log.error("----------->> Failed due to {}", e.getMessage());
             return GlobalResponse.getFailure(e.getMessage());
         }
     }
@@ -265,7 +259,7 @@ public class OrderService {
             webSocketMessageSender.notifyUpdateOrderToUser(order.getUser().getPhone(), "/topic/order/update/", webSocketMessageModel);
             return true;
         } catch (Exception e) {
-            log.error(">>> Failed to canceled order EX : {} | {} | Order ID : {}", e.getLocalizedMessage(), user.getPhone(), id);
+            log.error("----------->> >>> Failed to canceled order EX : {} | {} | Order ID : {}", e.getLocalizedMessage(), user.getPhone(), id);
         }
 
         return false;
@@ -277,7 +271,7 @@ public class OrderService {
             if (updateOrderRs.getTime() != 100) {
                 Date newD = Date.from(new Date().toInstant().plusSeconds(updateOrderRs.getTime() * 60 * 60));
                 order.setExpectedDeliveryDate(newD);
-                order.setDeliveryAgent(userRepo.findUserByPhone(updateOrderRs.getAgent()));
+                order.setDeliveryAgent(userRepo.findUserByPhone(updateOrderRs.getSellerPhones().get(0)));
                 order.setOrderStatus(OrderStatus.ACCEPTED);
             } else {
                 order.setOrderStatus(OrderStatus.CANCELED);
@@ -293,7 +287,7 @@ public class OrderService {
             webSocketMessageSender.notifyUpdateOrderToUser(order.getUser().getPhone(), "/topic/order/update/", webSocketMessageModel);
             return GlobalResponse.getSuccess(true);
         } catch (Exception e) {
-            log.error("Failed to update order due to {}", e.getMessage());
+            log.error("----------->> Failed to update order due to {}", e.getMessage());
         }
 
         return GlobalResponse.getFailure("Failed");
@@ -304,7 +298,7 @@ public class OrderService {
         try {
             firebasePushNotificationService.sendPushMessage(prepareNotificationData(status, message, image, token));
         } catch (Exception e) {
-            log.error(">>> Failed to send notification EX : {}", e.getLocalizedMessage());
+            log.error("----------->> >>> Failed to send notification EX : {}", e.getLocalizedMessage());
         }
 
 
@@ -410,7 +404,7 @@ public class OrderService {
                 return null;
             }
         } catch (Exception e) {
-            log.error("Failed to fetch order due to {} ", e.getMessage());
+            log.error("----------->> Failed to fetch order due to {} ", e.getMessage());
             return GlobalResponse.getFailure(e.getMessage());
         }
     }
@@ -443,14 +437,14 @@ public class OrderService {
             Duration timeElapsed = Duration.between(start, end);
             Integer durationInHr = Math.toIntExact(timeElapsed.toMillis() / (1000 * 60 * 60));
             if (durationInHr > 2) {
-                log.error("Order can not be return because its {} hr old ", durationInHr);
+                log.error("----------->> Order can not be return because its {} hr old ", durationInHr);
                 return new GlobalResponse("This order is too old", HttpStatus.CONFLICT.value());
             } else {
                 order.setModifiedDate(new Date());
-                if(order.getPaymentMode().equals(PaymentModeEnum.CASE_ON_DELIVERY)){
+                if (order.getPaymentMode().equals(PaymentModeEnum.CASE_ON_DELIVERY)) {
                     order.setOrderStatus(OrderStatus.CANCELED);
                     message = OrderStatus.CANCELED.name();
-                }else{
+                } else {
                     order.setOrderStatus(OrderStatus.RETURN_INITIATED);
                     message = OrderStatus.RETURN_INITIATED.name();
                 }
@@ -464,7 +458,7 @@ public class OrderService {
             return new GlobalResponse(message, HttpStatus.OK.value());
         } catch (Exception e) {
             e.printStackTrace();
-            log.error("Failed return order by user {} due to {}", order.getUser().getPhone(), e.getMessage());
+            log.error("----------->> Failed return order by user {} due to {}", order.getUser().getPhone(), e.getMessage());
             return new GlobalResponse("Failed to initiate return : " + e.getMessage(), HttpStatus.CONFLICT.value());
         }
 
@@ -521,7 +515,7 @@ public class OrderService {
             return globalResponse;
         } catch (Exception e) {
 
-            log.error("Unable to fetch order by ID : " + id + " ERROR : " + e);
+            log.error("----------->> Unable to fetch order by ID : " + id + " ERROR : " + e);
         }
         return new GlobalResponse("Failed to fetch order details", HttpStatus.INTERNAL_SERVER_ERROR.value());
     }
@@ -595,41 +589,191 @@ public class OrderService {
                 return null;
             }
         } catch (Exception e) {
-            log.error("Failed to fetch order due to {} ", e.getMessage());
+            log.error("----------->> Failed to fetch order due to {} ", e.getMessage());
             return GlobalResponse.getFailure(e.getMessage());
         }
     }
 
 
+    @Transactional
     public GlobalResponse sendToShop(UpdateOrderRs updateOrderRs) {
         try {
             Order order = orderRepo.getById(updateOrderRs.getOrderId());
-            if (updateOrderRs.getTime() != 100) {
-                order.setDeliveryAgent(userRepo.findUserByPhone(updateOrderRs.getAgent()));
-                order.setOrderStatus(OrderStatus.SEND_TO_SHOP);
-            } else {
-                order.setOrderStatus(OrderStatus.CANCELED);
-            }
-            User user = userRepo.findUserByPhone(updateOrderRs.getAgent());
-            List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder(order);
-            orderDetailsRepository.saveAll(productDeliveries);
-            order.setOrderDeliveredAt(new Date());
-            order.setModifiedDate(new Date());
-            orderRepo.save(order);
+            List<User> list = userRepo.findUserByPhoneIn(updateOrderRs.getSellerPhones());
+            List<String> tokens = list.stream().map(user -> user.getToken()).collect(Collectors.toList());
             Map<String, String> data = new HashMap<>();
-            data.put("order_status", "New order receive");
+            data.put("order_status", "New order received");
             data.put("title", "MELAA | Grocery App");
-            data.put("token", user.getToken());
-            firebasePushNotificationService.sendPushMessage(data );
+            order.setOrderStatus(updateOrderRs.getStatus());
+            for (String phone : updateOrderRs.getSellerPhones()) {
+                OrderSeller orderShopMapped = new OrderSeller();
+                orderShopMapped.setOrder(order);
+                orderShopMapped.setSellerPhone(phone);
+                orderShopMapped.setOrderStatus(updateOrderRs.getStatus());
+                orderShopMapped.setBuyerPhone(updateOrderRs.getBuyer());
+                orderSellerRepo.save(orderShopMapped);
+            }
+
+            try {
+                firebasePushNotificationService.notifyAllAdmin(tokens, updateOrderRs.getStatus().name(), null);
+            } catch (Exception e) {
+                log.error("----------->> Failed to send notification to sellers due to {} ", e.getLocalizedMessage());
+            }
 //            WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
 //            webSocketMessageModel.setName(String.valueOf(updateOrderRs.getOrderId()));
 //            webSocketMessageSender.notifyUpdateOrderToUser(order.getUser().getPhone(), "/topic/order/update/", webSocketMessageModel);
+            log.info(">>>>>>>>>>>>>>  Order request send to seller");
             return GlobalResponse.getSuccess(true);
         } catch (Exception e) {
-            log.error("Failed to update order due to {}", e.getMessage());
+            log.error("----------->> Failed to update order due to {}", e.getMessage());
         }
 
         return GlobalResponse.getFailure("Failed");
 
     }
+
+    public GlobalResponse getAllOrderFromShops(OrderStatus orderStatusFromShop, String seller, Pageable pageable) {
+        List<Order> orderList = orderRepo.findOrderFromShops(seller, orderStatusFromShop.name(), pageable);
+        log.info("Order fetched by status : {} ", orderStatusFromShop);
+        return getProductList(orderList);
+    }
+
+    public GlobalResponse getAllOrderFromShopsForAdmin(OrderStatus orderStatusFromShop, Pageable pageable) {
+        List<Order> orderList = orderRepo.findOrderFromShopsForAdmin(orderStatusFromShop.name(), pageable);
+        log.info("Order fetched by status : {} ", orderStatusFromShop);
+        return getProductList(orderList);
+    }
+
+
+    private GlobalResponse getProductList(List<Order> orderList) {
+        List<OrderRS> orderDetailsModelList = new ArrayList<>();
+        for (Order order : orderList) {
+            OrderRS orderDetailsModel = new OrderRS();
+            orderDetailsModel.setUser(order.getUser());
+            orderDetailsModel.setOrderDate(order.getOrderDate());
+            orderDetailsModel.setLatitude(order.getLatitude());
+            orderDetailsModel.setLongitude(order.getLongitude());
+            orderDetailsModel.setAddressLine(order.getAddressLine());
+            orderDetailsModel.setOrderStatus(order.getOrderStatus());
+            Address address = null;
+            orderDetailsModel.setAddressModel(convertIntoAddressModel(address));
+            List<ProductOrderDetails> deliveryProductList = new ArrayList<>();
+            Double totalCost = 0.00;
+            List<SellerDetailModel> sellerModelList = getSellerDetails(order);
+            List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder(order);
+            orderDetailsModel.setSellerDetailModels(sellerModelList);
+            for (OrderDetails productDelivery : productDeliveries) {
+                ProductOrderDetails deliveryProductDetails = new ProductOrderDetails();
+                deliveryProductDetails.setTotalProductCount(productDelivery.getQuantity());
+                deliveryProductDetails.setProductId(productDelivery.getProduct().getId());
+                deliveryProductDetails.setProductName(productDelivery.getProduct().getName());
+                deliveryProductDetails.setPrice(productDelivery.getItemPrice());
+                deliveryProductDetails.setImage(imageService.getAllImageByProduct(productDelivery.getProduct()));
+                deliveryProductDetails.setPrice(productDelivery.getItemPrice());
+                deliveryProductList.add(deliveryProductDetails);
+            }
+            orderDetailsModel.setExpectedDeliveryDate(order.getExpectedDeliveryDate());
+            orderDetailsModel.setOrderId(order.getId());
+            orderDetailsModel.setLastModifiedDate(order.getModifiedDate());
+            orderDetailsModel.setDeliveryProducts(deliveryProductList);
+            orderDetailsModel.setTotalCost(order.getTotalCost());
+            orderDetailsModelList.add(orderDetailsModel);
+        }
+        return GlobalResponse.getSuccess(orderDetailsModelList);
+    }
+
+
+    public GlobalResponse updateOrderBySeller(UpdateOrderRs updateOrderRs) {
+        try {
+            Order order = orderRepo.getById(updateOrderRs.getOrderId());
+            List<User> list = userRepo.findUserByPhoneIn(updateOrderRs.getSellerPhones());
+            List<String> tokens = list.stream().map(user -> user.getToken()).collect(Collectors.toList());
+            Map<String, String> data = new HashMap<>();
+            data.put("order_status", "New order received");
+            data.put("title", "MELAA | Grocery App");
+            if(updateOrderRs.getStatus().equals(OrderStatus.CONFIRMED_FROM_SELLER)){
+                List<OrderSeller> orderSeller = orderSellerRepo.findAllByOrder_Id(updateOrderRs.getOrderId());
+                List<OrderSeller> updatedSellerList =  orderSeller.stream().map(o->{
+                    if(o.getSellerPhone().equals(updateOrderRs.getSellerPhones().get(0))){
+                        o.setOrderStatus(OrderStatus.CONFIRMED_FROM_SELLER);
+                    }else{
+                        o.setOrderStatus(OrderStatus.CANCELED);
+                    }
+                    return o;
+                }).collect(Collectors.toList());
+                orderSellerRepo.saveAll(updatedSellerList);
+            }else{
+                OrderSeller orderSeller = orderSellerRepo.findBySellerPhoneByOrderId(updateOrderRs.getSellerPhones().get(0), updateOrderRs.getOrderId());
+                orderSeller.setOrderStatus(updateOrderRs.getStatus());
+                orderSellerRepo.save(orderSeller);
+            }
+            order.setOrderStatus(updateOrderRs.getStatus());
+
+            orderRepo.save(order);
+
+
+            try {
+                firebasePushNotificationService.notifyAllAdmin(tokens, updateOrderRs.getStatus().name(), null);
+            } catch (Exception e) {
+                log.error("----------->> Failed to send notification to sellers due to {} ", e.getLocalizedMessage());
+            }
+//            WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
+//            webSocketMessageModel.setName(String.valueOf(updateOrderRs.getOrderId()));
+//            webSocketMessageSender.notifyUpdateOrderToUser(order.getUser().getPhone(), "/topic/order/update/", webSocketMessageModel);
+            log.info(">>>>>>>>>>>>>>  Order request send to seller");
+            return GlobalResponse.getSuccess(true);
+        } catch (Exception e) {
+            log.error("----------->> Failed to update order due to {}", e.getMessage());
+        }
+
+        return GlobalResponse.getFailure("Failed");
+
+    }
+
+    public List<Order> getOrderListToDeliver(OrderStatus status, String deliveryPhone, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("order_date").descending());
+        User user = userRepo.findUserByPhone(deliveryPhone);
+        if(user.getRoles().contains(UserRole.DELIVERY)){
+          return orderRepo.findAllOrderByDelivery(status.name(),user.getId());
+        }else{
+            log.error("User is not delivery agent : {} ",user.getPhone());
+        }
+        return null;
+    }
+
+    public GlobalResponse assignToDelivery(UpdateOrderRs updateOrderRs) {
+        try {
+            Order order = orderRepo.getById(updateOrderRs.getOrderId());
+            if (updateOrderRs.getTime() != 100) {
+                Date newD = Date.from(new Date().toInstant().plusSeconds(updateOrderRs.getTime() * 60 * 60));
+                order.setExpectedDeliveryDate(newD);
+                order.setDeliveryAgent(userRepo.findUserByPhone(updateOrderRs.getDeliveryAgent()));
+                order.setOrderStatus(OrderStatus.ACCEPTED);
+            } else {
+                order.setOrderStatus(OrderStatus.CANCELED);
+            }
+            order.setModifiedDate(new Date());
+            orderRepo.save(order);
+            sendOrderUpdateNotification(OrderStatus.ACCEPTED, "Order accepted", null, order.getUser().getToken());
+            WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
+            webSocketMessageModel.setName(String.valueOf(updateOrderRs.getOrderId()));
+            webSocketMessageSender.notifyUpdateOrderToUser(order.getUser().getPhone(), "/topic/order/update/", webSocketMessageModel);
+            return GlobalResponse.getSuccess(true);
+        } catch (Exception e) {
+            log.error("----------->> Failed to update order due to {}", e.getMessage());
+        }
+
+        return GlobalResponse.getFailure("Failed");
+    }
+
+    private List<SellerDetailModel> getSellerDetails(Order order) {
+        List<SellerDetails> sellerDetailsList = null;
+        if(order.getOrderStatus().equals(OrderStatus.CONFIRMED_FROM_SELLER)){
+             sellerDetailsList = sellerDetailsRepo.sellerDetailsByOrderIdAndStatus(order.getId(),OrderStatus.CONFIRMED_FROM_SELLER.name());
+        }else{
+            sellerDetailsList = sellerDetailsRepo.sellerDetailsByOrderId(order.getId());
+        }
+        return sellerModelConvertor.CONVERT_INTO_MODEL.apply(sellerDetailsList);
+    }
+
 }

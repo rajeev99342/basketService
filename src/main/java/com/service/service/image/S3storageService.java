@@ -88,7 +88,7 @@ public class S3storageService implements StorageService {
         try (FileOutputStream fos = new FileOutputStream(convertedFile)) {
             fos.write(file.getBytes());
         } catch (IOException e) {
-            log.error("Error converting multipartFile to file", e);
+            log.error("----------->> Error converting multipartFile to file", e);
         }
         return convertedFile;
     }

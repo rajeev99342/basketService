@@ -1,7 +1,7 @@
 package com.service.constants.enums;
 
 public enum OrderStatus {
-    SEND_TO_SHOP,
+
     PLACED,
     ACCEPTED,
     DISPATCHED,
@@ -11,5 +11,10 @@ public enum OrderStatus {
     FAILED_DUE_TO_TECHNICAL_ISSUE,
     CANCELED,
     RETURN_INITIATED,
-    REFUNDED
+    REFUNDED,
+    SEND_TO_SELLER,
+    CONFIRMED_FROM_SELLER,
+    FEW_ITEM_AVAILABLE,
+    PACKING,
+    NOT_AVAILABLE;
 }

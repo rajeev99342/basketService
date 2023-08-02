@@ -43,7 +43,7 @@ public class LocalStorageService implements StorageService {
     @Override
     @Transactional
     public GlobalResponse uploadFile(MultipartFile file, String imageReferenceDir) throws IOException {
-        log.info("RESOURCE PATH : {} ", RESOURCE_PATH);
+        log.info(">>>>>>>>>>>>>> RESOURCE PATH : {} ", RESOURCE_PATH);
         Path newFile = Paths.get(RESOURCE_PATH + imageReferenceDir);
         Files.createDirectories(newFile.getParent());
         Files.write(newFile, file.getBytes());

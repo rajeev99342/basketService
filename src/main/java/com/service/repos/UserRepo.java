@@ -18,12 +18,21 @@ public interface UserRepo extends JpaRepository<User,Long> {
 
     public User findUserByPhone(String phone);
 
+    public List<User> findUserByPhoneIn(List<String> phone);
+
+
     @Query(value = "select token from user as u where u.crnt_user_type = :crnt_user_type",nativeQuery = true)
     List<String> findToken(@Param("crnt_user_type") String crnt_user_type);
 
 
     @Query(value = "select token from `user` as u where u.ROLES in (:ROLE) ",nativeQuery = true)
     List<User> findUserByRole(@Param("ROLE") List<String> ROLE);
+
+
+    @Query(value = "select token from `user` as u where u.ROLES in (:ROLE) ",nativeQuery = true)
+    List<User> findUserByRole(@Param("ROLE") List<String> ROLE, Pageable pageable);
+
+
 
     List<User> findByRolesContains(UserRole role, Pageable pageable);// fetch by user role
 

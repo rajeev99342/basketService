@@ -24,6 +24,9 @@ import java.util.List;
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Transactional
 public class UserController {
+    @Value(value = "${melaa.roles}")
+    List<UserRole> userRoles;
+
     @Autowired
     TwilioMessageSenderService twilioMessageSenderService;
     @Autowired
@@ -83,7 +86,7 @@ public class UserController {
         try {
             return "Hello from server";
         } catch (Exception e) {
-            log.error("Failed to get user address due to " + e);
+            log.error("----------->> Failed to get user address due to " + e);
             return null;
         }
 
@@ -117,7 +120,7 @@ public class UserController {
         try {
             return twilioMessageSenderService.getOtp(phoneNumber);
         } catch (Exception e) {
-            log.error("Failed to get user address due to " + e);
+            log.error("----------->> Failed to get user address due to " + e);
             return null;
         }
 
@@ -129,7 +132,7 @@ public class UserController {
         try {
             return userService.updateUserName(username, authentication);
         } catch (Exception e) {
-            log.error("Failed to get user address due to " + e);
+            log.error("----------->> Failed to get user address due to " + e);
             return null;
         }
 
@@ -143,7 +146,7 @@ public class UserController {
 
 
     @CrossOrigin(origins = "*")
-    @GetMapping("/get-delivery-agent")
+    @GetMapping("/getUserByRole")
     public GlobalResponse getByRole(@RequestParam("role") UserRole role) {
         return userService.getUserByRole(role);
     }
@@ -154,5 +157,10 @@ public class UserController {
         return userService.updateRole(role, phone);
     }
 
+    @CrossOrigin(origins = "*")
+    @GetMapping("/getRoles")
+    public GlobalResponse getRoles() {
+        return GlobalResponse.getSuccess(userRoles);
+    }
 
 }

@@ -27,7 +27,6 @@ public class Order {
     @Column(name = "TOTAL_COST")
     private Double totalCost;
 
-
     @Enumerated(EnumType.STRING)
     @Column(name = "PAYMENT_MODE")
     private PaymentModeEnum paymentMode;
@@ -44,7 +43,6 @@ public class Order {
     @Enumerated(EnumType.STRING)
     @Column(name = "PAID")
     private YESNO yesNo;
-
 
     @Column(name = "TXN_ID")
     private String transactionId;

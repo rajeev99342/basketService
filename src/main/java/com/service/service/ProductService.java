@@ -173,7 +173,7 @@ public List<DisplayProductModel> fetchFromDB(int page, int size){
         try{
             return GlobalResponse.getSuccess(fetchFromDB(page,size));
         }catch (Exception e){
-            log.error("Failed to fetch product list due to {} ",e.getMessage());
+            log.error("----------->> Failed to fetch product list due to {} ",e.getMessage());
         }
         return null;
 
@@ -189,7 +189,7 @@ public List<DisplayProductModel> fetchFromDB(int page, int size){
             displayProductModel.setId(product.getId());
             return GlobalResponse.getSuccess(displayProductModel);
         }catch (Exception e){
-            log.error("Failed to fetch product due to {}",e.getMessage());
+            log.error("----------->> Failed to fetch product due to {}",e.getMessage());
             return GlobalResponse.getFailure(e.getMessage());
         }
 
@@ -249,7 +249,7 @@ public List<DisplayProductModel> fetchFromDB(int page, int size){
             List<DisplayProductModel> list =  convertProductIntoDisplayProduct(products);
             return GlobalResponse.getSuccess(list);
         }catch (Exception e){
-            log.error("Failed to fetch products by category due to {} ",e.getMessage());
+            log.error("----------->> Failed to fetch products by category due to {} ",e.getMessage());
             return GlobalResponse.getFailure(e.getMessage());
         }
 
@@ -304,7 +304,7 @@ public List<DisplayProductModel> fetchFromDB(int page, int size){
             }
             return GlobalResponse.getSuccess(productModels);
         }catch (Exception e){
-            log.error("Failed to search product due to : {}",e.getMessage());
+            log.error("----------->> Failed to search product due to : {}",e.getMessage());
             return GlobalResponse.getFailure(e.getMessage());
         }
 
@@ -318,8 +318,8 @@ public List<DisplayProductModel> fetchFromDB(int page, int size){
     public int addRandom(Long categoryID,List<MultipartFile> files) throws Exception {
 
         Category category = categoryRepo.findById(categoryID).get();
-        log.info("===========================================================");
-        log.info("============>> {} =>"+category.getCatName());
+        log.info(">>>>>>>>>>>>>> ===========================================================");
+        log.info(">>>>>>>>>>>>>> ============>> {} =>"+category.getCatName());
         for(MultipartFile file : files){
 //            int pickCat = new Random().nextInt(categoryList.size());
             int pick = new Random().nextInt(Unit.values().length);
@@ -333,7 +333,7 @@ public List<DisplayProductModel> fetchFromDB(int page, int size){
             product.setIsValid(true);
             product.setProdBrand("LOCAL BRAND");
             product.setCategory(category);
-            log.info("JUST BEFORE SAVE ============>> {} =>"+category.getCatName());
+            log.info(">>>>>>>>>>>>>> JUST BEFORE SAVE ============>> {} =>"+category.getCatName());
 
             productRepo.save(product);
             List<MultipartFile> multipartFiles = new ArrayList<>();

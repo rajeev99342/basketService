@@ -56,7 +56,7 @@ public class ImageServiceImpl implements ImageHandler {
             return storage.getImage(id);
 //            globalResponse = new GlobalResponse("fetched successfully", HttpStatus.OK.value(), true, byteArray);
         } catch (Exception e) {
-            log.error("Failed to fetch the image due to EX : {}",e.getLocalizedMessage());
+            log.error("----------->> Failed to fetch the image due to EX : {}",e.getLocalizedMessage());
             globalResponse = new GlobalResponse("unable to fetch image", HttpStatus.INTERNAL_SERVER_ERROR.value());
         }
 
@@ -74,7 +74,7 @@ public class ImageServiceImpl implements ImageHandler {
         } else {
             successfully_created = new GlobalResponse("Successfully created but unable to save into DB", HttpStatus.INTERNAL_SERVER_ERROR.value(), true, imageDetails);
         }
-        log.info("Image write success");
+        log.info(">>>>>>>>>>>>>> Image write success");
         return successfully_created;
     }
 

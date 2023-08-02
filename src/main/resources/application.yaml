@@ -1,6 +1,6 @@
 server:
   address: 0.0.0.0
-  port: 8080
+  port: 9001
 
 spring:
   application:
@@ -80,8 +80,9 @@ melaa:
     id: 1
   product:
     image-path: C:/Users/Dell/Desktop/store/image/drink
-
-
+  roles: ADMIN,MASTER,SELLER,CUSTOMER,DELIVERY
+  orderStatus: SEND_TO_SHOP,PLACED,ACCEPTED,DISPATCHED,ON_THE_WAY,DELIVERED,CANCELED_DUE_TO_OUT_OF_STOCK,FAILED_DUE_TO_TECHNICAL_ISSUE,CANCELED,RETURN_INITIATED,REFUNDED
+  shopType: GROCERY_RETAILS,STATIONARY,GROCERY_WHOLESALES,SPICE_SHOP,GENERAL_STORE,SWEETS_SHOP
 
 
 properties:

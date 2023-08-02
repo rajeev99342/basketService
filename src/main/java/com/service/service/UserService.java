@@ -168,7 +168,7 @@ public class UserService {
             user.setPassword(bcryptEncoder.encode(userCredentials.getPassword()));
             userRepo.save(user);
             cartService.createCartByUser(user);
-            log.info("password reset successfully");
+            log.info(">>>>>>>>>>>>>> password reset successfully");
         } catch (Exception e) {
             e.printStackTrace();
             globalResponse.setMessage(e.getMessage());
@@ -241,7 +241,7 @@ public class UserService {
             User user = getUserByPhoneLocal(userPhone);
             return GlobalResponse.getSuccess(user);
         } catch (Exception e) {
-            log.error("Failed due to fetch user due to : {}", e.getMessage());
+            log.error("----------->> Failed due to fetch user due to : {}", e.getMessage());
             return GlobalResponse.getFailure(e.getMessage());
         }
     }
@@ -287,7 +287,7 @@ public class UserService {
         User user = userRepo.findUserByPhone(phone);
         user.setLoggedInAs(role);
         userRepo.save(user);
-        log.info("{} is logged in", phone);
+        log.info(">>>>>>>>>>>>>> {} is logged in", phone);
         return new GlobalResponse(String.format("%s is logged in as : %s", phone, role.name()), HttpStatus.OK.value());
     }
 
@@ -325,7 +325,7 @@ public class UserService {
             response.setStatus(true);
             response.setBody(userFunction.CONVERT_INTO_USER_MODEL_LIST.apply(users));
         } catch (Exception e) {
-            log.error("deliver agent fetch failed due to : ", e);
+            log.error("----------->> deliver agent fetch failed due to : ", e);
             response.setStatus(false);
             response.setMessage(e.getMessage());
             response.setHttpStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
@@ -358,7 +358,7 @@ public class UserService {
             }
             response.setBody(orderSummaries);
         } catch (Exception e) {
-            log.error("Unable to fetch user summary", e);
+            log.error("----------->> Unable to fetch user summary", e);
             response.setStatus(false);
             response.setMessage(e.getMessage());
             response.setHttpStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());

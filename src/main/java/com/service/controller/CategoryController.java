@@ -44,7 +44,7 @@ public class CategoryController {
                 globalResponse = categoryService.addCategory(categoryModel, (ImageDetails) imageResponse.getBody());
             }
         } catch (Exception e) {
-            log.error("Failed to category due to {}",e.getLocalizedMessage());
+            log.error("----------->> Failed to category due to {}",e.getLocalizedMessage());
             globalResponse.setMessage("Failed to write the image due to "+e.getLocalizedMessage());
         }
 

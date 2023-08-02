@@ -27,6 +27,10 @@ public class GlobalResponse {
     public static GlobalResponse getSuccess(Object body){
         return new GlobalResponse("success", HttpStatus.OK.value(), true, body);
     }
+
+    public static GlobalResponse getSuccess(String message){
+        return new GlobalResponse(message, HttpStatus.OK.value(), true, null);
+    }
     public static GlobalResponse getFailure(String message){
         String messages = "Failed due to %s";
         String.format(messages, message);

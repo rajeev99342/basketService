@@ -93,7 +93,7 @@ public class CategoryService {
             }
             return GlobalResponse.getSuccess(list);
         }catch (Exception e){
-            log.error("Failed to fetch category name due to : {}",e.getMessage());
+            log.error("----------->> Failed to fetch category name due to : {}",e.getMessage());
             return GlobalResponse.getFailure(e.getMessage());
         }
 
@@ -106,7 +106,7 @@ public class CategoryService {
 
             return GlobalResponse.getSuccess(getCategoryModel(categories));
         }catch (Exception e){
-            log.error("Failed to fetch category due to {} ",e.getMessage());
+            log.error("----------->> Failed to fetch category due to {} ",e.getMessage());
         }
 
         return null;
@@ -141,7 +141,7 @@ public class CategoryService {
             }
             return GlobalResponse.getSuccess(displayModel);
         }catch (Exception e){
-            log.error("Failed due to : {}",e.getMessage());
+            log.error("----------->> Failed due to : {}",e.getMessage());
             return GlobalResponse.getFailure(e.getMessage());
         }
 

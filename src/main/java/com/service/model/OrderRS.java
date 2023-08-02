@@ -1,13 +1,12 @@
 package com.service.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.service.constants.enums.OrderStatus;
 import com.service.constants.enums.PaymentModeEnum;
 import com.service.entities.User;
+import com.service.model.seller.SellerDetailModel;
 import lombok.Data;
 
-import javax.persistence.Column;
 import java.util.Date;
 import java.util.List;
 
@@ -41,6 +40,7 @@ public class OrderRS {
     private String longitude;
     private String addressLine;
     private Integer quantity;
+    private List<SellerDetailModel> sellerDetailModels;
 
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private transient User deliveryAgent;
