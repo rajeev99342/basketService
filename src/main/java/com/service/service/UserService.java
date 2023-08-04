@@ -318,8 +318,6 @@ public class UserService {
         GlobalResponse response = new GlobalResponse();
         List<User> users = null;
         try {
-            List<String> roles = new ArrayList<>();
-            roles.add(UserRole.DELIVERY.name());
             users = userRepo.findByRolesContains(role, null);
             response.setHttpStatusCode(HttpStatus.OK.value());
             response.setStatus(true);

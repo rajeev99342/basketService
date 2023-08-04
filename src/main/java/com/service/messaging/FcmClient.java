@@ -61,8 +61,8 @@ public class FcmClient {
         // this setting is for android
 
         AndroidNotification androidNofi = AndroidNotification.builder()
-                .setSound("order.wav")
-                .setTitle(data.get("title"))
+                .setSound("assets/sound.wav")
+                .setTitle("New Order from ")
                 .setBody(data.get("text"))
                 .setPriority(AndroidNotification.Priority.HIGH)
                 .setImage(data.get("image"))
@@ -77,10 +77,6 @@ public class FcmClient {
 
         MulticastMessage message = MulticastMessage.builder()
                 .setAndroidConfig(androidConfig)
-                .setNotification(Notification.builder().setImage("https://firebasestorage.googleapis.com/v0/b/baba-basket-645b9.appspot.com/o/order-image%2Fnew_order.jpg?alt=media&token=2dee986b-6bcc-4ae6-b4f0-90c4fdc872b8")
-                        .setTitle(data.get("message"))
-                        .setBody("Ordered by : "+data.get("buyer"))
-                        .build())
                 .addAllTokens(tokens)
                 .build();
 

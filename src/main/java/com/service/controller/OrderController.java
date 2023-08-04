@@ -80,9 +80,12 @@ public class OrderController {
         } else if (updateOrderRs.getStatus().equals(OrderStatus.CONFIRMED_FROM_SELLER) || updateOrderRs.getStatus().equals(OrderStatus.NOT_AVAILABLE)) {
             return orderService.updateOrderBySeller(updateOrderRs);
         } else if (updateOrderRs.getStatus().equals(OrderStatus.ON_THE_WAY)) {
-            return orderService.updateOrderBySeller(updateOrderRs);
+            return orderService.markedOrderOnTheWay(updateOrderRs);
         }else if (updateOrderRs.getStatus().equals(OrderStatus.ACCEPTED)) {
             return orderService.assignToDelivery(updateOrderRs);
+        }
+        else if (updateOrderRs.getStatus().equals(OrderStatus.DELIVERED)) {
+            return orderService.markedDeliveryDoneStatus(updateOrderRs);
         }
         return null;
     }
@@ -195,8 +198,7 @@ public class OrderController {
     @GetMapping("/getOrderForDelivery")
     GlobalResponse getOrderDetailsToBeDeliver(@RequestParam("status") OrderStatus status, @RequestParam("deliveryPhone") String deliveryPhone
             , @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
-        List<Order> orders = orderService.getOrderListToDeliver(status, deliveryPhone, page, size);
-        return GlobalResponse.getSuccess(orders);
+        return orderService.getOrderListToDeliver(status, deliveryPhone, page, size);
     }
 
 

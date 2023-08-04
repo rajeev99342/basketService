@@ -51,7 +51,7 @@ public class CartController {
             return cartService.deleteCartItem(cartDeleteModel);
         } catch (Exception e) {
             log.error("----------->> >>> Failed to delete cart item Ex : {}", e.getLocalizedMessage());
-            return null;
+            return GlobalResponse.getFailure(e.getLocalizedMessage());
         }
     }
 

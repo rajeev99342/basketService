@@ -177,11 +177,16 @@ public class OrderService {
 
     private void notifyAdmin(String buyerName, String message) {
         try {
-            List<String> adminUserList = userRepo.findToken(ADMIN.name());
+
+            List<User> userList = userRepo.findByRolesContains(ADMIN, null);
+            List<String> tokens = userList.stream().map(user ->user.getToken()).collect(Collectors.toList());
+//            List<String> adminUserList = userRepo.findToken(ADMIN.name());
+            log.info("###################");
+            log.info(String.valueOf(tokens.size()));
             Map<String, String> map = new HashMap<>();
             map.put("buyer", buyerName);
             map.put("message", message);
-            firebasePushNotificationService.sendBulkPushMessage(map, adminUserList);
+            firebasePushNotificationService.sendBulkPushMessage(map, tokens);
 
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -730,11 +735,12 @@ public class OrderService {
 
     }
 
-    public List<Order> getOrderListToDeliver(OrderStatus status, String deliveryPhone, int page, int size) {
+    public GlobalResponse getOrderListToDeliver(OrderStatus status, String deliveryPhone, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("order_date").descending());
         User user = userRepo.findUserByPhone(deliveryPhone);
         if(user.getRoles().contains(UserRole.DELIVERY)){
-          return orderRepo.findAllOrderByDelivery(status.name(),user.getId());
+            List<Order> orderList = orderRepo.findAllOrderByDelivery(status.name(), user.getId());
+            return getProductList(orderList);
         }else{
             log.error("User is not delivery agent : {} ",user.getPhone());
         }
@@ -776,4 +782,41 @@ public class OrderService {
         return sellerModelConvertor.CONVERT_INTO_MODEL.apply(sellerDetailsList);
     }
 
+    public GlobalResponse markedDeliveryDoneStatus(UpdateOrderRs updateOrderRs) {
+        try {
+            Order order = orderRepo.getById(updateOrderRs.getOrderId());
+            order.setOrderStatus(updateOrderRs.getStatus());
+            order.setModifiedDate(new Date());
+            order.setOrderDeliveredAt(new Date());
+            orderRepo.save(order);
+            sendOrderUpdateNotification(OrderStatus.ACCEPTED, "Order accepted", null, order.getUser().getToken());
+            WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
+            webSocketMessageModel.setName(String.valueOf(updateOrderRs.getOrderId()));
+            webSocketMessageSender.notifyUpdateOrderToUser(order.getUser().getPhone(), "/topic/order/update/", webSocketMessageModel);
+            return GlobalResponse.getSuccess(true);
+        } catch (Exception e) {
+            log.error("----------->> Failed to update order due to {}", e.getMessage());
+        }
+
+        return GlobalResponse.getFailure("Failed");
+    }
+
+    public GlobalResponse markedOrderOnTheWay(UpdateOrderRs updateOrderRs) {
+        try {
+            Order order = orderRepo.getById(updateOrderRs.getOrderId());
+            order.setOrderStatus(updateOrderRs.getStatus());
+            order.setModifiedDate(new Date());
+            order.setOrderDeliveredAt(new Date());
+            orderRepo.save(order);
+            sendOrderUpdateNotification(OrderStatus.ACCEPTED, "Order accepted", null, order.getUser().getToken());
+            WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
+            webSocketMessageModel.setName(String.valueOf(updateOrderRs.getOrderId()));
+            webSocketMessageSender.notifyUpdateOrderToUser(order.getUser().getPhone(), "/topic/order/update/", webSocketMessageModel);
+            return GlobalResponse.getSuccess(true);
+        } catch (Exception e) {
+            log.error("----------->> Failed to update order due to {}", e.getMessage());
+        }
+
+        return GlobalResponse.getFailure("Failed");
+    }
 }
