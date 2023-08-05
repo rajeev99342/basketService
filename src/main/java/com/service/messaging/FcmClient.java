@@ -60,11 +60,13 @@ public class FcmClient {
     public void multiCaseMessage(Map<String, String> data, List<String> tokens) throws ExecutionException, InterruptedException {
         // this setting is for android
 
+        long[] val = new long[1];
+        val[0]=10000l;
         AndroidNotification androidNofi = AndroidNotification.builder()
-                .setSound("assets/sound.wav")
-                .setTitle("New Order from ")
-                .setBody(data.get("text"))
-                .setPriority(AndroidNotification.Priority.HIGH)
+                .setTitle(data.get("title"))
+                .setBody(data.get("body"))
+                .setVibrateTimingsInMillis(val)
+                .setPriority(AndroidNotification.Priority.MAX)
                 .setImage(data.get("image"))
                 .build();
 
@@ -74,9 +76,17 @@ public class FcmClient {
                 .setDirectBootOk(true)
                 .setNotification(androidNofi).build();
 
+        Aps aps = Aps.builder()
+//                .setSound("https://firebasestorage.googleapis.com/v0/b/baba-basket-645b9.appspot.com/o/sound.wav?alt=media&token=3ab56c5c-d517-4bc4-90fc-61d23e3498e5")
+                .setSound("assets/sound.wav")
 
+                .build();
+
+        ApnsConfig apnsConfig = ApnsConfig.builder()
+                .setAps(aps).build();
         MulticastMessage message = MulticastMessage.builder()
                 .setAndroidConfig(androidConfig)
+                .setApnsConfig(apnsConfig)
                 .addAllTokens(tokens)
                 .build();
 

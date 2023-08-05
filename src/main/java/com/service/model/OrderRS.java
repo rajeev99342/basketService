@@ -40,6 +40,7 @@ public class OrderRS {
     private String longitude;
     private String addressLine;
     private Integer quantity;
+    private String landmark;
     private List<SellerDetailModel> sellerDetailModels;
 
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})

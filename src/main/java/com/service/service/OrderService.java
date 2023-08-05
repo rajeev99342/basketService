@@ -4,6 +4,7 @@ import com.service.constants.enums.OrderStatus;
 import com.service.constants.enums.PaymentModeEnum;
 import com.service.constants.enums.UserRole;
 import com.service.constants.values.Constants;
+import com.service.constants.values.Images;
 import com.service.entities.*;
 import com.service.jwt.JwtTokenUtility;
 import com.service.model.*;
@@ -29,6 +30,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.service.constants.enums.UserRole.ADMIN;
+import static com.service.constants.enums.UserRole.SELLER;
 
 @Service
 @Slf4j
@@ -97,6 +99,7 @@ public class OrderService {
         order.setLongitude(address.getLongitude());
         order.setOrderDate(new Date());
         order.setAddressLine(address.getAddressLine());
+        order.setLandmark(address.getLandmark());
         order.setModifiedDate(new Date());
         order.setOrderStatus(OrderStatus.PLACED);
         order.setPaymentMode(PaymentModeEnum.CASE_ON_DELIVERY);
@@ -107,6 +110,8 @@ public class OrderService {
         orderRepo.save(order);
         List<String> outOfStockProducts = new ArrayList<>();
         List<Quantity> quantityList = new ArrayList<>();
+        String orderDetailMessage = "";
+
         for (DisplayCartProduct cartProduct : orderModel.getCartProducts()) {
             ProductOrderDetails productWiseOrder = new ProductOrderDetails();
             try {
@@ -120,6 +125,7 @@ public class OrderService {
                     orderDetails.setQuantity(cartProduct.getSelectedCount());
                     orderDetailsList.add(orderDetails);
                     orderDetails.setOrderStatus(OrderStatus.PLACED);
+                    orderDetailMessage = orderDetailMessage + orderDetails.getProduct().getName() + "-"+orderDetails.getQuantity()+" | ";
                     orderDetailsRepository.save(orderDetails);
                     productWiseOrder.setProductId(cartProduct.getId());
                     productWiseOrder.setPrice(cartProduct.getQuantityModel().getPrice());
@@ -161,13 +167,11 @@ public class OrderService {
             unsuccessfulOrderName = String.join(",", outOfStockProducts);
             sendOrderUpdateNotification(OrderStatus.PLACED, "These items are out of stock : " + unsuccessfulOrderName, null, order.getUser().getToken());
         } else {
-            log.error("----------->> >>>>>>>>> all products are [ OUT OF STOCK ] ", user.getPhone());
         }
-        String orderDetailMessage = null;
         cartDetailsRepo.deleteCartDetailsByIDs(itemIds);
         log.info(">>>>>>>>>>>>>> Order placed by user : {} " + order.getUser().getPhone());
-        notifyAdmin(order.getUser().getUserName(), "New order arrived " + orderDetailMessage);
-        sendOrderUpdateNotification(OrderStatus.PLACED, "Order placed", null, order.getUser().getToken());
+        List<String> tokens = getTokens(ADMIN);
+        firebasePushNotificationService.sendBulkPushMessage(prepareMap(orderDetailMessage, user.getUserName()),tokens);
         WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
         webSocketMessageModel.setName(String.valueOf(order.getId()));
         String message = unsuccessfulOrderName != null ? "Order successfully place " + "but these items are out of stocks " + unsuccessfulOrderName : "Order placed successfully";
@@ -175,23 +179,24 @@ public class OrderService {
         return new GlobalResponse(message, HttpStatus.OK.value(), true, null);
     }
 
-    private void notifyAdmin(String buyerName, String message) {
+    private Map<String,String> prepareMap(String orderDetailMessage,String buyer) {
+        Map<String,String> map = new HashMap<>();
+        map.put("title", "New Order Arrived - "+buyer);
+        map.put("body", orderDetailMessage);
+        map.put("image", Images.NEW_ORDER);
+        return map;
+    }
+
+    private List<String>  getTokens(UserRole role) {
+        List<String> tokens = null;
         try {
-
             List<User> userList = userRepo.findByRolesContains(ADMIN, null);
-            List<String> tokens = userList.stream().map(user ->user.getToken()).collect(Collectors.toList());
-//            List<String> adminUserList = userRepo.findToken(ADMIN.name());
-            log.info("###################");
-            log.info(String.valueOf(tokens.size()));
-            Map<String, String> map = new HashMap<>();
-            map.put("buyer", buyerName);
-            map.put("message", message);
-            firebasePushNotificationService.sendBulkPushMessage(map, tokens);
-
+            tokens = userList.stream().map(user -> user.getToken()).collect(Collectors.toList());
         } catch (Exception e) {
             log.error(e.getMessage());
         }
 
+        return tokens;
     }
 
 
@@ -456,7 +461,7 @@ public class OrderService {
 //                orderDetailsRepository.saveAll(productDeliveries);
                 orderRepo.save(order);
             }
-            notifyAdmin(order.getUser().getUserName(), "Return order request");
+//            notifyAdmin(order.getUser().getUserName(), "Return order request");
             WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
             webSocketMessageModel.setName(String.valueOf(id));
 //        webSocketMessageSender.notifyUpdateOrderToUser(order.getUser().getPhone(), "/topic/order/update/", webSocketMessageModel);
@@ -605,10 +610,15 @@ public class OrderService {
         try {
             Order order = orderRepo.getById(updateOrderRs.getOrderId());
             List<User> list = userRepo.findUserByPhoneIn(updateOrderRs.getSellerPhones());
-            List<String> tokens = list.stream().map(user -> user.getToken()).collect(Collectors.toList());
+            List<OrderDetails> orderDetails = orderDetailsRepository.findProductDeliveryByOrder(order);
+            String productDetailedMessage = "";
+            for(OrderDetails orderDetails1 : orderDetails){
+                productDetailedMessage = productDetailedMessage+ orderDetails1.getProduct().getName() + "-"+orderDetails1.getQuantity() + "  |  ";
+            }
             Map<String, String> data = new HashMap<>();
-            data.put("order_status", "New order received");
-            data.put("title", "MELAA | Grocery App");
+            data.put("title", "New order arrived");
+            data.put("body", productDetailedMessage);
+            data.put("image", Images.NEW_ORDER);
             order.setOrderStatus(updateOrderRs.getStatus());
             for (String phone : updateOrderRs.getSellerPhones()) {
                 OrderSeller orderShopMapped = new OrderSeller();
@@ -620,7 +630,8 @@ public class OrderService {
             }
 
             try {
-                firebasePushNotificationService.notifyAllAdmin(tokens, updateOrderRs.getStatus().name(), null);
+                List<String> tokens = getTokens(SELLER);
+                firebasePushNotificationService.sendBulkPushMessage(prepareMap(productDetailedMessage, "Melaa"),tokens);
             } catch (Exception e) {
                 log.error("----------->> Failed to send notification to sellers due to {} ", e.getLocalizedMessage());
             }
@@ -660,6 +671,7 @@ public class OrderService {
             orderDetailsModel.setLongitude(order.getLongitude());
             orderDetailsModel.setAddressLine(order.getAddressLine());
             orderDetailsModel.setOrderStatus(order.getOrderStatus());
+            orderDetailsModel.setLandmark(order.getLandmark());
             Address address = null;
             orderDetailsModel.setAddressModel(convertIntoAddressModel(address));
             List<ProductOrderDetails> deliveryProductList = new ArrayList<>();
@@ -760,9 +772,16 @@ public class OrderService {
             }
             order.setModifiedDate(new Date());
             orderRepo.save(order);
-            sendOrderUpdateNotification(OrderStatus.ACCEPTED, "Order accepted", null, order.getUser().getToken());
+            Map<String,String> data = new HashMap<>();
+            data.put("title", "New order arrived | Seller - "+updateOrderRs.getSellerPhones().stream().collect(Collectors.toList()));
+            data.put("body", "Buyer - "+updateOrderRs.getBuyer());
+            data.put("image", Images.ORDER_ACCEPTED);
             WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
             webSocketMessageModel.setName(String.valueOf(updateOrderRs.getOrderId()));
+            User deliveryAgent = userRepo.findUserByPhone(updateOrderRs.getDeliveryAgent());
+            List<String> tokens = new ArrayList<>();
+            tokens.add(deliveryAgent.getToken());
+            firebasePushNotificationService.sendBulkPushMessage(data,tokens);
             webSocketMessageSender.notifyUpdateOrderToUser(order.getUser().getPhone(), "/topic/order/update/", webSocketMessageModel);
             return GlobalResponse.getSuccess(true);
         } catch (Exception e) {

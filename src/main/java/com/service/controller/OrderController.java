@@ -2,7 +2,6 @@ package com.service.controller;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.service.constants.enums.OrderStatus;
-import com.service.entities.Order;
 import com.service.entities.User;
 import com.service.jwt.JwtTokenUtility;
 import com.service.model.*;

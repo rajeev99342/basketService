@@ -68,5 +68,7 @@ public class Order {
     @Column(name = "ADDRESS")
     private String addressLine;
 
+    @Column(name = "LANDMARK")
+    private String landmark;
 
 }
