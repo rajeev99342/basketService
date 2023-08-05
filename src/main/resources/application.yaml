@@ -1,6 +1,6 @@
 server:
   address: 0.0.0.0
-  port: 9001
+  port: 8080
 
 spring:
   application:
@@ -11,7 +11,7 @@ spring:
     username: root
 #    password: YIqfJBkVtz6QP0tgI4Fq
 #    url: jdbc:mysql://db.cwdsaavl8v7o.ap-south-1.rds.amazonaws.com:3306/store?createDatabaseIfNotExist=true
-    url: jdbc:mysql://localhost:3306/store?createDatabaseIfNotExist=true
+    url: jdbc:mysql://103.104.183.122:3306/store?createDatabaseIfNotExist=true
 #    username: admin
     password: root
   jpa:
