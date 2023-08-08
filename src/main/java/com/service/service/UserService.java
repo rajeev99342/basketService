@@ -4,15 +4,15 @@ import com.service.constants.enums.OrderStatus;
 import com.service.constants.enums.UserRole;
 import com.service.constants.enums.Status;
 import com.service.entities.Address;
+import com.service.entities.Order;
+import com.service.entities.OrderDetails;
 import com.service.entities.User;
 import com.service.jwt.JwtTokenUtility;
 import com.service.jwt.MyUserDetailsService;
 import com.service.model.*;
 import com.service.model.interfacemodel.ICountAmount;
 import com.service.model.interfacemodel.IUserModel;
-import com.service.repos.AddressRepo;
-import com.service.repos.OrderRepo;
-import com.service.repos.UserRepo;
+import com.service.repos.*;
 import com.service.utilites.EncryptDecrypt;
 import com.service.utilites.UserFunction;
 import lombok.extern.slf4j.Slf4j;
@@ -24,12 +24,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -44,6 +42,14 @@ import java.util.stream.Collectors;
 @Component
 public class UserService {
 
+    @Value(value = "${melaa.deleteUserOrderBatchSize}")
+    int batchSize;
+
+    @Autowired
+    OrderSellerRepo orderSellerRepo;
+
+    @Autowired
+    private OrderDetailsRepository orderDetailsRepository;
     @Autowired
     private OrderRepo orderRepo;
     @Autowired
@@ -71,7 +77,8 @@ public class UserService {
     @Autowired
     EncryptDecrypt encryptDecrypt;
     @Value("${melaa.master}")
-    private  String masterPhone;
+    private String masterPhone;
+
     private void authenticate(String username, String password) throws Exception {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
@@ -129,7 +136,7 @@ public class UserService {
                 user.setRoles(userCredentials.getRoles());
             } else {
                 user.setRoles(new ArrayList<UserRole>(Collections.singleton(UserRole.CUSTOMER)));
-                if(userCredentials.getMobile().equals(masterPhone)){
+                if (userCredentials.getMobile().equals(masterPhone)) {
                     List<UserRole> roles = user.getRoles();
                     roles.add(UserRole.MASTER);
                     user.setRoles(roles);
@@ -247,7 +254,7 @@ public class UserService {
     }
 
     public User getUserByPhoneLocal(String userPhone) {
-       return  userRepo.findUserByPhone(userPhone);
+        return userRepo.findUserByPhone(userPhone);
     }
 
 
@@ -380,5 +387,33 @@ public class UserService {
             return new GlobalResponse("user not found", HttpStatus.NOT_FOUND.value(), false, null);
         }
 
+    }
+
+    public void deleteAccount(Authentication authentication) {
+        if (!(authentication instanceof AnonymousAuthenticationToken)) {
+            try {
+                String currentUserName = authentication.getName();
+                User user = userRepo.findUserByPhone(currentUserName);
+                Pageable pageable = PageRequest.of(0, batchSize); // First page of entities
+                Page<Order> orderList = orderRepo.getCountByUserID(user.getId(), pageable);
+                while (!orderList.isEmpty()) {
+                    List<Long> orderIds = orderList.stream().map(order -> order.getId()).collect(Collectors.toList());
+
+                    List<OrderDetails> orderDetails = orderDetailsRepository.findOrderDetailsList(orderIds);
+                    if(orderDetails.size() > 0)
+                    orderDetailsRepository.deleteByOrderId(orderIds);
+                    orderSellerRepo.deleteByOrderId(orderIds);
+                    orderRepo.deleteAllById(orderIds);
+                    pageable = orderList.nextPageable();
+                    orderList = orderRepo.getCountByUserID(user.getId(), pageable);
+                }
+                userRepo.delete(user);
+                System.out.println("deleted");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+//            orderRepo.deleteAllOrderByUser(user.getId());
+        }
     }
 }

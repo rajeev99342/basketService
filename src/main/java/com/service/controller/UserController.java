@@ -163,4 +163,12 @@ public class UserController {
         return GlobalResponse.getSuccess(userRoles);
     }
 
+
+    @CrossOrigin(origins = "*")
+    @DeleteMapping("/deleteAccount")
+    public GlobalResponse deleteAccount( Authentication authentication) {
+        userService.deleteAccount(authentication);
+        return GlobalResponse.getSuccess(userRoles);
+    }
+
 }

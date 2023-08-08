@@ -2,6 +2,7 @@ package com.service.repos;
 
 import com.service.entities.OrderSeller;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -16,6 +17,11 @@ public interface OrderSellerRepo extends JpaRepository<OrderSeller,Long>{
 
     @Query(value = "SELECT * FROM `order_seller` AS os WHERE os.SHOP_STATUS= :status AND os.order_id = :id", nativeQuery = true)
     List<OrderSeller> findAllByStatusAndOrderId(@Param("status") String status,@Param("id")  Long id);
+
+
+    @Modifying
+    @Query(value = "SELECT FROM `order_seller` AS os WHERE os.order_id in (:ids)", nativeQuery = true)
+    void deleteByOrderId(@Param("ids")  List<Long> ids);
 
 
 }

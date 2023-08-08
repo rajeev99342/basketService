@@ -14,8 +14,9 @@ public class Cart {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
+
     @JoinColumn(name = "USER_ID")
-    @OneToOne
+    @OneToOne(cascade = CascadeType.REMOVE)
     User user;
 
     @Column(name = "CREATED_AT")

@@ -6,10 +6,7 @@ import com.service.entities.Category;
 import com.service.entities.Image;
 import com.service.entities.Product;
 import com.service.entities.TopCategory;
-import com.service.model.CategoryDisplayModel;
-import com.service.model.DisplayProductModel;
-import com.service.model.GlobalResponse;
-import com.service.model.HomePageModel;
+import com.service.model.*;
 import com.service.repos.CategoryRepo;
 import com.service.repos.ImageRepository;
 import com.service.repos.ProductRepo;
@@ -22,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +41,7 @@ public class HomePageHandlerImpl implements HomePageHandler {
 
     private final ImageRepository imageRepository;
     private final ImageServiceImpl imageService;
+
     public HomePageHandlerImpl(ProductRepo productRepo, TopCategoryRepo topCategoryRepo, ProductService productService, CategoryRepo categoryRepo, CategoryService categoryService, ImageRepository imageRepository, ImageServiceImpl imageService) {
         this.productRepo = productRepo;
         this.topCategoryRepo = topCategoryRepo;
@@ -72,7 +71,7 @@ public class HomePageHandlerImpl implements HomePageHandler {
                     PageRequest.of(0, 10);
             List<Product> products = productRepo.findProductByCategory_IdAndIsValid(cat.getId(), true, pageable);
             List<DisplayProductModel> displayProductModels = productService.convertProductIntoDisplayProductV2(products);
-            if(displayProductModels.size() > 0){
+            if (displayProductModels.size() > 0) {
                 displayProductModels.add(null);
                 StaticMapConfig.HOME_PAGE_CATEGORY_PRODUCTS.put(cat.getCatName(), displayProductModels);
             }
@@ -81,21 +80,48 @@ public class HomePageHandlerImpl implements HomePageHandler {
 
     @Override
     public Map<String, List<DisplayProductModel>> getHomePageData(int pageIndex, int pageSize) {
-        Map<String,List<DisplayProductModel>> productMap = new HashMap<>();
+        List<HomePageData> homePageDataList = new ArrayList<>();
+        Map<String, List<DisplayProductModel>> productMap = new HashMap<>();
         Pageable pageable =
-                PageRequest.of(pageIndex, pageSize,Sort.by("catName").ascending());
+                PageRequest.of(pageIndex, pageSize, Sort.by("catName").ascending());
 
         Pageable pageableForProduct =
                 PageRequest.of(pageIndex, 10);
 
-       List<Category> categories = categoryRepo.findAll(pageable).getContent();
-       for(Category category : categories){
-           List<Product> products = productRepo.findProductByCategory_IdAndIsValid(category.getId(),true,pageableForProduct);
-           List<DisplayProductModel> displayProducts = productService.convertProductIntoDisplayProduct(products);
-           displayProducts.add(null);
-           productMap.put(category.getCatName(),displayProducts);
-       }
-       return productMap;
+        List<Category> categories = categoryRepo.findAll(pageable).getContent();
+        for (Category category : categories) {
+            HomePageData homePageData = new HomePageData();
+            List<Product> products = productRepo.findProductByCategory_IdAndIsValid(category.getId(), true, pageableForProduct);
+            List<DisplayProductModel> displayProducts = productService.convertProductIntoDisplayProduct(products);
+            homePageData.setCategory(category);
+            homePageData.setDisplayProductModelList(displayProducts);
+            homePageDataList.add(homePageData);
+            productMap.put(category.getCatName(), displayProducts);
+        }
+        return productMap;
+    }
+
+
+    @Override
+    public List<HomePageData> getHomePageDataV2(int pageIndex, int pageSize) {
+        List<HomePageData> homePageDataList = new ArrayList<>();
+        Pageable pageable =
+                PageRequest.of(pageIndex, pageSize, Sort.by("updatedAt").ascending());
+
+        Pageable pageableForProduct =
+                PageRequest.of(pageIndex, 10);
+
+        List<Category> categories = categoryRepo.findAll(pageable).getContent();
+        for (Category category : categories) {
+            HomePageData homePageData = new HomePageData();
+            List<Product> products = productRepo.findProductByCategory_IdAndIsValid(category.getId(), true, pageableForProduct);
+            List<DisplayProductModel> displayProducts = productService.convertProductIntoDisplayProduct(products);
+            displayProducts.add(null);
+            homePageData.setCategory(category);
+            homePageData.setDisplayProductModelList(displayProducts);
+            homePageDataList.add(homePageData);
+        }
+        return homePageDataList;
     }
 
     @Override

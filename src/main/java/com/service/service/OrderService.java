@@ -171,7 +171,9 @@ public class OrderService {
         cartDetailsRepo.deleteCartDetailsByIDs(itemIds);
         log.info(">>>>>>>>>>>>>> Order placed by user : {} " + order.getUser().getPhone());
         List<String> tokens = getTokens(ADMIN);
-        firebasePushNotificationService.sendBulkPushMessage(prepareMap(orderDetailMessage, user.getUserName()),tokens);
+        if(tokens.size() > 0){
+            firebasePushNotificationService.sendBulkPushMessage(prepareMap(orderDetailMessage, user.getUserName()),tokens);
+        }
         WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
         webSocketMessageModel.setName(String.valueOf(order.getId()));
         String message = unsuccessfulOrderName != null ? "Order successfully place " + "but these items are out of stocks " + unsuccessfulOrderName : "Order placed successfully";

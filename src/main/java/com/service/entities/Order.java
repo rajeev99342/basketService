@@ -5,7 +5,9 @@ import com.service.constants.enums.PaymentModeEnum;
 import com.service.constants.enums.YESNO;
 import lombok.Data;
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Entity
@@ -16,7 +18,7 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.REMOVE)
     @JoinColumn(name = "USER_ID",referencedColumnName = "USER_ID")
     private User user;
 
@@ -70,5 +72,11 @@ public class Order {
 
     @Column(name = "LANDMARK")
     private String landmark;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.REMOVE,orphanRemoval = true)
+    private List<OrderDetails> children = new ArrayList<>();
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.REMOVE,orphanRemoval = true)
+    private List<OrderSeller> orderSellers = new ArrayList<>();
 
 }

@@ -23,7 +23,7 @@ public class HomePageController {
             @RequestParam(defaultValue = "10") int size
     ) {
         StaticMapConfig staticMapConfig = new StaticMapConfig();
-        return GlobalResponse.getSuccess(homePageHandler.getHomePageData(page,size));
+        return GlobalResponse.getSuccess(homePageHandler.getHomePageDataV2(page,size));
     }
 
 }

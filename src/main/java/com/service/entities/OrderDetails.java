@@ -24,7 +24,7 @@ public class OrderDetails {
     private Integer quantity;
 
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "ORDER_ID",referencedColumnName = "ORDER_ID")
     private Order order;
 

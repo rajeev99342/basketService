@@ -30,10 +30,10 @@ services:
       mode: replicated
       replicas: 3
     environment:
-      - spring.datasource.url=jdbc:mysql://103.104.183.122:3306/store2?createDatabaseIfNotExist=true
-      - spring.datasource.password=root
-      - spring.datasource.username=root
-#      SPRING_PROFILES_ACTIVE: prod
+#      - spring.datasource.url=jdbc:mysql://103.104.183.122:3306/store2?createDatabaseIfNotExist=true
+#      - spring.datasource.password=root
+#      - spring.datasource.username=root
+      SPRING_PROFILES_ACTIVE: prod
     volumes:
       - mysql-data:/app/image
     networks:
