@@ -32,9 +32,7 @@ public class GlobalResponse {
         return new GlobalResponse(message, HttpStatus.OK.value(), true, null);
     }
     public static GlobalResponse getFailure(String message){
-        String messages = "Failed due to %s";
-        String.format(messages, message);
-        return new GlobalResponse(messages, HttpStatus.INTERNAL_SERVER_ERROR.value(), Boolean.FALSE, null);
+        return new GlobalResponse(message, HttpStatus.INTERNAL_SERVER_ERROR.value(), Boolean.FALSE, null);
     }
 
     public Object getBody(){

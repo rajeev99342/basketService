@@ -44,4 +44,7 @@ public class User extends BaseEntity {
     @Column(name = "lon")
     private String lon;
 
+    @Column(name = "isActive")
+    private Boolean isActive;
+
 }

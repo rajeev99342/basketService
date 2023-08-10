@@ -11,11 +11,14 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +28,8 @@ import java.util.List;
 @PropertySource("classpath:application.yaml")
 //@EnableDiscoveryClient
 public class ServiceApplication  implements CommandLineRunner {
+	@Autowired
+	private DataSource dataSource;
 
 	@Value("${spring.datasource.url}")
 	private  String mysql;
@@ -69,5 +74,8 @@ public class ServiceApplication  implements CommandLineRunner {
 //		homePageHandler.putHomePageData();
 		System.out.println("++++++++++++++++++++++++++++++ Melaa Grocery Store +++++++++++++++++++++++++++++++++++");
 //		System.out.println(mysql);
+//		ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator(false, false, "UTF-8", new ClassPathResource("orderCascadeDelete.sql"));
+//		resourceDatabasePopulator.execute(dataSource);
+
 	}
 }

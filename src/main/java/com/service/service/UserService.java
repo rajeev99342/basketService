@@ -56,6 +56,8 @@ public class UserService {
     private ApplicationContext applicationContext;
 
     @Autowired
+    private CartRepo cartRepo;
+    @Autowired
     UserFunction userFunction;
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -108,9 +110,9 @@ public class UserService {
             for (GrantedAuthority grantedAuthority : userDetails.getAuthorities()) {
                 roles.add(grantedAuthority.getAuthority());
             }
-            User roleUser = userRepo.findUserByPhone(userModel.getPhone());
+            User user = userRepo.findUserByPhone(userModel.getPhone());
             userModel.setRoles(roles);
-            userModel.setLoggedInAs(roleUser.getLoggedInAs());
+            userModel.setLoggedInAs(user.getLoggedInAs());
             globalResponse.setMessage("Login successfully");
             globalResponse.setStatus(true);
             globalResponse.setHttpStatusCode(HttpStatus.OK.value());
@@ -128,10 +130,13 @@ public class UserService {
             User user = userRepo.findUserByPhone(userCredentials.getMobile());
             if (!userCredentials.getPassword().equals(userCredentials.getConfirmedPassword())) {
                 throw new Exception("Password doesn't matches");
-            } else if (null != user) {
+            } else if (null != user && user.getIsActive()) {
                 throw new Exception("User already registered by this phone number, try to login");
+            } else if (null != user && !user.getIsActive()) {
+                user.setIsActive(true);
+            } else {
+                user = new User();
             }
-            user = new User();
             if (null != userCredentials.getRoles() && userCredentials.getRoles().size() > 0) {
                 user.setRoles(userCredentials.getRoles());
             } else {
@@ -170,6 +175,9 @@ public class UserService {
             globalResponse.setStatus(true);
             globalResponse.setMessage(Status.SUCCESS.toString());
             User user = userRepo.findUserByPhone(userCredentials.getMobile());
+            if (!user.getIsActive()) {
+                return GlobalResponse.getFailure("User not found");
+            }
             user.setUserName(userCredentials.getName());
             user.setPhone(userCredentials.getMobile());
             user.setPassword(bcryptEncoder.encode(userCredentials.getPassword()));
@@ -229,6 +237,9 @@ public class UserService {
     public UserCredentials isUserPresent(String userPhone) {
         try {
             User user = userRepo.findUserByPhone(userPhone);
+            if (!user.getIsActive()) {
+                return null;
+            }
             UserCredentials userCredentials = new UserCredentials();
             if (null != user) {
                 userCredentials.setMobile(user.getPhone());
@@ -292,6 +303,9 @@ public class UserService {
 
     public GlobalResponse signInAs(UserRole role, String phone) {
         User user = userRepo.findUserByPhone(phone);
+        if (!user.getIsActive()) {
+            return new GlobalResponse("User not found", HttpStatus.NOT_FOUND.value(), false, null);
+        }
         user.setLoggedInAs(role);
         userRepo.save(user);
         log.info(">>>>>>>>>>>>>> {} is logged in", phone);
@@ -394,25 +408,16 @@ public class UserService {
             try {
                 String currentUserName = authentication.getName();
                 User user = userRepo.findUserByPhone(currentUserName);
-                Pageable pageable = PageRequest.of(0, batchSize); // First page of entities
-                Page<Order> orderList = orderRepo.getCountByUserID(user.getId(), pageable);
-                while (!orderList.isEmpty()) {
-                    List<Long> orderIds = orderList.stream().map(order -> order.getId()).collect(Collectors.toList());
-
-                    List<OrderDetails> orderDetails = orderDetailsRepository.findOrderDetailsList(orderIds);
-                    if(orderDetails.size() > 0)
-                    orderDetailsRepository.deleteByOrderId(orderIds);
-                    orderSellerRepo.deleteByOrderId(orderIds);
-                    orderRepo.deleteAllById(orderIds);
-                    pageable = orderList.nextPageable();
-                    orderList = orderRepo.getCountByUserID(user.getId(), pageable);
-                }
+//                user.setIsActive(false);
+//                userRepo.save(user);
                 userRepo.delete(user);
-                System.out.println("deleted");
+                orderRepo.deleteAllByUser(user.getId());
+                cartRepo.deleteAllByUser(user);
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
+            log.info("Delete user");
 //            orderRepo.deleteAllOrderByUser(user.getId());
         }
     }

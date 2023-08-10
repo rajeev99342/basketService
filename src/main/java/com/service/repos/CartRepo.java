@@ -8,4 +8,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CartRepo extends JpaRepository<Cart,Long> {
     Cart findCartByUser(User user);
+
+    void deleteAllByUser(User user);
 }
