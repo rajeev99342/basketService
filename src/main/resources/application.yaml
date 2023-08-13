@@ -1,6 +1,6 @@
 server:
   address: 0.0.0.0
-  port: 0
+  port: 8080
 
 spring:
   application:
@@ -69,7 +69,7 @@ melaa:
   storage:
 #    type: s3
     type: file
-  storagePath: C:/Users/Dell/Pictures/product_image/
+  storagePath: D:/product_image/
   master: 7759856927
   category:
     id: 1
