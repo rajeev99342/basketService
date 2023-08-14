@@ -142,7 +142,7 @@ public class ProductService {
 
     }
 
-    private void saveQuantityList(List<QuantityModel> quantityModelList, Product product) throws Exception {
+    public void saveQuantityList(List<QuantityModel> quantityModelList, Product product) throws Exception {
         if (quantityModelList != null && quantityModelList.size() > 0) {
             List<Quantity> quantities = quantityModelList.stream().map(q -> new Quantity(q.getId(), product, q.getUnit(), q.getQuantity(), q.getPrice(),q.getInStock(),q.getQuantityInPacket(),q.getQuantityInPacketUnit())).collect(Collectors.toList());
             quantityRepo.saveAll(quantities);

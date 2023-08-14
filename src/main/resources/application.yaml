@@ -1,6 +1,6 @@
 server:
-  address: 0.0.0.0
-  port: 8080
+#  address: 0.0.0.0
+  port: 9100
 
 spring:
   application:
@@ -8,7 +8,7 @@ spring:
   datasource:
     initialization-mode: always
     username: root
-    url: jdbc:mysql://localhost:3306/store?createDatabaseIfNotExist=true
+    url: jdbc:mysql://localhost:3306/store2?createDatabaseIfNotExist=true
     password: root
   jpa:
     defer-datasource-initialization: true
@@ -70,6 +70,7 @@ melaa:
 #    type: s3
     type: file
   storagePath: D:/product_image/
+  storagePathNew: D:/product_image_new/
   master: 7759856927
   category:
     id: 1
