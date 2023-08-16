@@ -53,12 +53,13 @@ public class SellerServiceHandlerImpl implements SellerServiceHandler {
             if (seller == null) {
                 return GlobalResponse.getFailure("Seller not found, Should be customer first");
             }
-
             SellerDetails sellerDetails = sellerDetailsRepo.findByShopName(sellerDetailModel.getShopName());
             if (sellerDetails != null & sellerDetailModel.getId() == null) {
                 String message = String.format("Shop with %s already exist", sellerDetails.getShopName());
                 return GlobalResponse.getSuccess(message);
             }
+            List<UserRole> roles = seller.getRoles();
+            roles.add(UserRole.SELLER);
             sellerDetails = new SellerDetails();
             sellerDetails.setGst(sellerDetailModel.getGst());
             sellerDetails.setPhone(sellerDetailModel.getPhone());
@@ -68,6 +69,7 @@ public class SellerServiceHandlerImpl implements SellerServiceHandler {
             sellerDetails.setShopType(sellerDetailModel.getShopType());
             sellerDetails.setShopOwnerName(sellerDetailModel.getShopOwnerName());
             sellerDetailsRepo.save(sellerDetails);
+            userRepo.save(seller);
             return GlobalResponse.getSuccess(sellerDetails.getId());
         } catch (Exception ex) {
             log.error("----------->> Failed to save seller details due to  : {}", ex.getLocalizedMessage());

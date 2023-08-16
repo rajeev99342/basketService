@@ -303,7 +303,7 @@ public class UserService {
 
     public GlobalResponse signInAs(UserRole role, String phone) {
         User user = userRepo.findUserByPhone(phone);
-        if (!user.getIsActive()) {
+        if (user.getIsActive() != null && !user.getIsActive()) {
             return new GlobalResponse("User not found", HttpStatus.NOT_FOUND.value(), false, null);
         }
         user.setLoggedInAs(role);

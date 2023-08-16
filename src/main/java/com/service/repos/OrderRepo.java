@@ -45,7 +45,7 @@ public interface OrderRepo extends JpaRepository<Order, Long> {
     @Query(value = "SELECT * FROM `order` AS o WHERE EXISTS ( SELECT 1 FROM `order_seller` AS shop WHERE o.order_id = shop.order_id AND shop.shop_status = :status AND shop.seller_phone= :seller)", nativeQuery = true)
     List<Order> findOrderFromShops(@Param("seller") String seller, @Param("status") String status, Pageable pageable);
 
-    @Query(value = "SELECT * FROM `order` AS o WHERE EXISTS ( SELECT 1 FROM `order_seller` AS shop WHERE o.order_id = shop.order_id AND shop.shop_status = :status)", nativeQuery = true)
+    @Query(value = "SELECT * FROM `order` AS o  where o.status = :status", nativeQuery = true)
     List<Order> findOrderFromShopsForAdmin(@Param("status") String status, Pageable pageable);
 
 

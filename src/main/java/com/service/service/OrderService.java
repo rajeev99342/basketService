@@ -91,7 +91,7 @@ public class OrderService {
         User user = userRepo.findUserByPhone(orderModel.getUserPhone());
         Address address = addressRepo.findAddressByUserId(user.getId());
         Order order = new Order();
-        LocalDate localDate = LocalDate.now().plusDays(2);
+        LocalDate localDate = LocalDate.now().plusDays(1);
         Date expectedDate = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
         order.setExpectedDeliveryDate(expectedDate);
         order.setUser(user);

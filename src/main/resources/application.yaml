@@ -8,7 +8,7 @@ spring:
   datasource:
     initialization-mode: always
     username: root
-    url: jdbc:mysql://localhost:3306/store2?createDatabaseIfNotExist=true
+    url: jdbc:mysql://localhost:3306/store?createDatabaseIfNotExist=true
     password: root
   jpa:
     defer-datasource-initialization: true
