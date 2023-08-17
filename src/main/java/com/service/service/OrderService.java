@@ -382,9 +382,12 @@ public class OrderService {
                     orderDetailsModel.setAddressLine(order.getAddressLine());
                     orderDetailsModel.setOrderStatus(order.getOrderStatus());
                     Address address = null;
+                    orderDetailsModel.setLandmark(order.getLandmark());
                     orderDetailsModel.setAddressModel(convertIntoAddressModel(address));
                     List<ProductOrderDetails> deliveryProductList = new ArrayList<>();
                     Double totalCost = 0.00;
+                    List<SellerDetailModel> sellerModelList = getSellerDetails(order);
+                    orderDetailsModel.setSellerDetailModels(sellerModelList);
                     List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder(order);
                     for (OrderDetails productDelivery : productDeliveries) {
                         ProductOrderDetails deliveryProductDetails = new ProductOrderDetails();
@@ -401,6 +404,7 @@ public class OrderService {
                     orderDetailsModel.setLastModifiedDate(order.getModifiedDate());
                     orderDetailsModel.setDeliveryProducts(deliveryProductList);
                     orderDetailsModel.setTotalCost(order.getTotalCost());
+                    orderDetailsModel.setDeliveryAgent(order.getDeliveryAgent());
                     orderDetailsModelList.add(orderDetailsModel);
                 }
 
@@ -681,6 +685,7 @@ public class OrderService {
             List<SellerDetailModel> sellerModelList = getSellerDetails(order);
             List<OrderDetails> productDeliveries = orderDetailsRepository.findProductDeliveryByOrder(order);
             orderDetailsModel.setSellerDetailModels(sellerModelList);
+            orderDetailsModel.setLandmark(order.getLandmark());
             for (OrderDetails productDelivery : productDeliveries) {
                 ProductOrderDetails deliveryProductDetails = new ProductOrderDetails();
                 deliveryProductDetails.setTotalProductCount(productDelivery.getQuantity());
@@ -796,7 +801,9 @@ public class OrderService {
     private List<SellerDetailModel> getSellerDetails(Order order) {
         List<SellerDetails> sellerDetailsList = null;
         if(order.getOrderStatus().equals(OrderStatus.CONFIRMED_FROM_SELLER)){
-             sellerDetailsList = sellerDetailsRepo.sellerDetailsByOrderIdAndStatus(order.getId(),OrderStatus.CONFIRMED_FROM_SELLER.name());
+            sellerDetailsList = sellerDetailsRepo.sellerDetailsByOrderId(order.getId());
+
+//             sellerDetailsList = sellerDetailsRepo.sellerDetailsByOrderIdAndStatus(order.getId(),OrderStatus.CONFIRMED_FROM_SELLER.name());
         }else{
             sellerDetailsList = sellerDetailsRepo.sellerDetailsByOrderId(order.getId());
         }
