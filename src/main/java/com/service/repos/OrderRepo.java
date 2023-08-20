@@ -50,7 +50,7 @@ public interface OrderRepo extends JpaRepository<Order, Long> {
 
 
     @Query(value = "SELECT * FROM `order` AS o WHERE o.delivery_agent_id = :id and o.status = :status", nativeQuery = true)
-    List<Order> findAllOrderByDelivery(@Param("status") String status, @Param("id")  Long id);
+    List<Order> findAllOrderByDelivery(@Param("status") String status, @Param("id")  Long id,Pageable pageable);
 
 
     @Query(value = "SELECT count(*) FROM `order` AS o WHERE o.user_id = :userId", nativeQuery = true)

@@ -171,7 +171,7 @@ public class OrderService {
         cartDetailsRepo.deleteCartDetailsByIDs(itemIds);
         log.info(">>>>>>>>>>>>>> Order placed by user : {} " + order.getUser().getPhone());
         List<String> tokens = getTokens(ADMIN);
-        if(tokens.size() > 0){
+        if(tokens.size() > 0 && !tokens.contains(null)){
             firebasePushNotificationService.sendBulkPushMessage(prepareMap(orderDetailMessage, user.getUserName()),tokens);
         }
         WebSocketMessageModel webSocketMessageModel = new WebSocketMessageModel();
@@ -758,7 +758,7 @@ public class OrderService {
         Pageable pageable = PageRequest.of(page, size, Sort.by("order_date").descending());
         User user = userRepo.findUserByPhone(deliveryPhone);
         if(user.getRoles().contains(UserRole.DELIVERY)){
-            List<Order> orderList = orderRepo.findAllOrderByDelivery(status.name(), user.getId());
+            List<Order> orderList = orderRepo.findAllOrderByDelivery(status.name(), user.getId(),pageable);
             return getProductList(orderList);
         }else{
             log.error("User is not delivery agent : {} ",user.getPhone());
